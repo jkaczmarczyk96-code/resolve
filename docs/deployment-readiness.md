@@ -15,3 +15,10 @@ Access check on 2026-09-11: GitHub connector account is `jkaczmarczyk96-code`, w
 Production configuration needs the hosted Supabase public URL/publishable key, trusted `SITE_URL`, and server-only Nebius/Tavily keys. Keep production and preview secrets and data separate. The current worker signing token is derived from the Nebius key; pending human requests require that key to remain stable. Local success does not prove hosted email or function lifecycle behavior.
 
 References: [Vercel function limits](https://vercel.com/docs/functions/limitations), [Next after](https://nextjs.org/docs/app/api-reference/functions/after), and the project's [authentication guide](authentication.md).
+
+
+## Hosted setup — 2026-09-12
+
+Source is pushed to the private `jkaczmarczyk96-code/resolve` repository, branch `master`. Vercel Hobby is verified; the assigned domain is `resolve-nine.vercel.app`. Production environment configuration contains the hosted public Supabase URL/key, SITE_URL, and server-only Nebius/Tavily secrets. No deployment has been published.
+
+The dedicated Free Supabase project `omdtlsmhxsudxqvoahfz` (`resolve`, Frankfurt) is created and linked. All six migrations applied successfully. Auth Site URL, callback allowlist and password policy are configured. Custom confirmation/recovery templates were rejected by Supabase because the Free default email provider disallows template changes; the failed request was followed by a successful settings-only update. Custom SMTP is required before applying templates and validating hosted registration/recovery. User proposed Seznam SMTP; an ignored `.env.hosted.local` contains empty SMTP_USER, SMTP_PASSWORD and SMTP_ADMIN_EMAIL fields for secure local entry. The unrelated visa-assist project was not modified. Hosted accounts and full workflows remain untested.
