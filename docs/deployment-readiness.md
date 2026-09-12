@@ -23,3 +23,10 @@ The dedicated Free Supabase project `omdtlsmhxsudxqvoahfz` (`resolve`, Frankfurt
 ## SMTP and deployment — 2026-09-12
 
 Seznam SMTP authentication was verified over TLS without sending a message. Custom SMTP and both email templates were then accepted by hosted Supabase. The Vercel Git integration is connected to the private repository. Initial production deployment succeeded but HTTP smoke checks caught a legacy anon key being selected where the application requires the publishable key; the configuration was corrected to the actual publishable key and rebuilt. No service-role key is used in the application. Email delivery, signup/recovery and an authenticated full AI workflow still require hosted verification.
+
+
+## Hosted workflow test — 2026-09-12
+
+Problem `9693f58e-5560-4980-9795-63476e226f9f` is an explicitly fictional video-meeting scenario in the user's account. First attempt failed at intake with INVALID_OUTPUT; the original response was not logged and the cause remains unconfirmed. Both a baseline and the exact Czech intake passed locally against live Nebius. Commit 631d2dc adds safe stage-only response diagnostics and the Czech live regression; 214 offline tests, lint, typecheck and production build passed.
+
+One explicit retry on that deployed commit successfully paused for four human questions. Submitted fictional answers were saved, the same run resumed, and all stages completed (resume 20:26:49, completed 20:27:17 Prague time). UI shows 100%, persisted answers and proposed tasks. Research quality is not yet satisfactory: retrieved sources were poorly relevant, no supported claims were extracted, and the decision abstained with low confidence. The final result also repeats an uncertainty about messaging despite the clarification. These are remaining query/context quality issues, not a demonstrated reliable recommendation. No external messages or task actions were executed. Recovery email flow still needs hosted verification.
