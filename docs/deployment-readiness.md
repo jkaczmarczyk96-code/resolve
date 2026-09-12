@@ -1,12 +1,8 @@
 # GitHub, hosted Supabase and Vercel
 
-The repository currently has no Git remote and no selected hosted projects. Phase 9 adds a GitHub Actions workflow for lint, TypeScript, offline tests and production build. It requires no provider secrets; live paid tests are intentionally separate. `.env.local`, build outputs and test artifacts remain ignored.
+Current production: https://resolve-nine.vercel.app. Source: private GitHub repository `jkaczmarczyk96-code/resolve`, branch `master`. Vercel Hobby and the dedicated Supabase Free project are connected. GitHub Actions run 34699219758 passed lint, TypeScript, all offline tests and production build for commit 77fd216. Local secrets and build/test outputs are ignored.
 
-The next delivery steps are:
-
-1. Select the GitHub repository, review the initial source commit and push. Confirm CI passes.
-2. Select the hosted Supabase project and apply all migrations without importing local test accounts. Configure production Site URL, exact auth callback URLs and the existing confirmation/recovery email templates; configure production email delivery separately. The local TOML does not automatically configure hosted Auth.
-3. Resolve the worker runtime boundary, configure Vercel environment variables, deploy a preview against a separate preview database, then verify signup, recovery, ownership isolation, analysis, questions and continuation before using the production URL.
+Hosted verification: landing/login/register pages return HTTP 200; an unauthenticated API request returns 401 and dashboard navigation redirects to login. The user confirmed successful signup and email confirmation on 2026-09-12. Recovery and the authenticated AI workflow still require hosted verification. Preview environments do not have production credentials; configure an isolated database before preview testing.
 
 The user selected Vercel Hobby on 2026-09-11. The three mutation routes now declare `maxDuration=300`. Their worker budget is 240 seconds measured from the start of the POST handler, including authentication, reservation and claim time, leaving 60 seconds for cancellation and bounded final status writes. Provider calls receive the shared abort signal and no new paid calls or checkpoint writes start after the deadline. Expiry ends the web job as failed; the existing manual retry creates a fresh run and consumes the existing attempt quota. This is not automatic checkpoint recovery. Slow analyses may require another attempt; phase 10 remains the planned durable execution work. Enable Fluid Compute on the selected Hobby project and verify actual hosted completion and timeout behavior before production use.
 
@@ -22,3 +18,8 @@ References: [Vercel function limits](https://vercel.com/docs/functions/limitatio
 Source is pushed to the private `jkaczmarczyk96-code/resolve` repository, branch `master`. Vercel Hobby is verified; the assigned domain is `resolve-nine.vercel.app`. Production environment configuration contains the hosted public Supabase URL/key, SITE_URL, and server-only Nebius/Tavily secrets. No deployment has been published.
 
 The dedicated Free Supabase project `omdtlsmhxsudxqvoahfz` (`resolve`, Frankfurt) is created and linked. All six migrations applied successfully. Auth Site URL, callback allowlist and password policy are configured. Custom confirmation/recovery templates were rejected by Supabase because the Free default email provider disallows template changes; the failed request was followed by a successful settings-only update. Custom SMTP is required before applying templates and validating hosted registration/recovery. User proposed Seznam SMTP; an ignored `.env.hosted.local` contains empty SMTP_USER, SMTP_PASSWORD and SMTP_ADMIN_EMAIL fields for secure local entry. The unrelated visa-assist project was not modified. Hosted accounts and full workflows remain untested.
+
+
+## SMTP and deployment — 2026-09-12
+
+Seznam SMTP authentication was verified over TLS without sending a message. Custom SMTP and both email templates were then accepted by hosted Supabase. The Vercel Git integration is connected to the private repository. Initial production deployment succeeded but HTTP smoke checks caught a legacy anon key being selected where the application requires the publishable key; the configuration was corrected to the actual publishable key and rebuilt. No service-role key is used in the application. Email delivery, signup/recovery and an authenticated full AI workflow still require hosted verification.
