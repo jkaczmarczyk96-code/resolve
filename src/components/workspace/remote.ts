@@ -9,11 +9,18 @@ export const messages: Record<string, string> = {
   ATTEMPT_LIMIT: "This problem has reached its limit of three attempts.", ALREADY_COMPLETED: "This problem already has a completed analysis.",
   INVALID_INPUT: "Describe your problem using 20–12,000 characters.", CONFLICT: "This request conflicts with an existing run. Refresh the problem list.",
   SERVICE_UNAVAILABLE: "The analysis service is unavailable. Please try again later.", LOAD_FAILED: "Unable to refresh the saved data. Please try again.",
+  NOT_READY: "Finish the analysis before adding a monitoring condition.", MONITOR_LIMIT: "You can have up to five active monitoring conditions.",
 };
 export function errorMessage(code: unknown) { return typeof code === "string" ? messages[code] ?? "The request could not be completed. Please try again." : "The request could not be completed. Please try again."; }
 class RemoteError extends Error {}
 export async function post(url: string, value: unknown) {
   const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(value), signal: AbortSignal.timeout(20_000) });
+  const data: unknown = await response.json();
+  if (!response.ok) throw new RemoteError(errorMessage(typeof data === "object" && data && "error" in data ? data.error : null));
+  return data;
+}
+export async function patch(url: string, value: unknown) {
+  const response = await fetch(url, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(value), signal: AbortSignal.timeout(20_000) });
   const data: unknown = await response.json();
   if (!response.ok) throw new RemoteError(errorMessage(typeof data === "object" && data && "error" in data ? data.error : null));
   return data;

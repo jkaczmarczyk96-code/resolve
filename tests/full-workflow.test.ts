@@ -85,6 +85,16 @@ it("enforces a deadline during task generation", async () => {
   await vi.advanceTimersByTimeAsync(90_001);
   expect(await pending).toMatchObject({ state: "FAILED", error: "TIMEOUT" });
 });
+it("recovers from the last durable checkpoint without rerunning completed agents", async () => {
+  const store = new MemoryFullStore(); const first = fullDependencies(); const request = workflowRequest();
+  first.research.search.mockRejectedValueOnce(new AIError("TIMEOUT"));
+  await expect(runFullWorkflow(request, store, first, { preserveInterrupt: true })).rejects.toMatchObject({ code: "TIMEOUT" });
+  expect(store.history.at(-1)?.state).toBe("RESEARCH");
+  const resumed = fullDependencies();
+  const result = await runFullWorkflow(request, store, resumed, { recover: true, preserveInterrupt: true });
+  expect(result.state).toBe("COMPLETED");
+  expect(resumed.ai.generate.mock.calls.map(([value]) => value.name)).toEqual(["researcher", "verifier", "options", "critic", "decision", "tasks"]);
+});
 it("rejects duplicate options, task cycles, foreign references and completed task claims", async () => {
   const deps = fullDependencies();
   deps.ai.generate.mockResolvedValue({ options: [outputs.options.options[0], outputs.options.options[0]], limitations: [] });

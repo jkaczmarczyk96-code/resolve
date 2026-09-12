@@ -35,5 +35,8 @@ export async function getProblem(client: SupabaseClient<Database>, userId: strin
     if (input.error) throw new WorkspaceError("LOAD_FAILED", 503);
     if (input.data) humanRequest = { runId: latest.id, questions: input.data.questions, answers: input.data.answers, answeredAt: input.data.answered_at };
   }
-  return { problem: problem.data, job: latest ? job(latest) : null, snapshot, humanRequest };
+  const monitors = await client.from("monitoring_conditions").select("id,problem_id,description,search_query,status,last_result,last_error,last_checked_at,next_check_at").eq("problem_id", id).eq("user_id", userId).order("created_at", { ascending: false }).abortSignal(AbortSignal.timeout(10_000));
+  if (monitors.error) throw new WorkspaceError("LOAD_FAILED", 503);
+  const conditions = monitors.data.map((item) => ({ id: item.id, problemId: item.problem_id, description: item.description, searchQuery: item.search_query, status: item.status, lastResult: item.last_result, lastError: item.last_error, lastCheckedAt: item.last_checked_at, nextCheckAt: item.next_check_at }));
+  return { problem: problem.data, job: latest ? job(latest) : null, snapshot, humanRequest, conditions };
 }

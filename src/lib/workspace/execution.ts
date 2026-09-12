@@ -44,7 +44,7 @@ export async function execute(client: SupabaseClient<Database>, runId: string, s
   try {
     const claim = await client.rpc("claim_web_run", { p_run_id: runId, p_secret: secret }).abortSignal(AbortSignal.timeout(10_000));
     if (claim.error || !claim.data) return;
-    const job = webJobSchema.extend({ resume: z.object({ checkpoint: fullSnapshotSchema, responseId: z.uuid(), answers: z.array(z.string().trim().min(1).max(1200)).min(1).max(8) }).nullable().optional() }).parse(claim.data); if (!job.problemId) return;
+    const job = webJobSchema.extend({ recover: z.boolean().optional(), resume: z.object({ checkpoint: fullSnapshotSchema, responseId: z.uuid(), answers: z.array(z.string().trim().min(1).max(1200)).min(1).max(8) }).nullable().optional() }).parse(claim.data); if (!job.problemId) return;
     claimed = true;
     // Include request setup and claim time; reserve 60 seconds for abort and final status writes.
     deadline = Math.min(deadline, Date.parse(job.expiresAt) - 30_000);
@@ -55,7 +55,7 @@ export async function execute(client: SupabaseClient<Database>, runId: string, s
     const ai = createNebiusProvider(); const research = createTavilyProvider();
     const result = await runFullWorkflow({ runId, problemId: job.problemId }, {
       ...store, ...(job.resume ? { load: async () => job.resume!.checkpoint } : {}), create: async (value) => { check(); await store.create(value); }, save: async (value, version) => { check(); await store.save(value, version); },
-    }, { ai: { model: ai.model, generate: (request) => { check(); return ai.generate(request); } }, research: { search: (question, parent) => { check(); return research.search(question, parent); } } }, { signal, humanInput: true, ...(job.resume ? { resume: { responseId: job.resume.responseId, answers: job.resume.answers } } : {}) });
+    }, { ai: { model: ai.model, generate: (request) => { check(); return ai.generate(request); } }, research: { search: (question, parent) => { check(); return research.search(question, parent); } } }, { signal, humanInput: true, preserveInterrupt: true, ...(job.resume ? { resume: { responseId: job.resume.responseId, answers: job.resume.answers } } : job.recover ? { recover: true } : {}) });
     if (result.state === "ACTION_REQUIRED") {
       const paused = await client.rpc("pause_web_run", { p_run_id: runId, p_secret: secret, p_checkpoint: result }).abortSignal(AbortSignal.timeout(10_000));
       if (paused.error || !paused.data) throw new Error("Pause checkpoint failed");
@@ -66,8 +66,24 @@ export async function execute(client: SupabaseClient<Database>, runId: string, s
   } catch (error) {
     if (!claimed) return;
     const code = Date.now() >= deadline ? "TIMEOUT" : error instanceof AIError ? error.code : "PERSISTENCE";
+    if (code === "TIMEOUT" || code === "CANCELLED") {
+      try {
+        const yielded = await client.rpc("yield_web_run", { p_run_id: runId, p_secret: secret }).abortSignal(AbortSignal.timeout(10_000));
+        if (!yielded.error && yielded.data) return;
+      } catch { console.error("Workflow checkpoint yield failed"); }
+    }
     try { await client.rpc("finish_web_run", { p_run_id: runId, p_secret: secret, p_status: "failed", p_error: code }).abortSignal(AbortSignal.timeout(10_000)); } catch { console.error("Workflow status update failed"); }
   }
+}
+
+export async function recover(client: SupabaseClient<Database>, userId: string, problemId: string) {
+  const latest = await client.from("web_runs").select("id,status,expires_at").eq("user_id", userId).eq("problem_id", problemId).order("created_at", { ascending: false }).limit(1).abortSignal(AbortSignal.timeout(10_000)).maybeSingle();
+  if (latest.error || !latest.data || !["queued", "running"].includes(latest.data.status)) return null;
+  const secret = workerSecret(userId, latest.data.id);
+  if (latest.data.status === "running" && Date.parse(latest.data.expires_at) > Date.now()) return null;
+  const resumed = await client.rpc("recover_web_run", { p_run_id: latest.data.id, p_secret: secret }).abortSignal(AbortSignal.timeout(10_000));
+  if (resumed.error || !resumed.data) return null;
+  return { job: webJobSchema.parse(resumed.data), secret };
 }
 
 export async function respond(client: SupabaseClient<Database>, userId: string, problemId: string, runId: string, requestId: string, answers: string[]) {

@@ -189,6 +189,56 @@ export type Database = {
           { foreignKeyName: "human_requests_run_id_fkey"; columns: ["run_id"]; isOneToOne: false; referencedRelation: "web_runs"; referencedColumns: ["id"]; },
         ];
       };
+      monitoring_conditions: {
+        Row: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          description: string;
+          search_query: string;
+          status: string;
+          last_result: Json | null;
+          last_error: string | null;
+          last_checked_at: string | null;
+          next_check_at: string;
+          lease_until: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          problem_id: string;
+          description: string;
+          search_query: string;
+          status?: string;
+          last_result?: Json | null;
+          last_error?: string | null;
+          last_checked_at?: string | null;
+          next_check_at?: string;
+          lease_until?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          problem_id?: string;
+          description?: string;
+          search_query?: string;
+          status?: string;
+          last_result?: Json | null;
+          last_error?: string | null;
+          last_checked_at?: string | null;
+          next_check_at?: string;
+          lease_until?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "monitoring_conditions_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
+        ];
+      };
       options: {
         Row: {
           id: string;
@@ -545,6 +595,8 @@ export type Database = {
           error: string | null;
           created_at: string;
           expires_at: string;
+          recovery_count: number;
+          last_heartbeat_at: string | null;
         };
         Insert: {
           id: string;
@@ -555,6 +607,8 @@ export type Database = {
           error?: string | null;
           created_at?: string;
           expires_at?: string;
+          recovery_count?: number;
+          last_heartbeat_at?: string | null;
         };
         Update: {
           id?: string;
@@ -565,6 +619,8 @@ export type Database = {
           error?: string | null;
           created_at?: string;
           expires_at?: string;
+          recovery_count?: number;
+          last_heartbeat_at?: string | null;
         };
         Relationships: [
           { foreignKeyName: "web_runs_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
@@ -609,6 +665,11 @@ export type Database = {
         p_run_id: string | null;
         p_secret: string | null;
       }; Returns: Json; };
+      create_monitoring_condition: { Args: {
+        p_problem_id: string | null;
+        p_description: string | null;
+        p_search_query: string | null;
+      }; Returns: Json; };
       finish_web_run: { Args: {
         p_run_id: string | null;
         p_secret: string | null;
@@ -620,6 +681,10 @@ export type Database = {
         p_secret: string | null;
         p_checkpoint: Json | null;
       }; Returns: boolean; };
+      recover_web_run: { Args: {
+        p_run_id: string | null;
+        p_secret: string | null;
+      }; Returns: Json; };
       reserve_web_run: { Args: {
         p_request_id: string | null;
         p_secret: string | null;
@@ -633,6 +698,14 @@ export type Database = {
         p_response_id: string | null;
         p_answers: Json | null;
       }; Returns: Json; };
+      set_monitoring_condition_status: { Args: {
+        p_condition_id: string | null;
+        p_status: string | null;
+      }; Returns: Json; };
+      yield_web_run: { Args: {
+        p_run_id: string | null;
+        p_secret: string | null;
+      }; Returns: boolean; };
     };
     Enums: {
       agent_run_status: "pending" | "running" | "completed" | "failed";

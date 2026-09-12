@@ -2,7 +2,7 @@
 
 **Give it a problem. Get it solved.**
 
-Resolve is an outcome-oriented AI problem workspace in development. **Phases 1–9** implement email/password accounts, eight server-side agents, durable Supabase workflows and a live web workspace using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, decisions, risks and proposed tasks, answer essential clarification questions, continue the same saved analysis, and retry a failed analysis. Fictional examples remain available through **Explore demo**. Preference controls are still temporary previews; monitoring and external actions belong to later phases.
+Avenli is an outcome-oriented AI problem workspace in development. **Phases 1–10** implement email/password accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery and daily monitoring using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, and monitor a completed result for a factual condition. Fictional examples remain available through **Explore demo**. Preference controls are temporary previews; notifications and external actions belong to later phases.
 
 ## Local setup
 
@@ -39,7 +39,7 @@ See [`docs/authentication.md`](docs/authentication.md) for required hosted email
 
 Migrations: [`20260909000000_resolve_foundation.sql`](supabase/migrations/20260909000000_resolve_foundation.sql) for schema/RLS, [`20260909010000_auth_profiles.sql`](supabase/migrations/20260909010000_auth_profiles.sql) for profile creation and backfill, and [`20260909020000_basic_workflows.sql`](supabase/migrations/20260909020000_basic_workflows.sql) for durable workflow checkpoints and guarded transitions.
 
-Tables: `profiles`, `problems`, `constraints`, `unknowns`, `plan_steps`, `research_items`, `options`, `decisions`, `tasks`, `risks`, `agent_runs`, `workflow_runs`, `full_workflow_runs`, `web_runs`, `human_requests`, plus the normalized `plan_step_dependencies` relation. The full-workflow table is added by [`20260910000000_full_workflows.sql`](supabase/migrations/20260910000000_full_workflows.sql).
+Tables: `profiles`, `problems`, `constraints`, `unknowns`, `plan_steps`, `research_items`, `options`, `decisions`, `tasks`, `risks`, `agent_runs`, `workflow_runs`, `full_workflow_runs`, `web_runs`, `human_requests`, `monitoring_conditions`, plus the normalized `plan_step_dependencies` relation. The full-workflow table is added by [`20260910000000_full_workflows.sql`](supabase/migrations/20260910000000_full_workflows.sql).
 
 - `profiles.id` and `problems.user_id` reference `auth.users` with cascading deletion.
 - Every table enables RLS. Foundation and checkpoint tables have separate SELECT, INSERT, UPDATE, DELETE policies for authenticated owners. `web_runs` allows only selected columns to be read; `human_requests` is owner-readable. Protected RPCs control their mutations. UPDATE checks both old and new ownership. Anonymous roles have no table privileges.
@@ -127,9 +127,13 @@ See [`docs/human-input.md`](docs/human-input.md) for persistent questions, respo
 
 See [`docs/research-quality.md`](docs/research-quality.md) for source profiles, traceable excerpts, freshness reviews and confidence policy. [`docs/deployment-readiness.md`](docs/deployment-readiness.md) records the GitHub → hosted Supabase → Vercel path and the runtime issue to resolve before deployment.
 
-## Next: Phase 10 (requires a separate instruction)
+## Persistent agent
 
-Add persistent execution, monitoring and recovery appropriate to the selected hosting environment. Do not start the next phase without explicit instruction.
+See [`docs/persistent-agent.md`](docs/persistent-agent.md) for checkpoint recovery, daily monitoring, worker leases and security boundaries. Apply `20260912000000_persistent_agent.sql` before enabling the cron route.
+
+## Next: Phase 11 (requires a separate instruction)
+
+Add user notifications for actionable results. Do not start the next phase without explicit instruction.
 
 ## Reference documentation
 

@@ -29,10 +29,16 @@ it("finishes a successful claimed workflow with the same protected identity", as
   expect(vi.mocked(runFullWorkflow).mock.calls[0][0]).toEqual({ runId: job.id, problemId: job.problemId });
   expect(db.rpc).toHaveBeenLastCalledWith("finish_web_run", { p_run_id: job.id, p_secret: "private-token", p_status: "completed", p_error: null });
 });
-it.each([new AIError("TIMEOUT"), new Error("private upstream body")])("sanitizes worker failure", async (error) => {
+it("sanitizes non-recoverable worker failure", async () => {
+  const error = new Error("private upstream body");
   vi.mocked(runFullWorkflow).mockRejectedValue(error);
   const db = client(); await execute(db as never, job.id, "private-token");
-  expect(db.rpc).toHaveBeenLastCalledWith("finish_web_run", { p_run_id: job.id, p_secret: "private-token", p_status: "failed", p_error: error instanceof AIError ? "TIMEOUT" : "PERSISTENCE" });
+  expect(db.rpc).toHaveBeenLastCalledWith("finish_web_run", { p_run_id: job.id, p_secret: "private-token", p_status: "failed", p_error: "PERSISTENCE" });
+});
+it("yields a timed-out workflow for checkpoint recovery", async () => {
+  vi.mocked(runFullWorkflow).mockRejectedValue(new AIError("TIMEOUT"));
+  const db = client(); await execute(db as never, job.id, "private-token");
+  expect(db.rpc).toHaveBeenLastCalledWith("yield_web_run", { p_run_id: job.id, p_secret: "private-token" });
 });
 it("publishes a waiting checkpoint without marking the analysis complete", async () => {
   const checkpoint = { state: "ACTION_REQUIRED", error: null };
@@ -44,11 +50,11 @@ it("publishes a waiting checkpoint without marking the analysis complete", async
 
 
 afterEach(() => { vi.useRealTimers(); });
-it("counts request setup against the Hobby budget and records timeout without starting AI", async () => {
+it("counts request setup against the Hobby budget and yields before starting AI", async () => {
   const db = client();
   await execute(db as never, job.id, "private-token", Date.now() - 241_000);
   expect(runFullWorkflow).not.toHaveBeenCalled();
-  expect(db.rpc).toHaveBeenLastCalledWith("finish_web_run", { p_run_id: job.id, p_secret: "private-token", p_status: "failed", p_error: "TIMEOUT" });
+  expect(db.rpc).toHaveBeenLastCalledWith("yield_web_run", { p_run_id: job.id, p_secret: "private-token" });
 });
 it("refuses further paid calls when the shared request budget is exhausted", async () => {
   vi.useFakeTimers();
@@ -59,5 +65,10 @@ it("refuses further paid calls when the shared request budget is exhausted", asy
   });
   const db = client();
   await execute(db as never, job.id, "private-token");
-  expect(db.rpc).toHaveBeenLastCalledWith("finish_web_run", { p_run_id: job.id, p_secret: "private-token", p_status: "failed", p_error: "TIMEOUT" });
+  expect(db.rpc).toHaveBeenLastCalledWith("yield_web_run", { p_run_id: job.id, p_secret: "private-token" });
+});
+it("loads an existing checkpoint when a claimed job is marked recoverable", async () => {
+  vi.mocked(runFullWorkflow).mockResolvedValue({ state: "COMPLETED", error: null } as never);
+  await execute(client({ ...job, recover: true }) as never, job.id, "private-token");
+  expect(vi.mocked(runFullWorkflow).mock.calls[0][3]).toMatchObject({ recover: true, preserveInterrupt: true });
 });

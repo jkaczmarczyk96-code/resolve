@@ -8,8 +8,9 @@ import { detailSchema, jobActive, jobLabel, type ProblemDetail } from "@/lib/wor
 import { post, useRemote } from "./remote";
 import { EvidenceQuality } from "./evidence-quality";
 import { HumanInput } from "./human-input";
+import { MonitoringConditions } from "./monitoring-conditions";
 import { cn } from "@/lib/utils";
-const active = (value: ProblemDetail) => jobActive(value.job);
+const active = (value: ProblemDetail) => jobActive(value.job) || value.conditions.some((condition) => condition.status === "checking");
 const sections = ["Overview", "Plan", "Research", "Options", "Risks", "Tasks", "Decisions"];
 const labels: Record<string, string> = { ACTION_REQUIRED: "Waiting for your answers", RESUME: "Updating the plan with your answers", PENDING: "Queued", INTAKE: "Understanding your problem", PLAN: "Building a plan", RESEARCH: "Researching one question", VERIFY: "Checking evidence", OPTIONS: "Comparing approaches", CRITIQUE: "Challenging the plan", DECIDE: "Preparing a recommendation", TASKS: "Drafting tasks", COMPLETED: "Analysis complete", FAILED: "Analysis stopped", CANCELLED: "Analysis stopped" };
 function TextList({ items }: { items: string[] }) { return items.length ? <ul className="space-y-2 text-sm leading-relaxed">{items.map((text, index) => <li className="break-words" key={index}>• {text}</li>)}</ul> : <p className="text-sm text-muted-foreground">None recorded.</p>; }
@@ -28,6 +29,7 @@ export function LiveProblem({ id }: { id: string }) {
     <div className="rounded-xl border bg-card p-5"><div className="flex flex-wrap justify-between gap-2 text-sm"><p role="status">{running ? labels[s?.state ?? "PENDING"] : status}</p><span>{progress}% of analysis stages saved</span></div><div role="progressbar" aria-label="Analysis progress" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} className="mt-3 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} /></div><p className="mt-3 text-xs text-muted-foreground">{data.job?.status === "action_required" ? "Research is paused. Your questions are saved; submit your answers below to continue." : running ? "You can reload or leave this page. Saved progress remains in your account." : "Review the results before acting. Completing an analysis does not mean the problem is solved."}</p></div>
     {error && <p role="alert" className="text-sm text-destructive">{error} Showing the last loaded data.</p>}
     {data.humanRequest && <HumanInput key={data.humanRequest.runId} id={id} input={data.humanRequest} waiting={data.job?.status === "action_required"} refresh={refresh} />}
+    <MonitoringConditions id={id} conditions={data.conditions} enabled={data.job?.status === "completed" || data.conditions.length > 0} refresh={refresh} />
     {canRetry && <Panel title={data.job ? "This analysis did not finish" : "Start an analysis"} description={data.job ? "Previously saved stages remain below. Retry starts a new analysis from the beginning and counts toward your limits." : "Start the full analysis for this saved problem."}>{data.job?.error && <p className="mb-4 text-sm text-muted-foreground">Reason: {data.job.error.toLowerCase().replaceAll("_", " ")}</p>}<Button disabled={retrying} onClick={async () => {
       if (lock.current) return; lock.current = true; setRetrying(true); setRetryError(""); retryId.current ??= crypto.randomUUID();
       try { await post(`/api/problems/${id}/retry`, { requestId: retryId.current }); retryId.current = null; refresh(); }
