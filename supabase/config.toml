@@ -244,11 +244,11 @@ otp_expiry = 3600
 
 # Uncomment to customize email template
 [auth.email.template.confirmation]
-subject = "Confirm your Resolve account"
+subject = "Confirm your Avenli account"
 content_path = "./supabase/templates/confirmation.html"
 
 [auth.email.template.recovery]
-subject = "Reset your Resolve password"
+subject = "Reset your Avenli password"
 content_path = "./supabase/templates/recovery.html"
 
 # [auth.email.template.invite]

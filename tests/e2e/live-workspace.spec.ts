@@ -12,7 +12,7 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   const description = "Create a small developer checklist comparing JSON object output and JSON schema output in Nebius Token Factory. Research official public Nebius documentation. The result is a draft for one developer; no deployment or external actions are needed.";
   await page.getByLabel("Your problem", { exact: true }).fill(description);
   const outgoing = page.waitForRequest((r) => r.method() === "POST" && r.url().endsWith("/api/problems"));
-  await page.getByRole("button", { name: "Resolve it", exact: true }).click();
+  await page.getByRole("button", { name: "Analyze problem", exact: true }).click();
   const submission = (await outgoing).postDataJSON();
   await expect(page).toHaveURL(/\/problems\/[0-9a-f-]{36}$/);
   const id = new URL(page.url()).pathname.split("/").at(-1)!;

@@ -1,6 +1,6 @@
 # GitHub, hosted Supabase and Vercel
 
-Current production: https://resolve-nine.vercel.app. Source: private GitHub repository `jkaczmarczyk96-code/resolve`, branch `master`. Vercel Hobby and the dedicated Supabase Free project are connected. GitHub Actions run 34699219758 passed lint, TypeScript, all offline tests and production build for commit 77fd216. Local secrets and build/test outputs are ignored.
+Current production: https://avenli.vercel.app. Source: private GitHub repository `jkaczmarczyk96-code/resolve`, branch `master`. Vercel Hobby and the dedicated Supabase Free project are connected. GitHub Actions run 34699219758 passed lint, TypeScript, all offline tests and production build for commit 77fd216. Local secrets and build/test outputs are ignored.
 
 Hosted verification: landing/login/register pages return HTTP 200; an unauthenticated API request returns 401 and dashboard navigation redirects to login. The user confirmed successful signup and email confirmation on 2026-09-12. Recovery and the authenticated AI workflow still require hosted verification. Preview environments do not have production credentials; configure an isolated database before preview testing.
 
@@ -30,3 +30,10 @@ Seznam SMTP authentication was verified over TLS without sending a message. Cust
 Problem `9693f58e-5560-4980-9795-63476e226f9f` is an explicitly fictional video-meeting scenario in the user's account. First attempt failed at intake with INVALID_OUTPUT; the original response was not logged and the cause remains unconfirmed. Both a baseline and the exact Czech intake passed locally against live Nebius. Commit 631d2dc adds safe stage-only response diagnostics and the Czech live regression; 214 offline tests, lint, typecheck and production build passed.
 
 One explicit retry on that deployed commit successfully paused for four human questions. Submitted fictional answers were saved, the same run resumed, and all stages completed (resume 20:26:49, completed 20:27:17 Prague time). UI shows 100%, persisted answers and proposed tasks. Research quality is not yet satisfactory: retrieved sources were poorly relevant, no supported claims were extracted, and the decision abstained with low confidence. The final result also repeats an uncertainty about messaging despite the clarification. These are remaining query/context quality issues, not a demonstrated reliable recommendation. No external messages or task actions were executed. Recovery email flow still needs hosted verification.
+
+
+## Avenli rename and prompt refinement — 2026-09-12
+
+User renamed the application to Avenli and assigned `avenli.vercel.app` to the same Vercel project. UI branding, title metadata and email templates now use Avenli. Hosted SITE_URL and Supabase Auth Site URL/callback allowlist target the new domain; SMTP sender name and email subjects/templates were updated. Existing database IDs, HMAC namespace and repository remain stable so existing records and pending jobs retain identity. Users need a new browser session on the new hostname.
+
+Planner instructions now require self-contained search queries with explicit product/service names and a prioritized decision-critical query. All agents are instructed to reconcile clear user responses with earlier assumptions and personal-preference unknowns. This is a prompt refinement, not a guarantee of search relevance. The live planner contract test passed; full improved research relevance still requires a fresh evaluation. Phase 10 has not started.

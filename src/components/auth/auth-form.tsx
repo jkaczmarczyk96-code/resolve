@@ -46,7 +46,7 @@ export function AuthForm({ mode, next = "/dashboard" }: { mode: Mode; next?: str
       {state.message && <p role={state.status === "error" ? "alert" : "status"} className={`rounded-lg border p-4 text-sm leading-relaxed ${state.status === "error" ? "border-destructive/25 text-destructive" : "bg-secondary text-secondary-foreground"}`}>{state.message}</p>}
     </form>
     <div className="text-center text-sm text-muted-foreground">
-      {mode === "login" ? <>New to Resolve? <Link className="font-medium text-primary hover:underline" href="/register">Create account</Link></> : <Link className="font-medium text-primary hover:underline" href="/login">Back to sign in</Link>}
+      {mode === "login" ? <>New to Avenli? <Link className="font-medium text-primary hover:underline" href="/register">Create account</Link></> : <Link className="font-medium text-primary hover:underline" href="/login">Back to sign in</Link>}
       {mode === "reset-password" && <p className="mt-3"><Link className="font-medium text-primary hover:underline" href="/forgot-password">Request a new recovery link</Link></p>}
     </div>
   </div>;

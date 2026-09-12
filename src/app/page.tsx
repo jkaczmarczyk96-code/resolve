@@ -16,7 +16,7 @@ export default function HomePage() {
         <h2 id="preview-title" className="font-semibold">From a problem to a plan you can review</h2>
         <p className="mt-2 max-w-2xl leading-relaxed text-muted-foreground">Describe a problem, follow the analysis, and review its research, recommendation, risks and proposed tasks. Your progress is saved in your account.</p>
       </section>
-      <section aria-label="The Resolve approach" className="grid gap-5 md:grid-cols-3">
+      <section aria-label="The Avenli approach" className="grid gap-5 md:grid-cols-3">
         {[
           { icon: Compass, title: "Start with the outcome", description: "Keep the goal and the constraints that matter in one place." },
           { icon: ShieldCheck, title: "Know what supports it", description: "Bring evidence, open questions, and risks into the decision." },

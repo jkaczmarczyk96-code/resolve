@@ -12,7 +12,7 @@ export function HumanInput({ id, input, waiting, refresh }: { id: string; input:
   const requestId = useRef<string | null>(null); const locked = useRef(false);
   if (input.answers) return <Panel title="Your saved responses" description="These are your reported details, not independently verified facts."><dl className="space-y-4">{input.questions.map((question, index) => <div key={index}><dt className="break-words text-sm font-semibold">{question}</dt><dd className="mt-2 whitespace-pre-wrap break-words text-sm">{input.answers![index]}</dd></div>)}</dl></Panel>;
   if (!waiting) return null;
-  return <Panel title="Resolve needs your input" description="Answer these questions so the analysis can continue. If you do not know, say so; Resolve will keep that uncertainty."><form className="space-y-5" onSubmit={async (event) => {
+  return <Panel title="Avenli needs your input" description="Answer these questions so the analysis can continue. If you do not know, say so; Avenli will keep that uncertainty."><form className="space-y-5" onSubmit={async (event) => {
     event.preventDefault(); if (locked.current) return;
     requestId.current ??= crypto.randomUUID();
     const value = responseSchema.safeParse({ requestId: requestId.current, runId: input.runId, answers });

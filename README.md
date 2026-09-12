@@ -1,4 +1,4 @@
-# Resolve
+# Avenli
 
 **Give it a problem. Get it solved.**
 
