@@ -30,13 +30,13 @@ export function createNebiusProvider(env: Record<string, string | undefined> = p
           }),
         });
         const parsed = completion.safeParse(await readJSON(response));
-        if (!parsed.success) throw new AIError("INVALID_OUTPUT");
+        if (!parsed.success) { console.warn("AI response rejected", { agent: request.name, stage: "envelope" }); throw new AIError("INVALID_OUTPUT"); }
         const choice = parsed.data.choices[0];
         if (choice.message.refusal || choice.finish_reason === "content_filter") throw new AIError("REFUSED");
         if (choice.finish_reason === "length") throw new AIError("TRUNCATED");
-        if (choice.finish_reason !== "stop" || !choice.message.content) throw new AIError("INVALID_OUTPUT");
+        if (choice.finish_reason !== "stop" || !choice.message.content) { console.warn("AI response rejected", { agent: request.name, stage: "completion" }); throw new AIError("INVALID_OUTPUT"); }
         let value: unknown;
-        try { value = JSON.parse(choice.message.content); } catch { throw new AIError("INVALID_OUTPUT"); }
+        try { value = JSON.parse(choice.message.content); } catch { console.warn("AI response rejected", { agent: request.name, stage: "json" }); throw new AIError("INVALID_OUTPUT"); }
         const output = request.schema.safeParse(value);
         if (!output.success) {
           // Schema codes and paths only: never record provider content, prompts or credentials.

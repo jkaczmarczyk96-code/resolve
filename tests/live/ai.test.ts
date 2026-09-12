@@ -19,3 +19,8 @@ it.skipIf(!process.env.TAVILY_API_KEY)("live search provider returns attributabl
   expect(results.length).toBeGreaterThan(0);
   expect(results.every((source) => source.url.startsWith("https://") && source.content.length > 0)).toBe(true);
 });
+
+it("live Czech intake validates the deployment scenario", async () => {
+  const result = await runAgent("intake", { description: "TEST nasazení Resolve — fiktivní scénář, nikoli skutečný závazek. Chci zorganizovat dvouhodinové online setkání pro čtyři dospělé přátele během příštího měsíce. Porovnej bezplatné možnosti videohovoru a navrhni jednoduchý organizační postup. Všichni mají notebook a internet, nechci nic kupovat ani nikomu posílat zprávy. Pokud chybí podstatný údaj, zeptej se. Ověř omezení bezplatných hovorů pomocí oficiálních zdrojů a označ nejistoty." }, { ai });
+  expect(result.output.goal.length).toBeGreaterThan(0);
+});
