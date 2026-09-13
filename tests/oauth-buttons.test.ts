@@ -14,4 +14,6 @@ it("submits the selected OAuth provider and safe return path", () => {
   expect(html).toContain('type="submit"');
   expect(html).toContain('name="provider"');
   expect(html).toContain('value="google"');
+  expect(html).toContain('aria-hidden="true"');
+  expect(html).toContain("or continue with email");
 });
