@@ -19,13 +19,12 @@ export function OAuthButtons({ next = "/dashboard" }: { next?: string }) {
     <div className="space-y-5">
       <div className="space-y-3 rounded-xl border bg-muted/40 p-3">
         {providers.map((provider) => (
-          <form key={provider} action="/auth/oauth" method="post">
-            <input type="hidden" name="next" defaultValue={next} />
-            <Button type="submit" name="provider" value={provider} variant="outline" className="h-11 w-full border-slate-300 bg-white text-foreground shadow-sm hover:border-primary/40 hover:bg-white hover:shadow-md">
+          <Button key={provider} asChild variant="outline" className="h-11 w-full border-slate-300 bg-white text-foreground shadow-sm hover:border-primary/40 hover:bg-white hover:shadow-md">
+            <a href={`/auth/oauth?${new URLSearchParams({ provider, next }).toString()}`}>
               {provider === "google" && <GoogleLogo />}
               Continue with {provider === "google" ? "Google" : "Apple"}
-            </Button>
-          </form>
+            </a>
+          </Button>
         ))}
       </div>
       <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">

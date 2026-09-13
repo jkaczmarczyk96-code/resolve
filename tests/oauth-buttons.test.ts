@@ -9,11 +9,7 @@ import { OAuthButtons } from "@/components/auth/oauth-buttons";
 it("submits the selected OAuth provider and safe return path", () => {
   const html = renderToStaticMarkup(OAuthButtons({ next: "/problems" }));
 
-  expect(html).toContain('action="/auth/oauth"');
-  expect(html).toContain('name="next" value="/problems"');
-  expect(html).toContain('type="submit"');
-  expect(html).toContain('name="provider"');
-  expect(html).toContain('value="google"');
+  expect(html).toContain('href="/auth/oauth?provider=google&amp;next=%2Fproblems"');
   expect(html).toContain('aria-hidden="true"');
   expect(html).toContain("or continue with email");
 });
