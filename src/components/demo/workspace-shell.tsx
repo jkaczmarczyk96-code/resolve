@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FlaskConical, LayoutGrid, Layers, Plus, RotateCcw, Settings } from "lucide-react";
+import { Bell, FlaskConical, LayoutGrid, Layers, Plus, RotateCcw, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   return <div className="min-h-[calc(100vh-5rem)] lg:grid lg:grid-cols-[224px_minmax(0,1fr)]">
     <aside className="flex flex-col gap-5 border-b bg-card p-4 lg:border-r lg:border-b-0 lg:p-5">
       <Button asChild className="hidden lg:inline-flex"><Link href={`/problems/new${suffix}`}><Plus aria-hidden="true" />New problem</Link></Button>
-      <nav aria-label="Workspace" className="flex gap-2 lg:flex-col">{[{ href: "/dashboard", label: "Overview", icon: LayoutGrid }, { href: "/problems", label: "Problems", icon: Layers }, { href: "/settings", label: "Settings", icon: Settings }].map(({ href, label, icon: Icon }) => {
+      <nav aria-label="Workspace" className="flex flex-wrap gap-2 lg:flex-col">{[{ href: "/dashboard", label: "Overview", icon: LayoutGrid }, { href: "/problems", label: "Problems", icon: Layers }, { href: "/notifications", label: "Notifications", icon: Bell }, { href: "/settings", label: "Settings", icon: Settings }].map(({ href, label, icon: Icon }) => {
         const active = href === "/dashboard" ? pathname === href : pathname.startsWith(href);
         return <Link key={href} href={`${href}${suffix}`} aria-current={active ? "page" : undefined} className={cn("flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium", active ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-muted")}><Icon className="size-4" aria-hidden="true" />{label}</Link>;
       })}</nav>

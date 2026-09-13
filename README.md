@@ -131,9 +131,13 @@ See [`docs/research-quality.md`](docs/research-quality.md) for source profiles, 
 
 See [`docs/persistent-agent.md`](docs/persistent-agent.md) for checkpoint recovery, daily monitoring, worker leases and security boundaries. Apply `20260912000000_persistent_agent.sql` before enabling the cron route.
 
-## Next: Phase 11 (requires a separate instruction)
+## Notifications
 
-Add user notifications for actionable results. Do not start the next phase without explicit instruction.
+Phase 11 adds the saved in-app inbox and notification preferences. See [`docs/notifications.md`](docs/notifications.md) for event types, delivery semantics and verification. The user's visual references for a later redesign are preserved in [`docs/design`](docs/design/README.md).
+
+## Next: Phase 12 (requires a separate instruction)
+
+Complete accounts: Google/Apple OAuth, profile management, password changes, data export and account deletion. Do not start the next phase without explicit instruction.
 
 ## Reference documentation
 

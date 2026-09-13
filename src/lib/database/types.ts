@@ -239,6 +239,87 @@ export type Database = {
           { foreignKeyName: "monitoring_conditions_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
         ];
       };
+      notification_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          kind: string;
+          event_key: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          problem_id: string;
+          kind: string;
+          event_key: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          problem_id?: string;
+          kind?: string;
+          event_key?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "notification_events_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
+        ];
+      };
+      notification_preferences: {
+        Row: {
+          user_id: string;
+          analysis_updates: boolean;
+          action_required: boolean;
+          monitoring_updates: boolean;
+        };
+        Insert: {
+          user_id: string;
+          analysis_updates?: boolean;
+          action_required?: boolean;
+          monitoring_updates?: boolean;
+        };
+        Update: {
+          user_id?: string;
+          analysis_updates?: boolean;
+          action_required?: boolean;
+          monitoring_updates?: boolean;
+        };
+        Relationships: [
+        ];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          kind: string;
+          created_at: string;
+          read_at: string | null;
+        };
+        Insert: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          kind: string;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          problem_id?: string;
+          kind?: string;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Relationships: [
+          { foreignKeyName: "notifications_id_fkey"; columns: ["id"]; isOneToOne: false; referencedRelation: "notification_events"; referencedColumns: ["id"]; },
+          { foreignKeyName: "notifications_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
+        ];
+      };
       options: {
         Row: {
           id: string;
@@ -681,6 +762,9 @@ export type Database = {
         p_secret: string | null;
         p_checkpoint: Json | null;
       }; Returns: boolean; };
+      read_notification: { Args: {
+        p_id: string | null;
+      }; Returns: boolean; };
       recover_web_run: { Args: {
         p_run_id: string | null;
         p_secret: string | null;
@@ -698,6 +782,11 @@ export type Database = {
         p_response_id: string | null;
         p_answers: Json | null;
       }; Returns: Json; };
+      save_notification_preferences: { Args: {
+        p_analysis: boolean | null;
+        p_action: boolean | null;
+        p_monitoring: boolean | null;
+      }; Returns: undefined; };
       set_monitoring_condition_status: { Args: {
         p_condition_id: string | null;
         p_status: string | null;

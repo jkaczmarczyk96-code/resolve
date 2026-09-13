@@ -66,7 +66,15 @@ it("accepts responses once, rejects changed replay and persists the same resumed
   expect(claim.rows[0].job.resume).toEqual({ checkpoint: paused, responseId, answers: ["October 15, 2026"] });
   expect((await db.query("select public.claim_web_run($1,$2) as job", [runId, secret])).rows).toEqual([{ job: null }]);
   const result = await runFullWorkflow({ runId, problemId }, store, fullDependencies(), { resume: { responseId, answers: ["October 15, 2026"] } });
-  for (const value of store.history.filter((item) => item.revision > paused.revision)) await db.query("update public.full_workflow_runs set state=$1,revision=$2,snapshot=$3 where id=$4", [value.state, value.revision, JSON.stringify(value), runId]);
+  for (const value of store.history.filter((item) => item.revision > paused.revision)) {
+    await db.query("update public.full_workflow_runs set state=$1,revision=$2,snapshot=$3 where id=$4", [value.state, value.revision, JSON.stringify(value), runId]);
+    if (value.state === "RESUME") {
+      expect((await db.query("select public.yield_web_run($1,$2) as yielded", [runId, secret])).rows).toEqual([{ yielded: true }]);
+      const recovered = await db.query<{ job: { recover: boolean; resume: unknown } }>("select public.claim_web_run($1,$2) as job", [runId, secret]);
+      expect(recovered.rows[0].job.recover).toBe(true);
+      expect(recovered.rows[0].job.resume).toBeNull();
+    }
+  }
   expect(result.state).toBe("COMPLETED");
   await db.query("select public.finish_web_run($1,$2,'completed',null)", [runId, secret]);
   await respond(responseId);

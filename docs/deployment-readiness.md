@@ -43,3 +43,9 @@ Planner instructions now require self-contained search queries with explicit pro
 Phase 10 adds bounded checkpoint recovery and daily monitoring for Vercel Hobby. A timeout yields the current validated workflow snapshot back to a queued job; opening the problem resumes from its unfinished state. An expired running lease can also be recovered, with three renewals per run. The original run ID and attempt count remain unchanged.
 
 Completed analyses can have owner-scoped monitoring conditions. The daily Vercel cron claims at most two rows, evaluates current Tavily evidence with Nebius, and returns a problem to `action_required` only when the exact condition is supported. Production additionally requires server-only `SUPABASE_SECRET_KEY` and `CRON_SECRET`. See [persistent-agent.md](persistent-agent.md) for limits and security boundaries.
+
+## Notifications — 2026-09-13
+
+The phase 10 production deployment was Ready at commit ab02a61. Its cron endpoint returned 401 without authorization and 200 with an empty queue when authorized. This verifies configuration, not a live monitored-condition assessment.
+
+Phase 11 introduces the in-app inbox, persisted preferences and transactional event abstraction. The hosted migration `20260913000000_notifications.sql` applied successfully and hosted database lint returned no schema errors. Local validation passed 227 tests, lint, TypeScript and the production build used by Playwright. All 13 executed browser scenarios passed (the new notification UI scenario uses explicit HTTP fixtures); three live-provider cases were skipped. User-supplied brand/UI references are saved for the later web redesign.

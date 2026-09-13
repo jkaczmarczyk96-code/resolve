@@ -53,10 +53,10 @@ describe("database grants and RLS", () => {
       where n.nspname = 'public' and c.relkind = 'r'
       group by c.relname, c.relrowsecurity
     `);
-    expect(rows).toHaveLength(17);
+    expect(rows).toHaveLength(20);
     for (const row of rows) {
       expect(row.relrowsecurity, row.relname).toBe(true);
-      expect(row.count, row.relname).toBe(["web_runs", "human_requests", "monitoring_conditions"].includes(row.relname) ? 1 : 4);
+      expect(row.count, row.relname).toBe(row.relname === "notification_events" ? 0 : ["web_runs", "human_requests", "monitoring_conditions", "notifications", "notification_preferences"].includes(row.relname) ? 1 : 4);
     }
   });
 
@@ -136,12 +136,15 @@ describe("database grants and RLS", () => {
     for (const { tablename } of tables) {
       await expect(db.query(`select ${tablename === "web_runs" ? "id" : "*"} from public.${tablename}`)).rejects.toThrow(/permission denied/);
       await expect(db.query(`insert into public.${tablename} default values`)).rejects.toThrow(/permission denied/);
-      const column = ["plan_step_dependencies", "human_requests"].includes(tablename) ? "problem_id" : "id";
+      const column = tablename === "notification_preferences" ? "user_id" : ["plan_step_dependencies", "human_requests"].includes(tablename) ? "problem_id" : "id";
       await expect(db.query(`update public.${tablename} set ${column} = ${column}`)).rejects.toThrow(/permission denied/);
       await expect(db.query(`delete from public.${tablename}`)).rejects.toThrow(/permission denied/);
     }
     await asUser("");
-    for (const { tablename } of tables) expect((await db.query(`select ${tablename === "web_runs" ? "id" : "*"} from public.${tablename}`)).rows).toHaveLength(0);
+    for (const { tablename } of tables) {
+      if (tablename === "notification_events") await expect(db.query("select * from public.notification_events")).rejects.toThrow(/permission denied/);
+      else expect((await db.query(`select ${tablename === "web_runs" ? "id" : "*"} from public.${tablename}`)).rows).toHaveLength(0);
+    }
     await expect(insert("problems", { user_id: alice, title: "No identity", original_input: "Input" })).rejects.toThrow(/row-level security/);
   });
 });

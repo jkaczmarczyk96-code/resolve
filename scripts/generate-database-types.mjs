@@ -30,6 +30,7 @@ try {
     order by c.conname
   `);
   function columnType(type) {
+    if (type === 'void') return 'undefined';
     if (enumNames.has(type)) return `Database["public"]["Enums"]["${type}"]`;
     if (type.startsWith('_')) return `${columnType(type.slice(1))}[]`;
     if (['int2', 'int4', 'int8', 'numeric', 'float4', 'float8'].includes(type)) return 'number';
