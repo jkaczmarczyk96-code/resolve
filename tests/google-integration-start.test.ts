@@ -1,10 +1,10 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
-const mock = vi.hoisted(() => ({ enabled: vi.fn(), identity: vi.fn(), signInWithOAuth: vi.fn(), createState: vi.fn() }));
+const mock = vi.hoisted(() => ({ enabled: vi.fn(), enabledFor: vi.fn(), identity: vi.fn(), signInWithOAuth: vi.fn(), createState: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/config/server-env", () => ({ getSiteOrigin: () => "https://avenli.example" }));
 vi.mock("@/lib/config/public-env", () => ({ getPublicEnvironment: () => ({ url: "https://test.supabase.co" }) }));
-vi.mock("@/lib/integrations/config", () => ({ googleIntegrationsEnabled: mock.enabled }));
+vi.mock("@/lib/integrations/config", () => ({ googleIntegrationsEnabled: mock.enabled, googleIntegrationEnabledFor: mock.enabledFor }));
 vi.mock("@/lib/workspace/http", () => ({ identity: mock.identity }));
 vi.mock("@/lib/integrations/google", () => ({ GOOGLE_READ_SCOPES: ["calendar.readonly", "gmail.readonly"] }));
 vi.mock("@/lib/integrations/state", () => ({ createGoogleIntegrationState: mock.createState, googleIntegrationStateCookie: "avenli-google-integration" }));
@@ -12,8 +12,8 @@ vi.mock("@/lib/integrations/state", () => ({ createGoogleIntegrationState: mock.
 import { GET } from "@/app/auth/integrations/google/route";
 
 beforeEach(() => {
-  vi.resetAllMocks(); mock.enabled.mockReturnValue(true); mock.createState.mockReturnValue("signed-state");
-  mock.identity.mockResolvedValue({ user: { id: "owner-id" }, client: { auth: { signInWithOAuth: mock.signInWithOAuth } } });
+  vi.resetAllMocks(); mock.enabled.mockReturnValue(true); mock.enabledFor.mockReturnValue(true); mock.createState.mockReturnValue("signed-state");
+  mock.identity.mockResolvedValue({ user: { id: "owner-id", email: "owner@example.com" }, client: { auth: { signInWithOAuth: mock.signInWithOAuth } } });
   mock.signInWithOAuth.mockResolvedValue({ data: { url: "https://test.supabase.co/auth/v1/authorize?provider=google" }, error: null });
 });
 
@@ -36,4 +36,11 @@ it("rejects foreign navigation and keeps disabled integrations dormant", async (
   const response = await GET(new Request("https://avenli.example/auth/integrations/google", { headers: { Referer: "https://avenli.example/settings" } }));
   expect(response.headers.get("location")).toBe("https://avenli.example/settings?integration=unavailable");
   expect(mock.identity).not.toHaveBeenCalled();
+});
+
+it("keeps the integration unavailable to accounts outside the tester list", async () => {
+  mock.enabledFor.mockReturnValue(false);
+  const response = await GET(new Request("https://avenli.example/auth/integrations/google", { headers: { Referer: "https://avenli.example/settings" } }));
+  expect(response.headers.get("location")).toBe("https://avenli.example/settings?integration=unavailable");
+  expect(mock.signInWithOAuth).not.toHaveBeenCalled();
 });

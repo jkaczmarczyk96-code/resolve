@@ -1,6 +1,6 @@
 # Google integrations — phase 13
 
-Phase 13 connects Google Calendar and Gmail as optional, read-only context sources. The feature remains dormant until `GOOGLE_INTEGRATIONS_ENABLED=true` and all server-only credentials are configured. A signed ten-minute HttpOnly state binds the OAuth return to the Avenli account that started it. The callback requires both exact read-only scopes and rejects a different Google email.
+Phase 13 connects Google Calendar and Gmail as optional, read-only context sources. The feature remains dormant until `GOOGLE_INTEGRATIONS_ENABLED=true`, all server-only credentials are configured and the signed-in email appears in `GOOGLE_INTEGRATION_TEST_USERS`. A signed ten-minute HttpOnly state binds the OAuth return to the Avenli account that started it. The callback requires both exact read-only scopes and rejects a different Google email.
 
 The public `integrations` table stores only connection status, email, scopes and timestamps. Provider access and refresh tokens are encrypted with AES-256-GCM using `INTEGRATION_ENCRYPTION_KEY` and stored in `private.integration_credentials`. Authenticated users cannot query the private schema. Service-role functions expose only bounded credential operations to the server. Row-level security limits connection metadata and audit events to their owner.
 

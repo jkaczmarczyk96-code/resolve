@@ -6,7 +6,7 @@ import { clearRecoveryToken, storeRecoveryToken } from "@/lib/auth/recovery";
 import { recoveryTokenSchema } from "@/lib/auth/schemas";
 import { completeGoogleIntegration } from "@/lib/integrations/google";
 import { googleIntegrationStateCookie, validGoogleIntegrationState } from "@/lib/integrations/state";
-import { googleIntegrationsEnabled } from "@/lib/integrations/config";
+import { googleIntegrationEnabledFor } from "@/lib/integrations/config";
 
 export async function GET(request: NextRequest) {
   let origin: string;
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       if (result.error || !result.data.user || !result.data.session) return googleIntegration ? go("/settings?integration=failed", true) : go("/login?error=oauth-failed");
       await clearRecoveryToken();
       if (googleIntegration) {
-        if (!googleIntegrationsEnabled()) return go("/settings?integration=unavailable", true);
+        if (!googleIntegrationEnabledFor(result.data.user.email)) return go("/settings?integration=unavailable", true);
         if (!validGoogleIntegrationState(request.cookies.get(googleIntegrationStateCookie)?.value, result.data.user.id)) return go("/settings?integration=failed", true);
         try { await completeGoogleIntegration(client, result.data.user, result.data.session); }
         catch { return go("/settings?integration=failed", true); }

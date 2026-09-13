@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
-const mock = vi.hoisted(() => ({ verifyOtp: vi.fn(), exchangeCodeForSession: vi.fn(), storeToken: vi.fn(), clearToken: vi.fn(), completeGoogleIntegration: vi.fn(), validIntegrationState: vi.fn(), integrationsEnabled: vi.fn() }));
+const mock = vi.hoisted(() => ({ verifyOtp: vi.fn(), exchangeCodeForSession: vi.fn(), storeToken: vi.fn(), clearToken: vi.fn(), completeGoogleIntegration: vi.fn(), validIntegrationState: vi.fn(), integrationEnabledFor: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { verifyOtp: mock.verifyOtp, exchangeCodeForSession: mock.exchangeCodeForSession } }) }));
 vi.mock("@/lib/config/server-env", () => ({ getSiteOrigin: () => "https://resolve.example" }));
 vi.mock("@/lib/auth/recovery", () => ({ storeRecoveryToken: mock.storeToken, clearRecoveryToken: mock.clearToken }));
 vi.mock("@/lib/integrations/google", () => ({ completeGoogleIntegration: mock.completeGoogleIntegration }));
 vi.mock("@/lib/integrations/state", () => ({ googleIntegrationStateCookie: "avenli-google-integration", validGoogleIntegrationState: mock.validIntegrationState }));
-vi.mock("@/lib/integrations/config", () => ({ googleIntegrationsEnabled: mock.integrationsEnabled }));
+vi.mock("@/lib/integrations/config", () => ({ googleIntegrationEnabledFor: mock.integrationEnabledFor }));
 
 import { GET } from "@/app/auth/callback/route";
 
-beforeEach(() => { vi.resetAllMocks(); mock.validIntegrationState.mockReturnValue(true); mock.integrationsEnabled.mockReturnValue(true); });
+beforeEach(() => { vi.resetAllMocks(); mock.validIntegrationState.mockReturnValue(true); mock.integrationEnabledFor.mockReturnValue(true); });
 
 it("exchanges an OAuth PKCE code and constrains its return URL", async () => {
   mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: {} }, error: null });
@@ -53,7 +53,7 @@ it("returns a cancelled Google data connection to settings and clears its state"
   expect(mock.exchangeCodeForSession).not.toHaveBeenCalled();
 });
 it("does not complete a Google data connection after the feature is disabled", async () => {
-  mock.integrationsEnabled.mockReturnValue(false);
+  mock.integrationEnabledFor.mockReturnValue(false);
   mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: { provider_token: "access" } }, error: null });
   const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=one-time-code&integration=google"));
   expect(response.headers.get("location")).toBe("https://resolve.example/settings?integration=unavailable");

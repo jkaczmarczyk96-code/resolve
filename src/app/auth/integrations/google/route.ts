@@ -3,7 +3,7 @@ import { identity } from "@/lib/workspace/http";
 import { getSiteOrigin } from "@/lib/config/server-env";
 import { getPublicEnvironment } from "@/lib/config/public-env";
 import { hasSameOrigin } from "@/lib/auth/origin";
-import { googleIntegrationsEnabled } from "@/lib/integrations/config";
+import { googleIntegrationEnabledFor, googleIntegrationsEnabled } from "@/lib/integrations/config";
 import { GOOGLE_READ_SCOPES } from "@/lib/integrations/google";
 import { createGoogleIntegrationState, googleIntegrationStateCookie } from "@/lib/integrations/state";
 
@@ -13,6 +13,7 @@ export async function GET(request: Request) {
   if (!googleIntegrationsEnabled()) return NextResponse.redirect(`${origin}/settings?integration=unavailable`, 303);
   try {
     const { client, user } = await identity();
+    if (!googleIntegrationEnabledFor(user.email)) return NextResponse.redirect(`${origin}/settings?integration=unavailable`, 303);
     const result = await client.auth.signInWithOAuth({
       provider: "google",
       options: {
