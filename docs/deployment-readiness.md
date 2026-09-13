@@ -49,3 +49,9 @@ Completed analyses can have owner-scoped monitoring conditions. The daily Vercel
 The phase 10 production deployment was Ready at commit ab02a61. Its cron endpoint returned 401 without authorization and 200 with an empty queue when authorized. This verifies configuration, not a live monitored-condition assessment.
 
 Phase 11 introduces the in-app inbox, persisted preferences and transactional event abstraction. The hosted migration `20260913000000_notifications.sql` applied successfully and hosted database lint returned no schema errors. Local validation passed 227 tests, lint, TypeScript and the production build used by Playwright. All 13 executed browser scenarios passed (the new notification UI scenario uses explicit HTTP fixtures); three live-provider cases were skipped. User-supplied brand/UI references are saved for the later web redesign.
+
+## Account management — 2026-09-13
+
+Phase 12 implements saved profile fields, current-password verified password changes, complete owner-scoped JSON export and reauthenticated account deletion. The export migrations applied to hosted Supabase; the final static-query export passed hosted database lint. Validation: 239 offline tests, 14 executed browser scenarios, lint, TypeScript and production build. Browser tests use the isolated Auth test double; live Google/Apple sign-in and real account deletion were not exercised.
+
+The hosted public Auth settings report both Google and Apple disabled. Their PKCE integration is implemented behind server-side enable flags, but phase 12 remains incomplete until provider configuration and live verification. See [account-completion.md](account-completion.md).

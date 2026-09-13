@@ -72,6 +72,7 @@ try {
       and has_function_privilege('authenticated',p.oid,'execute') order by p.proname
   `);
   for (const fn of functions) {
+    if (!fn.types.length) { lines.push(`      ${fn.name}: { Args: Record<string, never>; Returns: ${columnType(fn.result)}; };`); continue; }
     lines.push(`      ${fn.name}: { Args: {`);
     fn.types.forEach((type, index) => lines.push(`        ${fn.names[index]}${index >= fn.types.length - fn.defaults ? '?' : ''}: ${columnType(type)} | null;`));
     lines.push(`      }; Returns: ${columnType(fn.result)}; };`);

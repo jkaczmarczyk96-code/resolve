@@ -3,6 +3,11 @@ import { useEffect, useState } from "react";
 import type { z } from "zod";
 
 export const messages: Record<string, string> = {
+  REAUTH_REQUIRED: "Confirm your current password, or sign in again with Google or Apple before deleting your account.",
+  INVALID_PROFILE: "Check the profile fields and use a valid timezone and HTTPS avatar URL.",
+  INVALID_PASSWORD: "Use matching passwords with at least 12 characters, uppercase, lowercase and a number.",
+  PASSWORD_FAILED: "The password could not be changed. Try another password or use email recovery.",
+  DELETE_CONFIRMATION: "Type DELETE to confirm account deletion.", DELETE_FAILED: "Account deletion failed. Please try again.",
   INPUT_REQUIRED: "This analysis is waiting for your answers. Open the problem to continue.", NOT_WAITING: "This run is not waiting for answers. Refresh its status.", RESPONSE_CONFLICT: "Answers have already been saved for this request. Refresh to see them.",
   SIGN_IN_REQUIRED: "Your session has ended. Sign in again to continue.", NOT_FOUND: "This problem was not found in your account.",
   ACTIVE_RUN: "An analysis is already running. Open Problems to follow it.", DAILY_LIMIT: "You have reached the limit of five analyses in 24 hours. Try again later.",

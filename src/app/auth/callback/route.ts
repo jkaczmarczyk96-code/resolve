@@ -18,6 +18,16 @@ export async function GET(request: NextRequest) {
   }
   const token = recoveryTokenSchema.safeParse(request.nextUrl.searchParams.get("token_hash"));
   const type = request.nextUrl.searchParams.get("type");
+  const code = request.nextUrl.searchParams.get("code");
+  if (code && code.length <= 2048 && !request.nextUrl.searchParams.has("token_hash") && !type) {
+    try {
+      const client = await createClient({ writable: true });
+      const result = await client.auth.exchangeCodeForSession(code);
+      if (result.error || !result.data.user || !result.data.session) return go("/login?error=oauth-failed");
+      await clearRecoveryToken();
+      return go(safeReturnTo(request.nextUrl.searchParams.get("next")));
+    } catch { return go("/login?error=oauth-failed"); }
+  }
   if (!token.success || !["signup", "recovery"].includes(type ?? "")) {
     await clearRecoveryToken();
     return go("/login?error=invalid-link");

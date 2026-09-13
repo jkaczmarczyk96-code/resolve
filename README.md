@@ -135,9 +135,9 @@ See [`docs/persistent-agent.md`](docs/persistent-agent.md) for checkpoint recove
 
 Phase 11 adds the saved in-app inbox and notification preferences. See [`docs/notifications.md`](docs/notifications.md) for event types, delivery semantics and verification. The user's visual references for a later redesign are preserved in [`docs/design`](docs/design/README.md).
 
-## Next: Phase 12 (requires a separate instruction)
+## Phase 12: account completion in progress
 
-Complete accounts: Google/Apple OAuth, profile management, password changes, data export and account deletion. Do not start the next phase without explicit instruction.
+Profile management, password changes, JSON export and account deletion are implemented. Google/Apple PKCE integration awaits provider configuration and live sign-in verification. See [`docs/account-completion.md`](docs/account-completion.md). Do not begin phase 13 until this phase is complete.
 
 ## Reference documentation
 

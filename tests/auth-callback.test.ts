@@ -1,14 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
-const mock = vi.hoisted(() => ({ verifyOtp: vi.fn(), storeToken: vi.fn(), clearToken: vi.fn() }));
-vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { verifyOtp: mock.verifyOtp } }) }));
+const mock = vi.hoisted(() => ({ verifyOtp: vi.fn(), exchangeCodeForSession: vi.fn(), storeToken: vi.fn(), clearToken: vi.fn() }));
+vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { verifyOtp: mock.verifyOtp, exchangeCodeForSession: mock.exchangeCodeForSession } }) }));
 vi.mock("@/lib/config/server-env", () => ({ getSiteOrigin: () => "https://resolve.example" }));
 vi.mock("@/lib/auth/recovery", () => ({ storeRecoveryToken: mock.storeToken, clearRecoveryToken: mock.clearToken }));
 
 import { GET } from "@/app/auth/callback/route";
 
 beforeEach(() => { vi.resetAllMocks(); });
+
+it("exchanges an OAuth PKCE code and constrains its return URL", async () => {
+  mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: {} }, error: null });
+  const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=one-time-code&next=//evil.invalid"));
+  expect(mock.exchangeCodeForSession).toHaveBeenCalledWith("one-time-code"); expect(response.headers.get("location")).toBe("https://resolve.example/dashboard");
+});
+it("rejects OAuth code replay or a missing PKCE verifier", async () => {
+  mock.exchangeCodeForSession.mockResolvedValue({ data: {}, error: { code: "bad_code_verifier" } });
+  const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=used-code"));
+  expect(response.headers.get("location")).toBe("https://resolve.example/login?error=oauth-failed");
+});
 
 describe("email callback", () => {
   it("moves recovery proof out of the URL without consuming it on GET", async () => {

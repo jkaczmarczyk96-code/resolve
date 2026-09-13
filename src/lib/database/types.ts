@@ -751,6 +751,7 @@ export type Database = {
         p_description: string | null;
         p_search_query: string | null;
       }; Returns: Json; };
+      export_account_data: { Args: Record<string, never>; Returns: Json; };
       finish_web_run: { Args: {
         p_run_id: string | null;
         p_secret: string | null;

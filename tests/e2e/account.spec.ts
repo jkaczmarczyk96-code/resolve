@@ -1,0 +1,25 @@
+import { test, expect } from "@playwright/test";
+import { login, password, register } from "./helpers";
+test("saved profile, password verification and deletion confirmation controls", async ({ page, request }) => {
+  const { email } = await register(page, request); await page.goto("/settings");
+  await page.getByLabel("Display name", { exact: true }).fill("Updated account");
+  await page.getByLabel("Timezone", { exact: true }).fill("Europe/Prague");
+  await page.getByRole("button", { name: "Save profile", exact: true }).click();
+  await expect(page.getByText("Profile saved.", { exact: true })).toBeVisible(); await page.reload();
+  await expect(page.getByLabel("Display name", { exact: true })).toHaveValue("Updated account");
+  await expect(page.getByLabel("Timezone", { exact: true })).toHaveValue("Europe/Prague");
+  await page.getByLabel("Current password", { exact: true }).fill("incorrect");
+  await page.getByLabel("New password", { exact: true }).fill("ChangedPassword123");
+  await page.getByLabel("Confirm new password", { exact: true }).fill("ChangedPassword123");
+  await page.getByRole("button", { name: "Change password", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Confirm your current password" })).toBeVisible();
+  await page.getByLabel("Current password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Change password", exact: true }).click();
+  await expect(page.getByText("Password changed.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Permanently delete my account", exact: true })).toBeDisabled();
+  await page.getByLabel("Type DELETE to confirm", { exact: true }).fill("DELETE");
+  await expect(page.getByRole("button", { name: "Permanently delete my account", exact: true })).toBeEnabled();
+  await page.setViewportSize({ width: 390, height: 844 }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole("button", { name: "Sign out", exact: true }).filter({ visible: true }).click();
+  await login(page, email, "ChangedPassword123"); await expect(page).toHaveURL(/\/dashboard$/);
+});
