@@ -23,7 +23,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </div>
         </header>
         <main id="main-content" className="mx-auto max-w-[1440px]">{children}</main>
-        <footer className="border-t px-6 py-6 text-center text-xs text-muted-foreground">Avenli · Give it a problem. Get it solved.</footer>
+        <footer className="border-t px-6 py-6 text-center text-xs text-muted-foreground"><span>Avenli · Give it a problem. Get it solved.</span><span className="mx-2">·</span><Link href="/privacy" className="hover:text-foreground hover:underline">Privacy</Link><span className="mx-2">·</span><Link href="/terms" className="hover:text-foreground hover:underline">Terms</Link></footer>
       </body>
     </html>
   );
