@@ -14,7 +14,7 @@ Server-side `/auth/oauth` accepts only same-origin POSTs and the enabled Google/
 
 As of 2026-09-13 Google is configured in Supabase, enabled in Avenli and published for external users. Its consent request is limited to the basic email and profile scopes. Apple remains disabled, so **phase 12 is not fully verified**. Keep `AUTH_APPLE_ENABLED` unset until the Apple provider is configured and tested.
 
-Google: the Web application client uses `https://omdtlsmhxsudxqvoahfz.supabase.co/auth/v1/callback` as its authorized redirect URI. The consent app links to the production home, privacy-policy and terms pages. The server redirect path has been verified through Supabase to Google; complete an interactive sign-in, cancellation, logout and repeat sign-in check before treating the provider as fully accepted.
+Google: the Web application client uses `https://omdtlsmhxsudxqvoahfz.supabase.co/auth/v1/callback` as its authorized redirect URI. The consent app links to the production home, privacy-policy and terms pages. First sign-in, callback, logout and repeat sign-in were verified interactively in production. Provider cancellation and invalid/replayed PKCE codes fail closed to the login page in automated route tests.
 
 Apple: configure a Services ID and Sign in with Apple in an Apple Developer account, using the same Supabase callback URL. Configure the Services ID and generated client secret in the Apple provider. The web OAuth secret needs renewal at most every six months. Then enable the matching Avenli environment flag and verify a new sign-in, returning sign-in, cancellation, logout and PKCE replay failure on `avenli.vercel.app`.
 
