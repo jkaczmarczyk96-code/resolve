@@ -1,14 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
-const mock = vi.hoisted(() => ({ verifyOtp: vi.fn(), exchangeCodeForSession: vi.fn(), storeToken: vi.fn(), clearToken: vi.fn() }));
+const mock = vi.hoisted(() => ({ verifyOtp: vi.fn(), exchangeCodeForSession: vi.fn(), storeToken: vi.fn(), clearToken: vi.fn(), completeGoogleIntegration: vi.fn(), validIntegrationState: vi.fn(), integrationsEnabled: vi.fn() }));
+vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { verifyOtp: mock.verifyOtp, exchangeCodeForSession: mock.exchangeCodeForSession } }) }));
 vi.mock("@/lib/config/server-env", () => ({ getSiteOrigin: () => "https://resolve.example" }));
 vi.mock("@/lib/auth/recovery", () => ({ storeRecoveryToken: mock.storeToken, clearRecoveryToken: mock.clearToken }));
+vi.mock("@/lib/integrations/google", () => ({ completeGoogleIntegration: mock.completeGoogleIntegration }));
+vi.mock("@/lib/integrations/state", () => ({ googleIntegrationStateCookie: "avenli-google-integration", validGoogleIntegrationState: mock.validIntegrationState }));
+vi.mock("@/lib/integrations/config", () => ({ googleIntegrationsEnabled: mock.integrationsEnabled }));
 
 import { GET } from "@/app/auth/callback/route";
 
-beforeEach(() => { vi.resetAllMocks(); });
+beforeEach(() => { vi.resetAllMocks(); mock.validIntegrationState.mockReturnValue(true); mock.integrationsEnabled.mockReturnValue(true); });
 
 it("exchanges an OAuth PKCE code and constrains its return URL", async () => {
   mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: {} }, error: null });
@@ -19,6 +23,41 @@ it("rejects OAuth code replay or a missing PKCE verifier", async () => {
   mock.exchangeCodeForSession.mockResolvedValue({ data: {}, error: { code: "bad_code_verifier" } });
   const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=used-code"));
   expect(response.headers.get("location")).toBe("https://resolve.example/login?error=oauth-failed");
+});
+it("completes a requested Google data connection before returning to settings", async () => {
+  const user = { id: "u", email: "owner@example.com" }; const session = { provider_token: "access", provider_refresh_token: "refresh" };
+  mock.exchangeCodeForSession.mockResolvedValue({ data: { user, session }, error: null });
+  const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=one-time-code&integration=google&next=%2Fsettings"));
+  expect(mock.completeGoogleIntegration).toHaveBeenCalledWith(expect.anything(), user, session);
+  expect(response.headers.get("location")).toBe("https://resolve.example/settings?integration=connected");
+});
+it("reports a failed Google data connection without exposing provider details", async () => {
+  mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: {} }, error: null });
+  mock.completeGoogleIntegration.mockRejectedValue(new Error("provider secret"));
+  const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=one-time-code&integration=google"));
+  expect(response.headers.get("location")).toBe("https://resolve.example/settings?integration=failed");
+  expect(response.headers.get("location")).not.toContain("provider secret");
+});
+it("rejects a Google data callback without the short-lived account-bound state", async () => {
+  mock.validIntegrationState.mockReturnValue(false);
+  mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: { provider_token: "access" } }, error: null });
+  const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=one-time-code&integration=google"));
+  expect(mock.completeGoogleIntegration).not.toHaveBeenCalled();
+  expect(response.headers.get("location")).toBe("https://resolve.example/settings?integration=failed");
+  expect(response.headers.get("set-cookie")).toContain("avenli-google-integration=");
+});
+it("returns a cancelled Google data connection to settings and clears its state", async () => {
+  const response = await GET(new NextRequest("https://resolve.example/auth/callback?integration=google&error=access_denied"));
+  expect(response.headers.get("location")).toBe("https://resolve.example/settings?integration=failed");
+  expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+  expect(mock.exchangeCodeForSession).not.toHaveBeenCalled();
+});
+it("does not complete a Google data connection after the feature is disabled", async () => {
+  mock.integrationsEnabled.mockReturnValue(false);
+  mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: { provider_token: "access" } }, error: null });
+  const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=one-time-code&integration=google"));
+  expect(response.headers.get("location")).toBe("https://resolve.example/settings?integration=unavailable");
+  expect(mock.completeGoogleIntegration).not.toHaveBeenCalled();
 });
 
 describe("email callback", () => {

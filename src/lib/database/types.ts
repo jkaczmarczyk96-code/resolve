@@ -189,6 +189,75 @@ export type Database = {
           { foreignKeyName: "human_requests_run_id_fkey"; columns: ["run_id"]; isOneToOne: false; referencedRelation: "web_runs"; referencedColumns: ["id"]; },
         ];
       };
+      integration_events: {
+        Row: {
+          id: string;
+          integration_id: string;
+          user_id: string;
+          action: string;
+          detail: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          integration_id: string;
+          user_id: string;
+          action: string;
+          detail?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          integration_id?: string;
+          user_id?: string;
+          action?: string;
+          detail?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "integration_events_integration_id_fkey"; columns: ["integration_id"]; isOneToOne: false; referencedRelation: "integrations"; referencedColumns: ["id"]; },
+        ];
+      };
+      integrations: {
+        Row: {
+          id: string;
+          user_id: string;
+          provider: string;
+          status: string;
+          account_email: string;
+          scopes: string[];
+          connected_at: string;
+          disconnected_at: string | null;
+          last_synced_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          provider: string;
+          status?: string;
+          account_email: string;
+          scopes?: string[];
+          connected_at?: string;
+          disconnected_at?: string | null;
+          last_synced_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          provider?: string;
+          status?: string;
+          account_email?: string;
+          scopes?: string[];
+          connected_at?: string;
+          disconnected_at?: string | null;
+          last_synced_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+        ];
+      };
       monitoring_conditions: {
         Row: {
           id: string;
@@ -751,6 +820,9 @@ export type Database = {
         p_description: string | null;
         p_search_query: string | null;
       }; Returns: Json; };
+      disconnect_google_integration: { Args: {
+        p_remote_revoked: boolean | null;
+      }; Returns: boolean; };
       export_account_data: { Args: Record<string, never>; Returns: Json; };
       finish_web_run: { Args: {
         p_run_id: string | null;
@@ -783,6 +855,13 @@ export type Database = {
         p_response_id: string | null;
         p_answers: Json | null;
       }; Returns: Json; };
+      save_google_integration: { Args: {
+        p_email: string | null;
+        p_scopes: string[] | null;
+        p_access_ciphertext: string | null;
+        p_refresh_ciphertext: string | null;
+        p_expires_at: string | null;
+      }; Returns: string; };
       save_notification_preferences: { Args: {
         p_analysis: boolean | null;
         p_action: boolean | null;

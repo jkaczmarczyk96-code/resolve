@@ -52,6 +52,12 @@ Phase 11 introduces the in-app inbox, persisted preferences and transactional ev
 
 ## Account management — 2026-09-13
 
-Phase 12 implements saved profile fields, current-password verified password changes, complete owner-scoped JSON export and reauthenticated account deletion. The export migrations applied to hosted Supabase; the final static-query export passed hosted database lint. Validation: 239 offline tests, 14 executed browser scenarios, lint, TypeScript and production build. Browser tests use the isolated Auth test double; live Google/Apple sign-in and real account deletion were not exercised.
+Phase 12 implements saved profile fields, current-password verified password changes, complete owner-scoped JSON export and reauthenticated account deletion. The export migrations applied to hosted Supabase; the final static-query export passed hosted database lint. Browser tests use the isolated Auth test double; a live Google first sign-in, callback, logout and repeat sign-in were verified on `avenli.vercel.app`. No real account deletion was exercised.
 
-The hosted public Auth settings report both Google and Apple disabled. Their PKCE integration is implemented behind server-side enable flags, but phase 12 remains incomplete until provider configuration and live verification. See [account-completion.md](account-completion.md).
+Google sign-in is enabled in hosted Supabase and Avenli. Apple sign-in is intentionally outside the current product scope. See [account-completion.md](account-completion.md).
+
+## Google integrations — 2026-09-13
+
+Phase 13 adds an optional read-only Google Calendar and Gmail connection behind `GOOGLE_INTEGRATIONS_ENABLED`. The hosted migration `20260913030000_google_integrations.sql` applied successfully and the public/private schemas passed hosted database lint. Local validation passed 257 tests, lint, TypeScript, production build and all 14 executed browser scenarios; three live-provider scenarios were skipped. The feature remains disabled in production pending Google API, scope and credential configuration.
+
+Google classifies `gmail.readonly` as a restricted scope. A public production app must complete the applicable OAuth verification, and server-side access to restricted data can require an annual third-party security assessment. Avenli may use the development/testing exception for a small known tester group, but the Gmail feature must not be publicly enabled before choosing and documenting that launch path. Calendar access is also kept behind the same disabled flag for this deployment.

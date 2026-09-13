@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Panel } from "@/components/demo/primitives";
 import { profileSchema, passwordChangeSchema } from "@/lib/account/contracts";
 import { post } from "./remote";
+import { GoogleIntegrationSettings, type GoogleConnection } from "./google-integration-settings";
 type Profile = { display_name: string | null; avatar_url: string | null; timezone: string; preferred_language: string };
-export function AccountSettings({ profile, email, providers }: { profile: Profile; email: string; providers: string[] }) {
+export function AccountSettings({ profile, email, providers, googleEnabled, googleConnection, integrationNotice }: { profile: Profile; email: string; providers: string[]; googleEnabled: boolean; googleConnection: GoogleConnection; integrationNotice?: string }) {
   const router = useRouter();
   const [values, setValues] = useState({ display_name: profile.display_name ?? "", avatar_url: profile.avatar_url ?? "", timezone: profile.timezone, preferred_language: profile.preferred_language });
   const [passwords, setPasswords] = useState({ currentPassword: "", password: "", confirmPassword: "" });
@@ -33,6 +34,7 @@ export function AccountSettings({ profile, email, providers }: { profile: Profil
       <label className="block space-y-2 text-sm">Preferred language<select className="block h-11 w-full rounded-md border bg-background px-3" value={values.preferred_language} onChange={(event) => setValues({ ...values, preferred_language: event.target.value })}><option value="en">English</option><option value="cs">Čeština</option><option value="de">Deutsch</option></select></label><p className="text-xs text-muted-foreground">Language preference is saved; the current interface remains in English.</p>
       <Button disabled={Boolean(pending)}>Save profile</Button>{feedback("profile")}</form></Panel>
     <Panel title="Sign-in methods"><p className="text-sm">{providers.join(", ") || "Email"}</p><Link href="/notifications" className="mt-3 inline-block text-sm text-primary underline">Notification preferences</Link></Panel>
+    <GoogleIntegrationSettings enabled={googleEnabled} connection={googleConnection} notice={integrationNotice} />
     <Panel title="Change password" description="Confirm your current password before setting a new one."><form className="space-y-4" onSubmit={async (event) => {
       event.preventDefault(); const parsed = passwordChangeSchema.safeParse(passwords);
       if (!parsed.success) { setMessage({ section: "password", text: "Use matching passwords with at least 12 characters, uppercase, lowercase and a number.", error: true }); return; }
@@ -47,6 +49,6 @@ export function AccountSettings({ profile, email, providers }: { profile: Profil
     <Panel title="Delete account" description="Permanently delete your Avenli account, problems, analyses and notifications. This cannot be undone."><form className="space-y-4" onSubmit={async (event) => {
       event.preventDefault(); if (confirmation !== "DELETE") return;
       if (await save("delete", "/api/account/delete", { confirmation, currentPassword: deletePassword }, "Account deleted.")) { router.replace("/login"); router.refresh(); }
-    }}><label className="block space-y-2 text-sm">Current password for deletion<Input type="password" autoComplete="current-password" maxLength={128} value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)} /></label><p className="text-xs text-muted-foreground">Alternatively, sign in again with Google or Apple and delete within five minutes.</p><label className="block space-y-2 text-sm">Type DELETE to confirm<Input required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></label><Button variant="destructive" disabled={Boolean(pending) || confirmation !== "DELETE"}>Permanently delete my account</Button>{feedback("delete")}</form></Panel>
+    }}><label className="block space-y-2 text-sm">Current password for deletion<Input type="password" autoComplete="current-password" maxLength={128} value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)} /></label><p className="text-xs text-muted-foreground">Alternatively, sign in again with Google and delete within five minutes.</p><label className="block space-y-2 text-sm">Type DELETE to confirm<Input required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></label><Button variant="destructive" disabled={Boolean(pending) || confirmation !== "DELETE"}>Permanently delete my account</Button>{feedback("delete")}</form></Panel>
   </div>;
 }

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { z } from "zod";
 
 export const messages: Record<string, string> = {
-  REAUTH_REQUIRED: "Confirm your current password, or sign in again with Google or Apple before deleting your account.",
+  REAUTH_REQUIRED: "Confirm your current password, or sign in again with Google before deleting your account.",
   INVALID_PROFILE: "Check the profile fields and use a valid timezone and HTTPS avatar URL.",
   INVALID_PASSWORD: "Use matching passwords with at least 12 characters, uppercase, lowercase and a number.",
   PASSWORD_FAILED: "The password could not be changed. Try another password or use email recovery.",

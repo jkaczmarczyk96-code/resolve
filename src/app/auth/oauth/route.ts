@@ -4,21 +4,12 @@ import { getSiteOrigin } from "@/lib/config/server-env";
 import { getPublicEnvironment } from "@/lib/config/public-env";
 import { enabledOAuthProviders } from "@/lib/auth/oauth";
 import { safeReturnTo } from "@/lib/auth/routes";
-
-function hasSameOrigin(request: Request, expectedOrigin: string) {
-  const origin = request.headers.get("origin");
-  if (origin) return origin === expectedOrigin;
-  const referer = request.headers.get("referer");
-  if (referer) {
-    try { return new URL(referer).origin === expectedOrigin; } catch { return false; }
-  }
-  return request.headers.get("sec-fetch-site") === "same-origin";
-}
+import { hasSameOrigin } from "@/lib/auth/origin";
 
 async function startOAuth(request: Request, provider: FormDataEntryValue | string | null, next: FormDataEntryValue | string | null) {
   const origin = getSiteOrigin();
   if (!hasSameOrigin(request, origin)) return new Response("Invalid origin", { status: 403 });
-  if ((provider !== "google" && provider !== "apple") || !enabledOAuthProviders().includes(provider)) return NextResponse.redirect(`${origin}/login?error=oauth-unavailable`, 303);
+  if (provider !== "google" || !enabledOAuthProviders().includes(provider)) return NextResponse.redirect(`${origin}/login?error=oauth-unavailable`, 303);
   try {
     const client = await createClient({ writable: true });
     const result = await client.auth.signInWithOAuth({ provider, options: { redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(safeReturnTo(next))}`, skipBrowserRedirect: true } });

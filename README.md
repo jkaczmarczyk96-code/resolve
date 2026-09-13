@@ -135,9 +135,13 @@ See [`docs/persistent-agent.md`](docs/persistent-agent.md) for checkpoint recove
 
 Phase 11 adds the saved in-app inbox and notification preferences. See [`docs/notifications.md`](docs/notifications.md) for event types, delivery semantics and verification. The user's visual references for a later redesign are preserved in [`docs/design`](docs/design/README.md).
 
-## Phase 12: account completion in progress
+## Phase 12: account completion
 
-Profile management, password changes, JSON export and account deletion are implemented. Google/Apple PKCE integration awaits provider configuration and live sign-in verification. See [`docs/account-completion.md`](docs/account-completion.md). Do not begin phase 13 until this phase is complete.
+Profile management, password changes, JSON export, account deletion and Google PKCE sign-in are implemented and verified in production. Apple sign-in was removed from scope by product decision. See [`docs/account-completion.md`](docs/account-completion.md).
+
+## Phase 13: Google integrations in progress
+
+The read-only Google Calendar and Gmail connection is implemented behind a disabled server-side feature flag. It keeps encrypted credentials outside the public schema, provides explicit disconnect and records metadata-only audit events. See [`docs/google-integrations.md`](docs/google-integrations.md).
 
 ## Reference documentation
 
