@@ -4,9 +4,18 @@ import { getSiteOrigin } from "@/lib/config/server-env";
 import { getPublicEnvironment } from "@/lib/config/public-env";
 import { enabledOAuthProviders } from "@/lib/auth/oauth";
 import { safeReturnTo } from "@/lib/auth/routes";
+
+function hasSameOrigin(request: Request, expectedOrigin: string) {
+  const origin = request.headers.get("origin");
+  if (origin) return origin === expectedOrigin;
+  const referer = request.headers.get("referer");
+  if (!referer) return false;
+  try { return new URL(referer).origin === expectedOrigin; } catch { return false; }
+}
+
 export async function POST(request: Request) {
   const origin = getSiteOrigin();
-  if (request.headers.get("origin") !== origin) return new Response("Invalid origin", { status: 403 });
+  if (!hasSameOrigin(request, origin)) return new Response("Invalid origin", { status: 403 });
   const form = await request.formData(); const provider = form.get("provider");
   if ((provider !== "google" && provider !== "apple") || !enabledOAuthProviders().includes(provider)) return NextResponse.redirect(`${origin}/login?error=oauth-unavailable`, 303);
   try {
