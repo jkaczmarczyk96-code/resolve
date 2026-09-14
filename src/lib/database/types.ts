@@ -118,6 +118,99 @@ export type Database = {
           { foreignKeyName: "decisions_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
         ];
       };
+      external_action_events: {
+        Row: {
+          id: string;
+          sequence: number;
+          action_id: string;
+          problem_id: string;
+          user_id: string;
+          event: string;
+          detail: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          sequence: number;
+          action_id: string;
+          problem_id: string;
+          user_id: string;
+          event: string;
+          detail?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          sequence?: number;
+          action_id?: string;
+          problem_id?: string;
+          user_id?: string;
+          event?: string;
+          detail?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "external_action_events_action_id_fkey"; columns: ["action_id"]; isOneToOne: false; referencedRelation: "external_actions"; referencedColumns: ["id"]; },
+          { foreignKeyName: "external_action_events_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
+        ];
+      };
+      external_actions: {
+        Row: {
+          id: string;
+          problem_id: string;
+          user_id: string;
+          integration_id: string;
+          request_id: string;
+          action_type: string;
+          status: string;
+          payload: Json;
+          result: Json | null;
+          error: string | null;
+          attempt_count: number;
+          requested_at: string;
+          approved_at: string | null;
+          executed_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          problem_id: string;
+          user_id: string;
+          integration_id: string;
+          request_id: string;
+          action_type: string;
+          status?: string;
+          payload: Json;
+          result?: Json | null;
+          error?: string | null;
+          attempt_count?: number;
+          requested_at?: string;
+          approved_at?: string | null;
+          executed_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          problem_id?: string;
+          user_id?: string;
+          integration_id?: string;
+          request_id?: string;
+          action_type?: string;
+          status?: string;
+          payload?: Json;
+          result?: Json | null;
+          error?: string | null;
+          attempt_count?: number;
+          requested_at?: string;
+          approved_at?: string | null;
+          executed_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "external_actions_integration_id_fkey"; columns: ["integration_id"]; isOneToOne: false; referencedRelation: "integrations"; referencedColumns: ["id"]; },
+          { foreignKeyName: "external_actions_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
+        ];
+      };
       full_workflow_runs: {
         Row: {
           id: string;
@@ -814,6 +907,12 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      cancel_external_action: { Args: {
+        p_action_id: string | null;
+      }; Returns: boolean; };
+      claim_external_action: { Args: {
+        p_action_id: string | null;
+      }; Returns: Json; };
       claim_web_run: { Args: {
         p_run_id: string | null;
         p_secret: string | null;
@@ -838,6 +937,11 @@ export type Database = {
         p_secret: string | null;
         p_checkpoint: Json | null;
       }; Returns: boolean; };
+      propose_calendar_action: { Args: {
+        p_problem_id: string | null;
+        p_request_id: string | null;
+        p_payload: Json | null;
+      }; Returns: string; };
       read_notification: { Args: {
         p_id: string | null;
       }; Returns: boolean; };

@@ -13,6 +13,7 @@ export const integrationCredentialSchema = z.object({
   refreshTokenCiphertext: z.string().min(32).max(16384),
   expiresAt: z.iso.datetime({ offset: true }),
   enabledServices: z.array(googleServiceSchema).max(2),
+  authorizedScopes: z.array(z.string().url()).min(1).max(3),
 }).strict();
 
 export type CalendarItem = { id: string; title: string; start: string; end: string; allDay: boolean; location: string | null };

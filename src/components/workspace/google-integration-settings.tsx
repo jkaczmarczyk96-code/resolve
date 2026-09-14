@@ -22,6 +22,7 @@ const scopes: Record<GoogleService, string> = {
   calendar: "https://www.googleapis.com/auth/calendar.readonly",
   gmail: "https://www.googleapis.com/auth/gmail.readonly",
 };
+const calendarWriteScope = "https://www.googleapis.com/auth/calendar.events.owned";
 
 async function data<T>(response: Response): Promise<T> {
   const value = await response.json().catch(() => null) as { error?: string } | T | null;
@@ -58,6 +59,7 @@ export function GoogleIntegrationSettings({ enabled, connection, notice }: { ena
   const [gmailQuery, setGmailQuery] = useState(""); const [events, setEvents] = useState<CalendarItem[]>([]); const [messages, setMessages] = useState<GmailItem[]>([]);
   const authorized = (service: GoogleService) => Boolean(connected && connection.scopes.includes(scopes[service]));
   const active = (service: GoogleService) => Boolean(connected && connection.enabled_services.includes(service));
+  const calendarWriteAuthorized = Boolean(connected && connection.scopes.includes(calendarWriteScope));
 
   async function run<T>(name: string, work: () => Promise<T>, done: (value: T) => void) {
     if (pending) return; setPending(name); setMessage("");
@@ -73,7 +75,7 @@ export function GoogleIntegrationSettings({ enabled, connection, notice }: { ena
 
   const noticeText = notice === "connected" ? "The selected Google service is connected." : notice === "failed" ? "Google connection could not be completed. Try again and approve the selected read-only permission." : notice === "unavailable" ? "Google integrations are not available for this account yet." : "";
 
-  return <Panel title="Connected services" description="Choose which external services Avenli may read. Every service is optional and can be disabled independently.">
+  return <Panel title="Connected services" description="Choose which external services Avenli may use. Every service is optional and can be disabled independently.">
     {noticeText && <p role="status" className="mb-4 rounded-lg bg-secondary p-3 text-sm">{noticeText}</p>}
     {!enabled ? <p className="text-sm text-muted-foreground">No external data services are available for this account.</p> : <div className="space-y-6">
       {connected && <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border bg-muted/30 p-4">
@@ -81,7 +83,8 @@ export function GoogleIntegrationSettings({ enabled, connection, notice }: { ena
         <Button variant="outline" disabled={Boolean(pending)} onClick={() => run("disconnect", async () => data<{ remoteRevoked: boolean }>(await fetch("/api/integrations/google/disconnect", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })), (value) => { setMessage(value.remoteRevoked ? "Google disconnected." : "Disconnected locally. Remove Avenli in your Google Account to revoke remote access."); router.refresh(); })}>Disconnect Google</Button>
       </div>}
       <div className="grid gap-4 md:grid-cols-2">
-        <ServiceCard title="Google Calendar" description="Read upcoming event times and scheduling constraints." icon={<CalendarDays className="mt-0.5 size-5 text-primary" />} status={active("calendar") ? "Enabled" : authorized("calendar") ? "Off" : "Not connected"} action={serviceAction("calendar")}>
+        <ServiceCard title="Google Calendar" description="Read upcoming availability and create only the exact events you approve." icon={<CalendarDays className="mt-0.5 size-5 text-primary" />} status={active("calendar") ? "Enabled" : authorized("calendar") ? "Off" : "Not connected"} action={serviceAction("calendar")}>
+          {authorized("calendar") && <p className="text-xs text-muted-foreground">Event creation permission: {calendarWriteAuthorized ? "authorized" : "requested only when you approve a prepared action"}.</p>}
           {active("calendar") && <div className="space-y-3 border-t pt-4"><Button variant="outline" disabled={Boolean(pending)} onClick={() => run("calendar", async () => (await data<{ events: CalendarItem[] }>(await fetch("/api/integrations/google/calendar?days=7", { cache: "no-store" }))).events, (value) => { setEvents(value); setCalendarLoaded(true); })}>Check next 7 days</Button>{events.length > 0 && <ul className="space-y-2 text-sm">{events.slice(0, 6).map((event) => <li key={event.id} className="rounded-md bg-muted p-2"><span className="font-medium">{event.title}</span><br /><span className="text-muted-foreground">{new Date(event.start).toLocaleString()}</span></li>)}</ul>}{events.length === 0 && calendarLoaded && pending !== "calendar" && <p className="text-sm">No events found.</p>}</div>}
         </ServiceCard>
         <ServiceCard title="Gmail" description="Search message headers and short snippets. Avenli cannot send email." icon={<Mail className="mt-0.5 size-5 text-primary" />} status={active("gmail") ? "Enabled" : authorized("gmail") ? "Off" : "Not connected"} action={serviceAction("gmail")}>

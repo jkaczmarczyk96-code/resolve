@@ -1,9 +1,10 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database, Json } from "@/lib/database/types";
-import { getPublicEnvironment } from "@/lib/config/public-env";
 import { WorkspaceError } from "@/lib/workspace/http";
+import { serviceRpc } from "@/lib/supabase/service-rpc";
 import { decryptCredential, encryptCredential } from "./crypto";
 import { getGoogleIntegrationConfig } from "./config";
 import { integrationCredentialSchema, type CalendarItem, type GmailItem, type GoogleService } from "./contracts";
@@ -12,8 +13,11 @@ export const GOOGLE_READ_SCOPES: Record<GoogleService, string> = {
   calendar: "https://www.googleapis.com/auth/calendar.readonly",
   gmail: "https://www.googleapis.com/auth/gmail.readonly",
 };
+export const GOOGLE_CALENDAR_WRITE_SCOPE = "https://www.googleapis.com/auth/calendar.events.owned";
 
-export function googleScopesForServices(services: GoogleService[]) { return services.map((service) => GOOGLE_READ_SCOPES[service]); }
+export function googleScopesForServices(services: GoogleService[], calendarWrite = false) {
+  return [...services.map((service) => GOOGLE_READ_SCOPES[service]), ...(calendarWrite ? [GOOGLE_CALENDAR_WRITE_SCOPE] : [])];
+}
 export function googleServicesForScopes(scopes: string[]): GoogleService[] {
   return (["calendar", "gmail"] as const).filter((service) => scopes.includes(GOOGLE_READ_SCOPES[service]));
 }
@@ -32,23 +36,11 @@ const gmailMessageSchema = z.object({
   payload: z.object({ headers: z.array(z.object({ name: z.string(), value: z.string() }).loose()).default([]) }).loose(),
 }).loose();
 
-async function serviceRpc<T>(name: string, args: Record<string, unknown>) {
-  const secret = process.env.SUPABASE_SECRET_KEY;
-  if (!secret?.startsWith("sb_secret_")) throw new WorkspaceError("SERVICE_UNAVAILABLE", 503);
-  const response = await fetch(`${getPublicEnvironment().url}/rest/v1/rpc/${name}`, {
-    method: "POST", cache: "no-store", signal: AbortSignal.timeout(10_000),
-    headers: { apikey: secret, Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
-    body: JSON.stringify(args),
-  });
-  if (!response.ok) throw new WorkspaceError("SERVICE_UNAVAILABLE", 503);
-  return await response.json() as T;
-}
-
 async function directGoogleGet(url: string, accessToken: string) {
   return fetch(url, { cache: "no-store", signal: AbortSignal.timeout(10_000), headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" } });
 }
 
-export async function completeGoogleIntegration(client: SupabaseClient<Database>, user: User, session: Session, authorized: GoogleService[], enabled: GoogleService[]) {
+export async function completeGoogleIntegration(client: SupabaseClient<Database>, user: User, session: Session, authorized: GoogleService[], enabled: GoogleService[], calendarWrite = false) {
   const access = session.provider_token;
   const refresh = session.provider_refresh_token;
   if (!access || !refresh) throw new WorkspaceError("INTEGRATION_AUTH_FAILED", 409);
@@ -67,7 +59,7 @@ export async function completeGoogleIntegration(client: SupabaseClient<Database>
   const expiresAt = new Date(Date.now() + 55 * 60_000).toISOString();
   const result = await client.rpc("save_google_integration", {
     p_email: googleUser.data.email,
-    p_scopes: googleScopesForServices(authorized),
+    p_scopes: googleScopesForServices(authorized, calendarWrite),
     p_enabled_services: enabled,
     p_access_ciphertext: encryptCredential(access),
     p_refresh_ciphertext: encryptCredential(refresh),
@@ -97,9 +89,10 @@ async function refreshAccess(userId: string, credential: z.infer<typeof integrat
   return parsed.data.access_token;
 }
 
-async function accessToken(userId: string, service: GoogleService, forceRefresh = false) {
+async function accessToken(userId: string, service: GoogleService, forceRefresh = false, requiredScope?: string) {
   const credential = await storedCredential(userId);
   if (!credential.enabledServices.includes(service)) throw new WorkspaceError("INTEGRATION_SERVICE_DISABLED", 409);
+  if (requiredScope && !credential.authorizedScopes.includes(requiredScope)) throw new WorkspaceError("WRITE_PERMISSION_REQUIRED", 409);
   if (!forceRefresh && Date.parse(credential.expiresAt) > Date.now() + 60_000) return decryptCredential(credential.accessTokenCiphertext);
   return refreshAccess(userId, credential);
 }
@@ -159,4 +152,35 @@ export async function revokeAndDisconnect(client: SupabaseClient<Database>, user
 export async function setGoogleServiceEnabled(client: SupabaseClient<Database>, service: GoogleService, enabled: boolean) {
   const result = await client.rpc("set_google_integration_service", { p_service: service, p_enabled: enabled });
   if (result.error || !result.data) throw new WorkspaceError("INTEGRATION_PERMISSION_REQUIRED", 409);
+}
+
+const createdCalendarEventSchema = z.object({
+  id: z.string().min(5).max(1024),
+  htmlLink: z.url(),
+  summary: z.string().optional(),
+  start: z.object({ dateTime: z.iso.datetime({ offset: true }).optional() }).loose(),
+  end: z.object({ dateTime: z.iso.datetime({ offset: true }).optional() }).loose(),
+  extendedProperties: z.object({ private: z.record(z.string(),z.string()).optional() }).optional(),
+}).loose();
+
+export type CalendarEventWrite = { summary: string; description: string; location: string; start: string; end: string };
+
+export async function createCalendarEvent(userId: string, actionId: string, event: CalendarEventWrite) {
+  const eventId = `avenli${createHash("sha256").update(actionId).digest("hex")}`;
+  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`;
+  const payload = { id: eventId, summary: event.summary, ...(event.description ? { description: event.description } : {}), ...(event.location ? { location: event.location } : {}), start: { dateTime: event.start }, end: { dateTime: event.end }, extendedProperties: { private: { avenliActionId: actionId } } };
+  async function request(method: "GET" | "POST", forceRefresh = false) {
+    const token = await accessToken(userId,"calendar",forceRefresh,GOOGLE_CALENDAR_WRITE_SCOPE);
+    return fetch(method === "POST" ? "https://www.googleapis.com/calendar/v3/calendars/primary/events" : url, {
+      method,cache:"no-store",signal:AbortSignal.timeout(10_000),headers:{ Authorization:`Bearer ${token}`,Accept:"application/json",...(method === "POST" ? { "Content-Type":"application/json" } : {}) },
+      ...(method === "POST" ? { body:JSON.stringify(payload) } : {}),
+    });
+  }
+  let response = await request("POST");
+  if (response.status === 401) response = await request("POST",true);
+  if (response.status === 409) response = await request("GET");
+  if (!response.ok) throw new WorkspaceError(response.status === 403 ? "WRITE_PERMISSION_REQUIRED" : "ACTION_PROVIDER_FAILED",response.status === 403 ? 409 : 502);
+  const parsed = createdCalendarEventSchema.safeParse(await response.json());
+  if (!parsed.success || parsed.data.id!==eventId || parsed.data.extendedProperties?.private?.avenliActionId!==actionId) throw new WorkspaceError("ACTION_PROVIDER_FAILED",502);
+  return { eventId:parsed.data.id,eventUrl:parsed.data.htmlLink };
 }

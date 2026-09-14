@@ -67,3 +67,9 @@ Google classifies `gmail.readonly` as a restricted scope. A public production ap
 Calendar and Gmail are now authorized, displayed and enabled independently. Disabling one service blocks its server-side reads immediately while retaining the provider grant until the user disconnects Google completely. A follow-up migration preserves this distinction when another Google service is connected later. Google Calendar API and Gmail API are enabled in the Avenli Google Cloud project, and the corresponding read-only OAuth scopes are configured.
 
 Local validation passed 267 tests, lint, TypeScript, production build and all 14 executed browser scenarios; three live-provider scenarios were skipped. The optional-services and authorization-preservation migrations were applied to hosted Supabase and database lint passed. Production activation remains restricted to `j.kaczmarczyk96@gmail.com` while Google verification requirements are evaluated.
+
+## External actions — 2026-09-14
+
+Phase 14 adds one complete write-action path: a completed problem can prepare an exact Google Calendar event, obtain the narrow incremental event permission in context, require a separate review and explicit creation approval, and record every transition in an owner-readable audit log. The provider call contains no attendees and uses a deterministic action-derived event ID for retry safety. Existing Calendar and Gmail reads remain optional and independently switchable.
+
+The hosted migration `20260914010000_external_actions.sql` applied successfully and remote database lint found no errors. Local validation passed 283 tests, lint, TypeScript, production build and all 14 executed browser scenarios; three live-provider scenarios were skipped. Production code deployment, Google consent-scope configuration and one disposable live Calendar event remain before final production verification.

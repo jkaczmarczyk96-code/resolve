@@ -15,6 +15,10 @@ export const messages: Record<string, string> = {
   INVALID_INPUT: "Describe your problem using 20–12,000 characters.", CONFLICT: "This request conflicts with an existing run. Refresh the problem list.",
   SERVICE_UNAVAILABLE: "The analysis service is unavailable. Please try again later.", LOAD_FAILED: "Unable to refresh the saved data. Please try again.",
   NOT_READY: "Finish the analysis before adding a monitoring condition.", MONITOR_LIMIT: "You can have up to five active monitoring conditions.",
+  INVALID_ACTION:"Check the event title and use a future start and end time.",ACTION_LIMIT:"Finish or cancel an existing action before preparing another.",
+  INTEGRATION_NOT_CONNECTED:"Connect and enable Google Calendar in Settings first.",WRITE_PERMISSION_REQUIRED:"Authorize calendar event creation before approving this action.",
+  INTEGRATION_RECONNECT_REQUIRED:"Google access expired. Reconnect Calendar before retrying this action.",INTEGRATION_SERVICE_DISABLED:"Enable Google Calendar in Settings before retrying this action.",
+  ACTION_CONFIRMATION_REQUIRED:"Review the action and confirm creation.",ACTION_IN_PROGRESS:"This approved action is still running.",INVALID_ACTION_STATE:"This action can no longer be changed.",ACTION_PROVIDER_FAILED:"Google Calendar could not create the event. You can review and retry it.",
 };
 export function errorMessage(code: unknown) { return typeof code === "string" ? messages[code] ?? "The request could not be completed. Please try again." : "The request could not be completed. Please try again."; }
 class RemoteError extends Error {}

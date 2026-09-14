@@ -12,7 +12,7 @@ vi.mock("@/lib/integrations/config", () => ({ googleIntegrationEnabledFor: mock.
 
 import { GET } from "@/app/auth/callback/route";
 
-beforeEach(() => { vi.resetAllMocks(); mock.readIntegrationState.mockReturnValue({ authorized: ["calendar"], enabled: ["calendar"] }); mock.integrationEnabledFor.mockReturnValue(true); });
+beforeEach(() => { vi.resetAllMocks(); mock.readIntegrationState.mockReturnValue({ authorized: ["calendar"], enabled: ["calendar"],calendarWrite:false,returnTo:"/settings" }); mock.integrationEnabledFor.mockReturnValue(true); });
 
 it("exchanges an OAuth PKCE code and constrains its return URL", async () => {
   mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: {} }, error: null });
@@ -28,8 +28,16 @@ it("completes a requested Google data connection before returning to settings", 
   const user = { id: "u", email: "owner@example.com" }; const session = { provider_token: "access", provider_refresh_token: "refresh" };
   mock.exchangeCodeForSession.mockResolvedValue({ data: { user, session }, error: null });
   const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=one-time-code&integration=google&next=%2Fsettings"));
-  expect(mock.completeGoogleIntegration).toHaveBeenCalledWith(expect.anything(), user, session, ["calendar"], ["calendar"]);
+  expect(mock.completeGoogleIntegration).toHaveBeenCalledWith(expect.anything(), user, session, ["calendar"], ["calendar"],false);
   expect(response.headers.get("location")).toBe("https://resolve.example/settings?integration=connected");
+});
+it("returns an incremental Calendar write grant to the signed problem path", async () => {
+  const user = { id: "u", email: "owner@example.com" }; const session = { provider_token: "access", provider_refresh_token: "refresh" };
+  mock.readIntegrationState.mockReturnValue({ authorized: ["calendar"], enabled: ["calendar"], calendarWrite: true, returnTo: "/problems/de305d54-75b4-431b-adb2-eb6b9e546014?view=tasks" });
+  mock.exchangeCodeForSession.mockResolvedValue({ data: { user, session }, error: null });
+  const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=one-time-code&integration=google"));
+  expect(mock.completeGoogleIntegration).toHaveBeenCalledWith(expect.anything(), user, session, ["calendar"], ["calendar"], true);
+  expect(response.headers.get("location")).toBe("https://resolve.example/problems/de305d54-75b4-431b-adb2-eb6b9e546014?view=tasks&integration=connected");
 });
 it("reports a failed Google data connection without exposing provider details", async () => {
   mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: {} }, error: null });

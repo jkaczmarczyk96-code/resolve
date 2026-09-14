@@ -53,10 +53,10 @@ describe("database grants and RLS", () => {
       where n.nspname = 'public' and c.relkind = 'r'
       group by c.relname, c.relrowsecurity
     `);
-    expect(rows).toHaveLength(22);
+    expect(rows).toHaveLength(24);
     for (const row of rows) {
       expect(row.relrowsecurity, row.relname).toBe(true);
-      expect(row.count, row.relname).toBe(row.relname === "notification_events" ? 0 : ["web_runs", "human_requests", "monitoring_conditions", "notifications", "notification_preferences", "integrations", "integration_events"].includes(row.relname) ? 1 : 4);
+      expect(row.count, row.relname).toBe(row.relname === "notification_events" ? 0 : ["web_runs", "human_requests", "monitoring_conditions", "notifications", "notification_preferences", "integrations", "integration_events", "external_actions", "external_action_events"].includes(row.relname) ? 1 : 4);
     }
   });
 

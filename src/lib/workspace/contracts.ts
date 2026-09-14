@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fullSnapshotSchema } from "@/lib/orchestration/full-state";
 import { intakeInput } from "@/lib/ai/schemas";
+import { actionAccessSchema,externalActionSchema } from "@/lib/actions/contracts";
 
 export const submissionSchema = z.strictObject({ requestId: z.uuid(), description: intakeInput.shape.description });
 export const retrySchema = z.strictObject({ requestId: z.uuid() });
@@ -13,7 +14,7 @@ export const monitoringResultSchema = z.object({ outcome: z.enum(["met", "not_me
 export const monitoringConditionSchema = z.object({ id: z.uuid(), problemId: z.uuid(), description: z.string(), searchQuery: z.string(), status: z.enum(["active", "checking", "met", "paused", "failed"]), lastResult: monitoringResultSchema.nullable(), lastError: z.string().nullable(), lastCheckedAt: z.string().nullable(), nextCheckAt: z.string() });
 export const monitoringCreateSchema = z.strictObject({ description: z.string().trim().min(10).max(1000), searchQuery: z.string().trim().min(10).max(500) });
 export const monitoringUpdateSchema = z.strictObject({ conditionId: z.uuid(), status: z.enum(["active", "paused"]) });
-export const detailSchema = z.object({ problem: problemSummarySchema, job: webJobSchema.nullable(), snapshot: fullSnapshotSchema.nullable(), humanRequest: humanRequestSchema.nullable(), conditions: z.array(monitoringConditionSchema).default([]) });
+export const detailSchema = z.object({ problem: problemSummarySchema, job: webJobSchema.nullable(), snapshot: fullSnapshotSchema.nullable(), humanRequest: humanRequestSchema.nullable(), conditions: z.array(monitoringConditionSchema).default([]), actions:z.array(externalActionSchema).default([]),actionAccess:actionAccessSchema.default({ calendarEnabled:false,calendarWriteAuthorized:false }) });
 export type ProblemDetail = z.infer<typeof detailSchema>;
 export const listSchema = z.array(z.object({ problem: problemSummarySchema, job: webJobSchema.nullable() }));
 export type ProblemList = z.infer<typeof listSchema>;

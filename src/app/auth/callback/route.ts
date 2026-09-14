@@ -35,9 +35,10 @@ export async function GET(request: NextRequest) {
         if (!googleIntegrationEnabledFor(result.data.user.email)) return go("/settings?integration=unavailable", true);
         const integrationState = readGoogleIntegrationState(request.cookies.get(googleIntegrationStateCookie)?.value, result.data.user.id);
         if (!integrationState) return go("/settings?integration=failed", true);
-        try { await completeGoogleIntegration(client, result.data.user, result.data.session, integrationState.authorized, integrationState.enabled); }
+        try { await completeGoogleIntegration(client, result.data.user, result.data.session, integrationState.authorized, integrationState.enabled, integrationState.calendarWrite); }
         catch { return go("/settings?integration=failed", true); }
-        return go("/settings?integration=connected", true);
+        const separator = integrationState.returnTo.includes("?") ? "&" : "?";
+        return go(`${integrationState.returnTo}${separator}integration=connected`, true);
       }
       return go(safeReturnTo(request.nextUrl.searchParams.get("next")));
     } catch { return googleIntegration ? go("/settings?integration=failed", true) : go("/login?error=oauth-failed"); }

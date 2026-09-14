@@ -2,7 +2,7 @@
 
 **Give it a problem. Get it solved.**
 
-Avenli is an outcome-oriented AI problem workspace in development. **Phases 1–10** implement email/password accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery and daily monitoring using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, and monitor a completed result for a factual condition. Fictional examples remain available through **Explore demo**. Preference controls are temporary previews; notifications and external actions belong to later phases.
+Avenli is an outcome-oriented AI problem workspace in development. **Phases 1–14** implement accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery, daily monitoring, notifications, optional Google context and explicitly approved Calendar actions using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, monitor a completed result and prepare a reviewable Calendar event. Fictional examples remain available through **Explore demo**.
 
 ## Local setup
 
@@ -39,7 +39,7 @@ See [`docs/authentication.md`](docs/authentication.md) for required hosted email
 
 Migrations: [`20260909000000_resolve_foundation.sql`](supabase/migrations/20260909000000_resolve_foundation.sql) for schema/RLS, [`20260909010000_auth_profiles.sql`](supabase/migrations/20260909010000_auth_profiles.sql) for profile creation and backfill, and [`20260909020000_basic_workflows.sql`](supabase/migrations/20260909020000_basic_workflows.sql) for durable workflow checkpoints and guarded transitions.
 
-Tables: `profiles`, `problems`, `constraints`, `unknowns`, `plan_steps`, `research_items`, `options`, `decisions`, `tasks`, `risks`, `agent_runs`, `workflow_runs`, `full_workflow_runs`, `web_runs`, `human_requests`, `monitoring_conditions`, plus the normalized `plan_step_dependencies` relation. The full-workflow table is added by [`20260910000000_full_workflows.sql`](supabase/migrations/20260910000000_full_workflows.sql).
+Tables: `profiles`, `problems`, `constraints`, `unknowns`, `plan_steps`, `research_items`, `options`, `decisions`, `tasks`, `risks`, `agent_runs`, `workflow_runs`, `full_workflow_runs`, `web_runs`, `human_requests`, `monitoring_conditions`, `notifications`, `integrations`, `external_actions`, their audit tables, plus the normalized `plan_step_dependencies` relation. The full-workflow table is added by [`20260910000000_full_workflows.sql`](supabase/migrations/20260910000000_full_workflows.sql).
 
 - `profiles.id` and `problems.user_id` reference `auth.users` with cascading deletion.
 - Every table enables RLS. Foundation and checkpoint tables have separate SELECT, INSERT, UPDATE, DELETE policies for authenticated owners. `web_runs` allows only selected columns to be read; `human_requests` is owner-readable. Protected RPCs control their mutations. UPDATE checks both old and new ownership. Anonymous roles have no table privileges.
@@ -139,9 +139,13 @@ Phase 11 adds the saved in-app inbox and notification preferences. See [`docs/no
 
 Profile management, password changes, JSON export, account deletion and Google PKCE sign-in are implemented and verified in production. Apple sign-in was removed from scope by product decision. See [`docs/account-completion.md`](docs/account-completion.md).
 
-## Phase 13: Google integrations in progress
+## Phase 13: Google integrations
 
-The read-only Google Calendar and Gmail connection is implemented behind a disabled server-side feature flag. It keeps encrypted credentials outside the public schema, provides explicit disconnect and records metadata-only audit events. See [`docs/google-integrations.md`](docs/google-integrations.md).
+Google Calendar and Gmail are independently optional context services behind a server-side allowlist. Credentials are encrypted outside the public schema, reads are bounded, and every service can be disabled separately or fully disconnected. See [`docs/google-integrations.md`](docs/google-integrations.md).
+
+## Phase 14: external actions
+
+Completed problems can prepare a Google Calendar event proposal. Creation requires a separate narrow Google permission and an explicit review and approval of the exact event. Provider retries are idempotent and every transition is audited. See [`docs/actions.md`](docs/actions.md).
 
 ## Reference documentation
 

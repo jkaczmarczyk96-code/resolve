@@ -4,6 +4,7 @@ import type { Database } from "@/lib/database/types";
 import { parseFullSnapshot } from "@/lib/orchestration/full-state";
 import { webJobSchema, type WebJob } from "./contracts";
 import { WorkspaceError } from "./http";
+import { GOOGLE_CALENDAR_WRITE_SCOPE } from "@/lib/integrations/google";
 
 const jobColumns = "id,problem_id,status,error,expires_at,created_at";
 function job(row: { id: string; problem_id: string | null; status: string; error: string | null; expires_at: string }): WebJob {
@@ -38,5 +39,13 @@ export async function getProblem(client: SupabaseClient<Database>, userId: strin
   const monitors = await client.from("monitoring_conditions").select("id,problem_id,description,search_query,status,last_result,last_error,last_checked_at,next_check_at").eq("problem_id", id).eq("user_id", userId).order("created_at", { ascending: false }).abortSignal(AbortSignal.timeout(10_000));
   if (monitors.error) throw new WorkspaceError("LOAD_FAILED", 503);
   const conditions = monitors.data.map((item) => ({ id: item.id, problemId: item.problem_id, description: item.description, searchQuery: item.search_query, status: item.status, lastResult: item.last_result, lastError: item.last_error, lastCheckedAt: item.last_checked_at, nextCheckAt: item.next_check_at }));
-  return { problem: problem.data, job: latest ? job(latest) : null, snapshot, humanRequest, conditions };
+  const [actionRows,integration]=await Promise.all([
+    client.from("external_actions").select("id,problem_id,action_type,status,payload,result,error,attempt_count,requested_at,approved_at,executed_at").eq("problem_id",id).eq("user_id",userId).order("requested_at",{ ascending:false }).limit(50).abortSignal(AbortSignal.timeout(10_000)),
+    client.from("integrations").select("status,scopes,enabled_services").eq("user_id",userId).eq("provider","google").abortSignal(AbortSignal.timeout(10_000)).maybeSingle(),
+  ]);
+  if (actionRows.error || integration.error) throw new WorkspaceError("LOAD_FAILED",503);
+  const actions=actionRows.data.map((item)=>({ id:item.id,problemId:item.problem_id,actionType:item.action_type,status:item.status,payload:item.payload,result:item.result,error:item.error,attemptCount:item.attempt_count,requestedAt:item.requested_at,approvedAt:item.approved_at,executedAt:item.executed_at }));
+  const connected=integration.data?.status==="connected";
+  const actionAccess={ calendarEnabled:Boolean(connected&&integration.data?.enabled_services.includes("calendar")),calendarWriteAuthorized:Boolean(connected&&integration.data?.scopes.includes(GOOGLE_CALENDAR_WRITE_SCOPE)) };
+  return { problem: problem.data, job: latest ? job(latest) : null, snapshot, humanRequest, conditions,actions,actionAccess };
 }
