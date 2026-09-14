@@ -11,8 +11,8 @@ beforeAll(async () => { db = await createTestDatabase(); await db.query("insert 
 afterAll(async () => { await db?.close(); });
 
 it("stores only owner-visible integration metadata while isolating credentials", async () => {
-  await db.query("select public.save_google_integration($1,$2,$3,$4,now()+interval '1 hour')", ["owner@example.com", scopes, access, refresh]);
-  expect((await db.query("select provider,status,account_email from public.integrations")).rows).toEqual([{ provider: "google", status: "connected", account_email: "owner@example.com" }]);
+  await db.query("select public.save_google_integration($1,$2,$3,$4,$5,now()+interval '1 hour')", ["owner@example.com", scopes, ["calendar", "gmail"], access, refresh]);
+  expect((await db.query("select provider,status,account_email,enabled_services from public.integrations")).rows).toEqual([{ provider: "google", status: "connected", account_email: "owner@example.com", enabled_services: ["calendar", "gmail"] }]);
   expect((await db.query("select action from public.integration_events")).rows).toEqual([{ action: "connected" }]);
   await expect(db.query("select * from private.integration_credentials")).rejects.toThrow(/permission denied/);
   await expect(db.query("select public.get_google_integration_credential($1)", [owner])).rejects.toThrow(/permission denied/);
@@ -20,14 +20,32 @@ it("stores only owner-visible integration metadata while isolating credentials",
 });
 
 it("restricts permissions and lets service operations refresh and audit without exposing tokens", async () => {
-  await expect(db.query("select public.save_google_integration($1,$2,$3,$4,now()+interval '1 hour')", ["other@example.com", [scopes[0]], access, refresh])).rejects.toThrow(/INVALID_SCOPES/);
-  await expect(db.query("select public.save_google_integration($1,$2,$3,$4,now()+interval '1 hour')", ["other@example.com", [scopes[0], scopes[0]], access, refresh])).rejects.toThrow(/INVALID_SCOPES/);
+  await actor(owner);
+  await expect(db.query("select public.save_google_integration($1,$2,$3,$4,$5,now()+interval '1 hour')", ["other@example.com", [scopes[0]], ["calendar", "gmail"], access, refresh])).rejects.toThrow(/INVALID_SCOPES/);
+  await expect(db.query("select public.save_google_integration($1,$2,$3,$4,$5,now()+interval '1 hour')", ["other@example.com", scopes, ["calendar", "calendar"], access, refresh])).rejects.toThrow(/INVALID_SERVICES/);
+  expect((await db.query("select public.set_google_integration_service('gmail',false) as done")).rows).toEqual([{ done: true }]);
+  expect((await db.query("select enabled_services from public.integrations")).rows).toEqual([{ enabled_services: ["calendar"] }]);
+  expect((await db.query("select public.set_google_integration_service('gmail',true) as done")).rows).toEqual([{ done: true }]);
   await db.exec("reset role; set role service_role");
   const credential = await db.query<{ value: { accessTokenCiphertext: string; refreshTokenCiphertext: string } }>("select public.get_google_integration_credential($1) as value", [owner]);
-  expect(credential.rows[0].value).toMatchObject({ accessTokenCiphertext: access, refreshTokenCiphertext: refresh });
+  expect(credential.rows[0].value).toMatchObject({ accessTokenCiphertext: access, refreshTokenCiphertext: refresh, enabledServices: ["calendar", "gmail"] });
   expect((await db.query("select public.update_google_integration_access($1,$2,now()+interval '1 hour') as saved", [owner, "b".repeat(64)])).rows).toEqual([{ saved: true }]);
   await db.query("select public.record_google_integration_event($1,'calendar_read',$2)", [owner, JSON.stringify({ resultCount: 2 })]);
-  await actor(owner); expect((await db.query<{ action: string }>("select action from public.integration_events order by created_at,id")).rows.map((row) => row.action)).toEqual(["connected", "refreshed", "calendar_read"]);
+  await actor(owner); expect((await db.query<{ action: string }>("select action from public.integration_events order by created_at,id")).rows.map((row) => row.action)).toEqual(["connected", "service_disabled", "service_enabled", "refreshed", "calendar_read"]);
+});
+
+it("allows one authorized service without implicitly enabling another", async () => {
+  await actor(other);
+  await db.query("select public.save_google_integration($1,$2,$3,$4,$5,now()+interval '1 hour')", ["other@example.com", [scopes[0]], ["calendar"], access, refresh]);
+  expect((await db.query("select public.set_google_integration_service('gmail',true) as done")).rows).toEqual([{ done: false }]);
+  expect((await db.query("select enabled_services from public.integrations")).rows).toEqual([{ enabled_services: ["calendar"] }]);
+  await actor(owner);
+});
+
+it("preserves an authorized but locally disabled service", async () => {
+  await actor(owner);
+  await db.query("select public.save_google_integration($1,$2,$3,$4,$5,now()+interval '1 hour')", ["owner@example.com", scopes, ["calendar"], access, refresh]);
+  expect((await db.query("select scopes,enabled_services from public.integrations")).rows).toEqual([{ scopes, enabled_services: ["calendar"] }]);
 });
 
 it("disconnects locally and removes credentials", async () => {

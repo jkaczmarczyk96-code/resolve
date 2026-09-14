@@ -5,7 +5,7 @@ import { safeReturnTo } from "@/lib/auth/routes";
 import { clearRecoveryToken, storeRecoveryToken } from "@/lib/auth/recovery";
 import { recoveryTokenSchema } from "@/lib/auth/schemas";
 import { completeGoogleIntegration } from "@/lib/integrations/google";
-import { googleIntegrationStateCookie, validGoogleIntegrationState } from "@/lib/integrations/state";
+import { googleIntegrationStateCookie, readGoogleIntegrationState } from "@/lib/integrations/state";
 import { googleIntegrationEnabledFor } from "@/lib/integrations/config";
 
 export async function GET(request: NextRequest) {
@@ -33,8 +33,9 @@ export async function GET(request: NextRequest) {
       await clearRecoveryToken();
       if (googleIntegration) {
         if (!googleIntegrationEnabledFor(result.data.user.email)) return go("/settings?integration=unavailable", true);
-        if (!validGoogleIntegrationState(request.cookies.get(googleIntegrationStateCookie)?.value, result.data.user.id)) return go("/settings?integration=failed", true);
-        try { await completeGoogleIntegration(client, result.data.user, result.data.session); }
+        const integrationState = readGoogleIntegrationState(request.cookies.get(googleIntegrationStateCookie)?.value, result.data.user.id);
+        if (!integrationState) return go("/settings?integration=failed", true);
+        try { await completeGoogleIntegration(client, result.data.user, result.data.session, integrationState.authorized, integrationState.enabled); }
         catch { return go("/settings?integration=failed", true); }
         return go("/settings?integration=connected", true);
       }

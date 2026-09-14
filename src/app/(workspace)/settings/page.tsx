@@ -15,7 +15,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const client = await createClient(); const profile = await client.from("profiles").select("display_name,avatar_url,timezone,preferred_language").eq("id", user.id).single();
   if (profile.error) throw new Error("Unable to load account settings.");
   const googleEnabled = googleIntegrationEnabledFor(user.email);
-  const integration = googleEnabled ? await client.from("integrations").select("status,account_email,scopes,connected_at,last_synced_at").eq("user_id",user.id).eq("provider","google").maybeSingle() : { data: null, error: null };
+  const integration = googleEnabled ? await client.from("integrations").select("status,account_email,scopes,enabled_services,connected_at,last_synced_at").eq("user_id",user.id).eq("provider","google").maybeSingle() : { data: null, error: null };
   if (integration.error) throw new Error("Unable to load integration settings.");
   return <AccountSettings profile={profile.data} email={user.email ?? ""} providers={user.identities?.map((entry) => entry.provider) ?? []} googleEnabled={googleEnabled} googleConnection={integration.data} integrationNotice={params.integration} />;
 }

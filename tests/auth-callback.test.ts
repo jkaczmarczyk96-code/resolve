@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
-const mock = vi.hoisted(() => ({ verifyOtp: vi.fn(), exchangeCodeForSession: vi.fn(), storeToken: vi.fn(), clearToken: vi.fn(), completeGoogleIntegration: vi.fn(), validIntegrationState: vi.fn(), integrationEnabledFor: vi.fn() }));
+const mock = vi.hoisted(() => ({ verifyOtp: vi.fn(), exchangeCodeForSession: vi.fn(), storeToken: vi.fn(), clearToken: vi.fn(), completeGoogleIntegration: vi.fn(), readIntegrationState: vi.fn(), integrationEnabledFor: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { verifyOtp: mock.verifyOtp, exchangeCodeForSession: mock.exchangeCodeForSession } }) }));
 vi.mock("@/lib/config/server-env", () => ({ getSiteOrigin: () => "https://resolve.example" }));
 vi.mock("@/lib/auth/recovery", () => ({ storeRecoveryToken: mock.storeToken, clearRecoveryToken: mock.clearToken }));
 vi.mock("@/lib/integrations/google", () => ({ completeGoogleIntegration: mock.completeGoogleIntegration }));
-vi.mock("@/lib/integrations/state", () => ({ googleIntegrationStateCookie: "avenli-google-integration", validGoogleIntegrationState: mock.validIntegrationState }));
+vi.mock("@/lib/integrations/state", () => ({ googleIntegrationStateCookie: "avenli-google-integration", readGoogleIntegrationState: mock.readIntegrationState }));
 vi.mock("@/lib/integrations/config", () => ({ googleIntegrationEnabledFor: mock.integrationEnabledFor }));
 
 import { GET } from "@/app/auth/callback/route";
 
-beforeEach(() => { vi.resetAllMocks(); mock.validIntegrationState.mockReturnValue(true); mock.integrationEnabledFor.mockReturnValue(true); });
+beforeEach(() => { vi.resetAllMocks(); mock.readIntegrationState.mockReturnValue({ authorized: ["calendar"], enabled: ["calendar"] }); mock.integrationEnabledFor.mockReturnValue(true); });
 
 it("exchanges an OAuth PKCE code and constrains its return URL", async () => {
   mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: {} }, error: null });
@@ -28,7 +28,7 @@ it("completes a requested Google data connection before returning to settings", 
   const user = { id: "u", email: "owner@example.com" }; const session = { provider_token: "access", provider_refresh_token: "refresh" };
   mock.exchangeCodeForSession.mockResolvedValue({ data: { user, session }, error: null });
   const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=one-time-code&integration=google&next=%2Fsettings"));
-  expect(mock.completeGoogleIntegration).toHaveBeenCalledWith(expect.anything(), user, session);
+  expect(mock.completeGoogleIntegration).toHaveBeenCalledWith(expect.anything(), user, session, ["calendar"], ["calendar"]);
   expect(response.headers.get("location")).toBe("https://resolve.example/settings?integration=connected");
 });
 it("reports a failed Google data connection without exposing provider details", async () => {
@@ -39,7 +39,7 @@ it("reports a failed Google data connection without exposing provider details", 
   expect(response.headers.get("location")).not.toContain("provider secret");
 });
 it("rejects a Google data callback without the short-lived account-bound state", async () => {
-  mock.validIntegrationState.mockReturnValue(false);
+  mock.readIntegrationState.mockReturnValue(null);
   mock.exchangeCodeForSession.mockResolvedValue({ data: { user: { id: "u" }, session: { provider_token: "access" } }, error: null });
   const response = await GET(new NextRequest("https://resolve.example/auth/callback?code=one-time-code&integration=google"));
   expect(mock.completeGoogleIntegration).not.toHaveBeenCalled();

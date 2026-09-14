@@ -230,6 +230,7 @@ export type Database = {
           disconnected_at: string | null;
           last_synced_at: string | null;
           updated_at: string;
+          enabled_services: string[];
         };
         Insert: {
           id?: string;
@@ -242,6 +243,7 @@ export type Database = {
           disconnected_at?: string | null;
           last_synced_at?: string | null;
           updated_at?: string;
+          enabled_services?: string[];
         };
         Update: {
           id?: string;
@@ -254,6 +256,7 @@ export type Database = {
           disconnected_at?: string | null;
           last_synced_at?: string | null;
           updated_at?: string;
+          enabled_services?: string[];
         };
         Relationships: [
         ];
@@ -858,6 +861,7 @@ export type Database = {
       save_google_integration: { Args: {
         p_email: string | null;
         p_scopes: string[] | null;
+        p_enabled_services: string[] | null;
         p_access_ciphertext: string | null;
         p_refresh_ciphertext: string | null;
         p_expires_at: string | null;
@@ -867,6 +871,10 @@ export type Database = {
         p_action: boolean | null;
         p_monitoring: boolean | null;
       }; Returns: undefined; };
+      set_google_integration_service: { Args: {
+        p_service: string | null;
+        p_enabled: boolean | null;
+      }; Returns: boolean; };
       set_monitoring_condition_status: { Args: {
         p_condition_id: string | null;
         p_status: string | null;
