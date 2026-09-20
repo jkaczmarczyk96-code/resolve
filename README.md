@@ -4,6 +4,10 @@
 
 Avenli is an outcome-oriented AI problem workspace in development. **Phases 1–16** implement accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery, daily monitoring, notifications, optional Google context, explicitly approved Calendar actions, onboarding, production web polish and release hardening using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, monitor a completed result and prepare a reviewable Calendar event. Fictional examples remain available through **Explore demo**.
 
+[Try the production app](https://avenli.vercel.app) · [Architecture](docs/architecture.md) · [Demo guide](docs/demo.md)
+
+![Avenli desktop workspace](docs/screenshots/workspace-desktop.png)
+
 ## Local setup
 
 Use Node.js **24 LTS** and npm (minimum supported Node version is specified in `package.json`). Dependencies are pinned by `package-lock.json`.
@@ -103,6 +107,10 @@ Tailwind v4 uses CSS theme tokens in `src/app/globals.css`; `components.json` co
 
 See [`docs/routes.md`](docs/routes.md) for active/reserved paths, [`docs/web-ui.md`](docs/web-ui.md) for demo behavior, and [`src/lib/README.md`](src/lib/README.md) for boundaries. Proxy protects private paths; each page also verifies identity. Notification routes remain reserved for a later phase.
 
+## Architecture
+
+The browser talks only to authenticated Next.js routes. A finite, checkpointed orchestrator coordinates eight typed agents using NVIDIA Nemotron through Nebius Token Factory and bounded Tavily retrieval. Supabase Postgres stores owner-scoped state behind RLS. External writes are isolated behind an exact payload review, explicit approval, idempotency and an audit trail. See the [architecture diagram and trust boundaries](docs/architecture.md).
+
 ## AI foundation
 
 See [`docs/ai-foundation.md`](docs/ai-foundation.md) for server-only configuration, typed agent usage, evidence integrity, limits, and live testing. Set `NEBIUS_API_KEY` and `TAVILY_API_KEY` in `.env.local`. `npm run test:ai:live` explicitly invokes each agent with fictional input and incurs provider usage. Normal tests never call these services. Phase 6 adds Options and Tasks; the full chain has been verified with real NVIDIA model calls and Tavily search.
@@ -154,6 +162,10 @@ The Avenli visual system now covers the public site, authentication and responsi
 ## Phase 16: testing and hardening
 
 The release matrix covers unit, integration, RLS, authentication, security, agent failure, prompt injection and browser behavior. Strict contracts keep untrusted source instructions out of system prompts and prevent agents from appending tool calls. See [`docs/testing-hardening.md`](docs/testing-hardening.md).
+
+## Phase 17: hackathon release
+
+The production deployment, reproducible setup, architecture diagram, demo script and initial release screenshots are ready. Devpost registration, the final live screenshots, public repository switch and demo-video URL remain before the reviewed final entry. See the [release checklist](docs/hackathon-release.md) and [demo guide](docs/demo.md).
 
 ## Reference documentation
 
