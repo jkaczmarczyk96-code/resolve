@@ -16,6 +16,7 @@ export const messages: Record<string, string> = {
   SERVICE_UNAVAILABLE: "The analysis service is unavailable. Please try again later.", LOAD_FAILED: "Unable to refresh the saved data. Please try again.",
   NOT_READY: "Finish the analysis before adding a monitoring condition.", MONITOR_LIMIT: "You can have up to five active monitoring conditions.",
   INVALID_ACTION:"Check the event title and use a future start and end time.",ACTION_LIMIT:"Finish or cancel an existing action before preparing another.",
+  INVALID_TASK:"Choose a valid task and status.",TASK_UPDATE_FAILED:"The task could not be updated. Please try again.",
   INTEGRATION_NOT_CONNECTED:"Connect and enable Google Calendar in Settings first.",WRITE_PERMISSION_REQUIRED:"Authorize calendar event creation before approving this action.",
   INTEGRATION_RECONNECT_REQUIRED:"Google access expired. Reconnect Calendar before retrying this action.",INTEGRATION_SERVICE_DISABLED:"Enable Google Calendar in Settings before retrying this action.",
   ACTION_CONFIRMATION_REQUIRED:"Review the action and confirm creation.",ACTION_IN_PROGRESS:"This approved action is still running.",INVALID_ACTION_STATE:"This action can no longer be changed.",ACTION_PROVIDER_FAILED:"Google Calendar could not create the event. You can review and retry it.",

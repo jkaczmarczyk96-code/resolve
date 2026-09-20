@@ -18,4 +18,10 @@ The cron endpoint requires `CRON_SECRET`. Database worker functions are executab
 
 Monitoring does not execute tasks, purchases, bookings, messages or account changes. Phase 11 will add notifications; until then, users see monitoring results when they open the problem.
 
-Apply `20260912000000_persistent_agent.sql`, set `SUPABASE_SECRET_KEY` and `CRON_SECRET` in the production environment, and keep both values out of browser-prefixed variables and source control.
+## Saved action plan
+
+When an analysis reaches `COMPLETED`, its validated generated tasks are materialized into the owner-scoped `tasks` table in the same transaction that completes the web run. Existing completed snapshots are backfilled by the task-progress migration. The immutable workflow snapshot remains the audit source for what the agent proposed; the task rows store only the user's later progress (`pending`, `in_progress`, `completed`, or `cancelled`) and the completion timestamp.
+
+Changing a task status never invokes an AI provider or an external integration. The task API validates the exact status, scopes the update to the requested problem and relies on problem-owner RLS. Calendar writes remain a separate proposal and explicit-approval flow.
+
+Apply `20260912000000_persistent_agent.sql` and `20260920000000_task_progress.sql`, set `SUPABASE_SECRET_KEY` and `CRON_SECRET` in the production environment, and keep both values out of browser-prefixed variables and source control.

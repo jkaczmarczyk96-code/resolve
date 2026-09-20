@@ -34,10 +34,17 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   await expect(page.getByRole("heading", { name: "Evidence quality", exact: true })).toBeVisible();
   expect(result.snapshot.research.sources.length).toBeGreaterThan(0);
   const sections = page.getByRole("navigation", { name: "Problem sections" });
-  for (const [tab, heading] of [["Research", "Retrieved sources"], ["Options", "Options to consider"], ["Risks", "Critic review"], ["Tasks", "Proposed tasks"], ["Decisions", "Decision trail"]]) {
+  for (const [tab, heading] of [["Research", "Retrieved sources"], ["Options", "Options to consider"], ["Risks", "Critic review"], ["Tasks", "Action plan"], ["Decisions", "Decision trail"]]) {
     await sections.getByRole("link", { name: tab, exact: true }).click();
     await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
   }
+  await sections.getByRole("link", { name: "Tasks", exact: true }).click();
+  const firstTaskStatus = page.locator('select[aria-label^="Status for"]').first();
+  await expect(firstTaskStatus).toBeEnabled();
+  await firstTaskStatus.selectOption("completed");
+  await expect(firstTaskStatus).toHaveValue("completed");
+  await page.reload();
+  await expect(page.locator('select[aria-label^="Status for"]').first()).toHaveValue("completed");
   await page.screenshot({ path: "test-results/live-workspace-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await sections.getByRole("link", { name: "Research", exact: true }).click();

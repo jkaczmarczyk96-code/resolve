@@ -800,6 +800,8 @@ export type Database = {
           due_at: string | null;
           created_at: string;
           completed_at: string | null;
+          workflow_run_id: string | null;
+          source_task_id: string | null;
         };
         Insert: {
           id?: string;
@@ -811,6 +813,8 @@ export type Database = {
           due_at?: string | null;
           created_at?: string;
           completed_at?: string | null;
+          workflow_run_id?: string | null;
+          source_task_id?: string | null;
         };
         Update: {
           id?: string;
@@ -822,9 +826,12 @@ export type Database = {
           due_at?: string | null;
           created_at?: string;
           completed_at?: string | null;
+          workflow_run_id?: string | null;
+          source_task_id?: string | null;
         };
         Relationships: [
           { foreignKeyName: "tasks_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
+          { foreignKeyName: "tasks_workflow_run_fkey"; columns: ["problem_id", "workflow_run_id"]; isOneToOne: false; referencedRelation: "full_workflow_runs"; referencedColumns: ["problem_id", "id"]; },
         ];
       };
       unknowns: {

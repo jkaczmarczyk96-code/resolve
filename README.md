@@ -173,6 +173,8 @@ The release matrix covers unit, integration, RLS, authentication, security, agen
 
 The production deployment, reproducible setup, architecture diagram, demo script and initial release screenshots are ready. Devpost registration, the final live screenshots, public repository switch and demo-video URL remain before the reviewed final entry. See the [release checklist](docs/hackathon-release.md) and [demo guide](docs/demo.md).
 
+Generated tasks from completed analyses are also persisted as an owner-controlled action plan. Users can move each item between to do, in progress, completed and cancelled without triggering an AI call or external action; the original generated proposal stays immutable in its workflow snapshot.
+
 This repository is released under the [MIT License](LICENSE).
 
 ## Reference documentation

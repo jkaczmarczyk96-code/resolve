@@ -39,13 +39,15 @@ export async function getProblem(client: SupabaseClient<Database>, userId: strin
   const monitors = await client.from("monitoring_conditions").select("id,problem_id,description,search_query,status,last_result,last_error,last_checked_at,next_check_at").eq("problem_id", id).eq("user_id", userId).order("created_at", { ascending: false }).abortSignal(AbortSignal.timeout(10_000));
   if (monitors.error) throw new WorkspaceError("LOAD_FAILED", 503);
   const conditions = monitors.data.map((item) => ({ id: item.id, problemId: item.problem_id, description: item.description, searchQuery: item.search_query, status: item.status, lastResult: item.last_result, lastError: item.last_error, lastCheckedAt: item.last_checked_at, nextCheckAt: item.next_check_at }));
-  const [actionRows,integration]=await Promise.all([
+  const [taskRows,actionRows,integration]=await Promise.all([
+    latest ? client.from("tasks").select("id,source_task_id,status,completed_at").eq("problem_id",id).eq("workflow_run_id",latest.id).order("created_at").abortSignal(AbortSignal.timeout(10_000)) : Promise.resolve({ data:[],error:null }),
     client.from("external_actions").select("id,problem_id,action_type,status,payload,result,error,attempt_count,requested_at,approved_at,executed_at").eq("problem_id",id).eq("user_id",userId).order("requested_at",{ ascending:false }).limit(50).abortSignal(AbortSignal.timeout(10_000)),
     client.from("integrations").select("status,scopes,enabled_services").eq("user_id",userId).eq("provider","google").abortSignal(AbortSignal.timeout(10_000)).maybeSingle(),
   ]);
-  if (actionRows.error || integration.error) throw new WorkspaceError("LOAD_FAILED",503);
+  if (taskRows.error || actionRows.error || integration.error) throw new WorkspaceError("LOAD_FAILED",503);
+  const tasks=taskRows.data.filter((item)=>item.source_task_id).map((item)=>({ id:item.id,sourceId:item.source_task_id!,status:item.status,completedAt:item.completed_at }));
   const actions=actionRows.data.map((item)=>({ id:item.id,problemId:item.problem_id,actionType:item.action_type,status:item.status,payload:item.payload,result:item.result,error:item.error,attemptCount:item.attempt_count,requestedAt:item.requested_at,approvedAt:item.approved_at,executedAt:item.executed_at }));
   const connected=integration.data?.status==="connected";
   const actionAccess={ calendarEnabled:Boolean(connected&&integration.data?.enabled_services.includes("calendar")),calendarWriteAuthorized:Boolean(connected&&integration.data?.scopes.includes(GOOGLE_CALENDAR_WRITE_SCOPE)) };
-  return { problem: problem.data, job: latest ? job(latest) : null, snapshot, humanRequest, conditions,actions,actionAccess };
+  return { problem: problem.data, job: latest ? job(latest) : null, snapshot, humanRequest, conditions,tasks,actions,actionAccess };
 }
