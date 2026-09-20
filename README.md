@@ -115,6 +115,12 @@ The browser talks only to authenticated Next.js routes. A finite, checkpointed o
 
 See [`docs/ai-foundation.md`](docs/ai-foundation.md) for server-only configuration, typed agent usage, evidence integrity, limits, and live testing. Set `NEBIUS_API_KEY` and `TAVILY_API_KEY` in `.env.local`. `npm run test:ai:live` explicitly invokes each agent with fictional input and incurs provider usage. Normal tests never call these services. Phase 6 adds Options and Tasks; the full chain has been verified with real NVIDIA model calls and Tavily search.
 
+### Nebius and NVIDIA are core to the runtime
+
+Avenli's eight analysis stages call the NVIDIA `nvidia/nemotron-3-super-120b-a12b` open model through the Nebius Token Factory inference API. The model performs structured intake, planning, evidence analysis, verification, option generation, critique, decision support and task generation; removing it removes the product's central workflow. The server-side provider abstraction reads the endpoint and model from environment variables, validates structured output at every boundary and lets a compatible Nebius-hosted model replace the default without changing agent code.
+
+Tavily performs bounded runtime retrieval for the Researcher. Retrieved excerpts remain untrusted input, source IDs come from application code, and the model may cite only those supplied IDs. Nebius provided the production-grade OpenAI-compatible inference surface used throughout development and deployment; its configurable model access let the same orchestration and validation code run offline with fixtures and live with Nemotron.
+
 ## Basic workflow
 
 See [`docs/basic-orchestrator.md`](docs/basic-orchestrator.md) for the durable state machine, internal usage, error semantics, and verification. Apply the new `20260909020000_basic_workflows.sql` migration with `npx supabase migration up --local`. The opt-in `npm run test:workflow:live` verifies the complete basic flow against local Supabase and real Nebius.
@@ -166,6 +172,8 @@ The release matrix covers unit, integration, RLS, authentication, security, agen
 ## Phase 17: hackathon release
 
 The production deployment, reproducible setup, architecture diagram, demo script and initial release screenshots are ready. Devpost registration, the final live screenshots, public repository switch and demo-video URL remain before the reviewed final entry. See the [release checklist](docs/hackathon-release.md) and [demo guide](docs/demo.md).
+
+This repository is released under the [MIT License](LICENSE).
 
 ## Reference documentation
 
