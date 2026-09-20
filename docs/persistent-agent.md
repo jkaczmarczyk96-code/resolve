@@ -16,7 +16,7 @@ Vercel invokes `/api/cron/monitor` once daily. The server claims at most two due
 
 The cron endpoint requires `CRON_SECRET`. Database worker functions are executable only by Supabase `service_role`, and the application reads that credential from server-only `SUPABASE_SECRET_KEY`. Browser clients can read only their own rows through RLS and mutate conditions only through owner-checking RPCs.
 
-Monitoring does not execute tasks, purchases, bookings, messages or account changes. Phase 11 will add notifications; until then, users see monitoring results when they open the problem.
+Monitoring does not execute tasks, purchases, bookings, messages or account changes. Condition results and failures also appear in the owner-scoped in-app notification inbox.
 
 ## Saved action plan
 
