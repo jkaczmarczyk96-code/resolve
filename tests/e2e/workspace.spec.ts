@@ -1,6 +1,30 @@
 import { test, expect } from "@playwright/test";
 import { register } from "./helpers";
 
+test("production surface exposes health and defensive browser headers", async ({ request }) => {
+  const health = await request.get("/api/health");
+  expect(health.status()).toBe(200);
+  expect(await health.json()).toMatchObject({ status: "ok", service: "avenli" });
+  const home = await request.get("/");
+  expect(home.headers()["content-security-policy"]).toContain("frame-ancestors 'none'");
+  expect(home.headers()["permissions-policy"]).toContain("camera=()");
+  expect(home.headers()["x-content-type-options"]).toBe("nosniff");
+});
+
+test("new accounts get a short, controllable onboarding", async ({ page, request }) => {
+  await register(page, request, false);
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { name: "Tell Avenli what you need to achieve." })).toBeVisible();
+  await dialog.getByRole("button", { name: "Continue" }).click();
+  await expect(dialog.getByRole("heading", { name: "Avenli researches, plans, and evaluates." })).toBeVisible();
+  await dialog.getByRole("button", { name: "Continue" }).click();
+  await expect(dialog.getByRole("heading", { name: "You stay in control." })).toBeVisible();
+  await dialog.getByRole("button", { name: "Create your first problem" }).click();
+  await expect(dialog).toBeHidden();
+  await page.reload();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
 test("filter scenarios, inspect evidence and compare options", async ({ page, request }) => {
   await register(page, request);
   await page.goto("/dashboard?demo=1");
@@ -70,11 +94,11 @@ test("settings preview and small-screen workspace remain usable", async ({ page,
   await page.getByLabel("Timezone", { exact: true }).selectOption("Asia/Tokyo");
   await page.getByRole("button", { name: "Save preview preferences" }).click();
   await expect(page.getByRole("status")).toContainText("Saved for this demo only");
-  await nav.getByRole("link", { name: "Overview" }).click();
+  await nav.getByRole("link", { name: "Home" }).click();
   await nav.getByRole("link", { name: "Settings" }).click();
   await expect(page.getByLabel("Timezone", { exact: true })).toHaveValue("Asia/Tokyo");
   await page.setViewportSize({ width: 390, height: 844 });
-  await nav.getByRole("link", { name: "Overview" }).click();
+  await nav.getByRole("link", { name: "Home" }).click();
   await page.getByRole("link", { name: "Review problem", exact: true }).click();
   await page.getByRole("navigation", { name: "Problem sections" }).getByRole("link", { name: "Options", exact: true }).click();
   await expect(page).toHaveURL(/view=options$/);

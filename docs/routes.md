@@ -27,5 +27,9 @@ Route groups do not provide security by themselves. Proxy refreshes sessions and
 - `GET /api/problems/[id]`: owned problem, latest job and validated saved full snapshot.
 - `POST /api/problems/[id]/respond`: `{ requestId: UUID, runId: UUID, answers: string[] }`; saves answers and continues the same waiting analysis.
 - `POST /api/problems/[id]/retry`: `{ requestId: UUID }`; explicitly reserves a fresh attempt.
+- `POST /api/account/onboarding`: persist completed or skipped onboarding for the verified account.
+- `POST /api/account/analytics`: enable or disable first-party product analytics.
+- `POST /api/analytics`: record one allowlisted, normalized account event.
+- `GET /api/health`: bounded public dependency status without configuration or account data.
 
 All handlers verify Auth identity and return private/no-store responses. Mutations require the configured `SITE_URL` Origin, JSON content type and a bounded request body. Foreign problem IDs return 404; missing sessions return 401. Background work keeps the verified user's RLS scope.

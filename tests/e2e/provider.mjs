@@ -82,10 +82,15 @@ createServer(async (req, res) => {
     return send({});
   }
   if (url.pathname === '/rest/v1/profiles') {
+    if (!current && url.searchParams.get('select') === 'id') return send([]);
     if (!current) return send({ message: 'denied' }, 401);
-    const profile = profiles.get(current.user.id) ?? { id: current.user.id, display_name: current.user.user_metadata.display_name || null, avatar_url: null, timezone: 'UTC', preferred_language: 'en' };
+    const profile = profiles.get(current.user.id) ?? { id: current.user.id, display_name: current.user.user_metadata.display_name || null, avatar_url: null, timezone: 'UTC', preferred_language: 'en', onboarding_completed_at: null, product_analytics_enabled: true };
     if (req.method === 'PATCH') { Object.assign(profile, body); profiles.set(current.user.id, profile); }
     return send(profile);
+  }
+  if (url.pathname === '/rest/v1/rpc/record_product_event') {
+    if (!current) return send({ message: 'denied' }, 401);
+    return send(randomUUID());
   }
   return send({ message: 'Unhandled test provider route' }, 404);
 }).listen(54331, '127.0.0.1', () => console.log('Test-only auth provider listening on 127.0.0.1:54331'));

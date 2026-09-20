@@ -6,5 +6,5 @@ export const dynamic = "force-dynamic";
 
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const account = await getAccountProfile();
-  return <DemoProvider key={account.id} account={account}><WorkspaceShell>{children}</WorkspaceShell></DemoProvider>;
+  return <DemoProvider key={account.id} account={account}><WorkspaceShell onboardingComplete={account.onboardingComplete}>{children}</WorkspaceShell></DemoProvider>;
 }

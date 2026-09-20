@@ -4,25 +4,25 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #f7f9fc;
-  --foreground: #162438;
+  --background: #f7f8ff;
+  --foreground: #12184f;
   --card: #ffffff;
-  --card-foreground: #162438;
+  --card-foreground: #12184f;
   --popover: #ffffff;
   --popover-foreground: #162438;
-  --primary: #235ad3;
+  --primary: #4b3fea;
   --primary-foreground: #ffffff;
-  --secondary: #eaf0fa;
-  --secondary-foreground: #263c5e;
-  --muted: #edf1f7;
-  --muted-foreground: #53647a;
-  --accent: #eaf0fa;
-  --accent-foreground: #235ad3;
+  --secondary: #eef0ff;
+  --secondary-foreground: #302e94;
+  --muted: #f0f2f8;
+  --muted-foreground: #626983;
+  --accent: #eef0ff;
+  --accent-foreground: #3e35ce;
   --destructive: #ba2435;
-  --border: #dce3ed;
-  --input: #dce3ed;
-  --ring: #235ad3;
-  --radius: 0.75rem;
+  --border: #e0e3ef;
+  --input: #dfe2ee;
+  --ring: #5747ee;
+  --radius: 1rem;
 }
 
 @theme inline {
@@ -48,11 +48,20 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 @layer base {
   * { @apply border-border; }
   body { @apply bg-background text-foreground antialiased; }
   :focus-visible { @apply outline-2 outline-offset-4 outline-ring; }
+  ::selection { background: #d9d8ff; color: #11154e; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+body:has(.workspace-shell) > header,
+body:has(.workspace-shell) > footer { display: none; }
+body:has(.workspace-shell) > main { max-width: none; }

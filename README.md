@@ -2,7 +2,7 @@
 
 **Give it a problem. Get it solved.**
 
-Avenli is an outcome-oriented AI problem workspace in development. **Phases 1–14** implement accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery, daily monitoring, notifications, optional Google context and explicitly approved Calendar actions using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, monitor a completed result and prepare a reviewable Calendar event. Fictional examples remain available through **Explore demo**.
+Avenli is an outcome-oriented AI problem workspace in development. **Phases 1–15** implement accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery, daily monitoring, notifications, optional Google context, explicitly approved Calendar actions, onboarding and production web polish using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, monitor a completed result and prepare a reviewable Calendar event. Fictional examples remain available through **Explore demo**.
 
 ## Local setup
 
@@ -146,6 +146,10 @@ Google Calendar and Gmail are independently optional context services behind a s
 ## Phase 14: external actions
 
 Completed problems can prepare a Google Calendar event proposal. Creation requires a separate narrow Google permission and an explicit review and approval of the exact event. Provider retries are idempotent and every transition is audited. See [`docs/actions.md`](docs/actions.md).
+
+## Phase 15: web completion
+
+The Avenli visual system now covers the public site, authentication and responsive workspace. Persistent onboarding, mobile navigation, defensive browser headers, a bounded health check and opt-out first-party product analytics complete the production web surface. See [`docs/web-completion.md`](docs/web-completion.md).
 
 ## Reference documentation
 

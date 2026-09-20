@@ -641,6 +641,34 @@ export type Database = {
         Relationships: [
         ];
       };
+      product_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          event_name: string;
+          path: string;
+          properties: Json;
+          occurred_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          event_name: string;
+          path: string;
+          properties?: Json;
+          occurred_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          event_name?: string;
+          path?: string;
+          properties?: Json;
+          occurred_at?: string;
+        };
+        Relationships: [
+        ];
+      };
       profiles: {
         Row: {
           id: string;
@@ -650,6 +678,8 @@ export type Database = {
           preferred_language: string;
           created_at: string;
           updated_at: string;
+          onboarding_completed_at: string | null;
+          product_analytics_enabled: boolean;
         };
         Insert: {
           id: string;
@@ -659,6 +689,8 @@ export type Database = {
           preferred_language?: string;
           created_at?: string;
           updated_at?: string;
+          onboarding_completed_at?: string | null;
+          product_analytics_enabled?: boolean;
         };
         Update: {
           id?: string;
@@ -668,6 +700,8 @@ export type Database = {
           preferred_language?: string;
           created_at?: string;
           updated_at?: string;
+          onboarding_completed_at?: string | null;
+          product_analytics_enabled?: boolean;
         };
         Relationships: [
         ];
@@ -945,6 +979,11 @@ export type Database = {
       read_notification: { Args: {
         p_id: string | null;
       }; Returns: boolean; };
+      record_product_event: { Args: {
+        p_event_name: string | null;
+        p_path: string | null;
+        p_properties?: Json | null;
+      }; Returns: string; };
       recover_web_run: { Args: {
         p_run_id: string | null;
         p_secret: string | null;

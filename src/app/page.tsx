@@ -1,33 +1,17 @@
-import { Compass, ListChecks, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, ListChecks, Search, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AvenliMark } from "@/components/brand";
 
 export default function HomePage() {
   return (
-    <div className="mx-auto max-w-6xl space-y-12 px-6 py-14 sm:px-10 sm:py-20">
-      <section className="max-w-3xl space-y-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">A place to move forward</p>
-        <h1 className="text-4xl font-semibold leading-[1.12] tracking-tight sm:text-6xl">Give it a problem.<br /><span className="text-primary">Get it solved.</span></h1>
-        <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">A workspace for your goal, the evidence behind your decisions, and what needs to happen next.</p>
-        <div className="flex flex-wrap gap-3"><Button asChild><Link href="/register">Create account</Link></Button><Button asChild variant="outline"><Link href="/login">Sign in</Link></Button></div>
+    <div className="overflow-hidden">
+      <section className="relative mx-auto grid min-h-[680px] max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.05fr_.95fr] lg:py-24">
+        <div className="absolute -left-40 top-16 -z-10 size-96 rounded-full bg-violet-200/40 blur-3xl" aria-hidden="true"/><div className="absolute -right-32 top-0 -z-10 size-[30rem] rounded-full bg-blue-200/35 blur-3xl" aria-hidden="true"/>
+        <div className="max-w-2xl"><p className="inline-flex items-center gap-2 rounded-full border border-[#dddef9] bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[.16em] text-[#4c47b5]"><Sparkles className="size-4" aria-hidden="true"/>A personal problem-solving agent</p><h1 className="mt-7 text-5xl font-semibold leading-[1.04] tracking-[-.055em] text-[#0f1554] sm:text-7xl">Give it a problem.<br/><span className="bg-[linear-gradient(90deg,#3e50ee,#8738ef)] bg-clip-text text-transparent">Get it solved.</span></h1><p className="mt-6 max-w-xl text-lg leading-8 text-[#5e6582] sm:text-xl">Avenli turns real-life complexity into researched options, a clear recommendation, and next steps you approve.</p><div className="mt-9 flex flex-wrap gap-3"><Button asChild size="lg" className="rounded-xl bg-[linear-gradient(135deg,#3c52ef,#8138f2)] px-7 shadow-xl shadow-violet-200"><Link href="/register">Get started <ArrowRight aria-hidden="true"/></Link></Button><Button asChild size="lg" variant="outline" className="rounded-xl border-[#d8daf0] bg-white/80 px-7"><Link href="/dashboard?demo=1">Explore the demo</Link></Button></div><p className="mt-5 text-sm text-muted-foreground">You stay in control. External actions always require your approval.</p></div>
+        <div className="relative mx-auto w-full max-w-lg"><div className="absolute -inset-8 rounded-[3rem] bg-[linear-gradient(135deg,rgba(79,75,246,.18),rgba(59,183,255,.14))] blur-2xl" aria-hidden="true"/><div className="relative rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-[0_30px_80px_rgba(32,35,104,.18)] backdrop-blur"><div className="flex items-center gap-3 border-b pb-5"><span className="flex size-12 items-center justify-center rounded-2xl bg-[#f1f0ff]"><AvenliMark/></span><div><p className="font-semibold text-[#15195a]">Avenli is working on it</p><p className="text-sm text-muted-foreground">Your plan stays reviewable at every step</p></div></div><ol className="mt-6 space-y-5">{[{icon:Search,title:"Understanding your request",done:true},{icon:Search,title:"Researching reliable sources",done:true},{icon:ListChecks,title:"Comparing the options",done:false},{icon:ShieldCheck,title:"Preparing your recommendation",done:false}].map(({icon:Icon,title,done},index)=><li key={title} className="flex items-center gap-4"><span className={`flex size-9 items-center justify-center rounded-full ${done?"bg-emerald-50 text-emerald-600":"bg-[#f0f1fb] text-[#777d9b]"}`}>{done?<CheckCircle2 className="size-5"/>:<Icon className="size-4"/>}</span><div className="flex-1"><p className="text-sm font-medium">{title}</p><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#eef0f6]"><div className={`h-full rounded-full ${done?"w-full bg-emerald-400":index===2?"w-1/2 bg-[#6550ef]":"w-0"}`}/></div></div></li>)}</ol><div className="mt-7 rounded-2xl bg-[linear-gradient(135deg,#121957,#292169)] p-5 text-white"><p className="text-xs uppercase tracking-[.15em] text-indigo-200">Helpful by design</p><p className="mt-2 text-lg font-medium">Clear evidence. Explicit choices. More time for what matters.</p></div></div></div>
       </section>
-      <section aria-labelledby="preview-title" className="rounded-xl border border-primary/20 bg-secondary p-6">
-        <h2 id="preview-title" className="font-semibold">From a problem to a plan you can review</h2>
-        <p className="mt-2 max-w-2xl leading-relaxed text-muted-foreground">Describe a problem, follow the analysis, and review its research, recommendation, risks and proposed tasks. Your progress is saved in your account.</p>
-      </section>
-      <section aria-label="The Avenli approach" className="grid gap-5 md:grid-cols-3">
-        {[
-          { icon: Compass, title: "Start with the outcome", description: "Keep the goal and the constraints that matter in one place." },
-          { icon: ShieldCheck, title: "Know what supports it", description: "Bring evidence, open questions, and risks into the decision." },
-          { icon: ListChecks, title: "Make the next step clear", description: "Turn a decision into a plan you can follow." },
-        ].map(({ icon: Icon, title, description }) => (
-          <Card key={title} className="shadow-none">
-            <CardHeader><Icon aria-hidden="true" className="mb-4 size-6 text-primary" /><CardTitle className="text-lg">{title}</CardTitle></CardHeader>
-            <CardContent><p className="leading-relaxed text-muted-foreground">{description}</p></CardContent>
-          </Card>
-        ))}
-      </section>
+      <section aria-label="How Avenli works" className="border-y border-[#e5e7f3] bg-white/75"><div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:px-8 md:grid-cols-3">{[{n:"01",title:"Understand the problem",description:"Keep the outcome and real constraints together."},{n:"02",title:"Find the best approach",description:"Research and compare options with visible evidence."},{n:"03",title:"Take action with approval",description:"Review the plan and approve any external change."}].map(item=><article key={item.n} className="border-l-2 border-[#dedffd] pl-5"><p className="text-xs font-semibold text-[#6053e8]">{item.n}</p><h2 className="mt-2 text-lg font-semibold">{item.title}</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p></article>)}</div></section>
     </div>
   );
 }

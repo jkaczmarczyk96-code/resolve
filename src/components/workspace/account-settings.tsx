@@ -8,12 +8,13 @@ import { Panel } from "@/components/demo/primitives";
 import { profileSchema, passwordChangeSchema } from "@/lib/account/contracts";
 import { post } from "./remote";
 import { GoogleIntegrationSettings, type GoogleConnection } from "./google-integration-settings";
-type Profile = { display_name: string | null; avatar_url: string | null; timezone: string; preferred_language: string };
+type Profile = { display_name: string | null; avatar_url: string | null; timezone: string; preferred_language: string; product_analytics_enabled: boolean };
 export function AccountSettings({ profile, email, providers, googleEnabled, googleConnection, integrationNotice }: { profile: Profile; email: string; providers: string[]; googleEnabled: boolean; googleConnection: GoogleConnection; integrationNotice?: string }) {
   const router = useRouter();
   const [values, setValues] = useState({ display_name: profile.display_name ?? "", avatar_url: profile.avatar_url ?? "", timezone: profile.timezone, preferred_language: profile.preferred_language });
   const [passwords, setPasswords] = useState({ currentPassword: "", password: "", confirmPassword: "" });
   const [confirmation, setConfirmation] = useState(""); const [deletePassword, setDeletePassword] = useState("");
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(profile.product_analytics_enabled);
   const [pending, setPending] = useState(""); const [message, setMessage] = useState<{ section: string; text: string; error?: boolean } | null>(null);
   async function save(section: string, url: string, value: unknown, success: string) {
     if (pending) return false; setPending(section); setMessage(null);
@@ -35,6 +36,7 @@ export function AccountSettings({ profile, email, providers, googleEnabled, goog
       <Button disabled={Boolean(pending)}>Save profile</Button>{feedback("profile")}</form></Panel>
     <Panel title="Sign-in methods"><p className="text-sm">{providers.join(", ") || "Email"}</p><Link href="/notifications" className="mt-3 inline-block text-sm text-primary underline">Notification preferences</Link></Panel>
     <GoogleIntegrationSettings enabled={googleEnabled} connection={googleConnection} notice={integrationNotice} />
+    <Panel title="Product analytics" description="Help improve Avenli with small first-party usage events such as opening a page or finishing onboarding."><div className="flex flex-wrap items-center justify-between gap-4"><div className="max-w-xl"><p className="text-sm">No problem text, search queries, email content, Google data, auth URLs, or third-party tracking scripts are collected.</p><p className="mt-2 text-xs text-muted-foreground">Events stay in Avenli&apos;s Supabase database, are included in your export, and are deleted with your account.</p></div><Button variant="outline" disabled={Boolean(pending)} onClick={async () => { const next = !analyticsEnabled; if (await save("analytics", "/api/account/analytics", { enabled: next }, `Product analytics ${next ? "enabled" : "disabled"}.`)) setAnalyticsEnabled(next); }}>{analyticsEnabled ? "Disable analytics" : "Enable analytics"}</Button></div>{feedback("analytics")}</Panel>
     <Panel title="Change password" description="Confirm your current password before setting a new one."><form className="space-y-4" onSubmit={async (event) => {
       event.preventDefault(); const parsed = passwordChangeSchema.safeParse(passwords);
       if (!parsed.success) { setMessage({ section: "password", text: "Use matching passwords with at least 12 characters, uppercase, lowercase and a number.", error: true }); return; }

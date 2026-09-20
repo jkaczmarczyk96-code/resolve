@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Panel } from "@/components/demo/primitives";
 import { actionProposalSchema,type ActionAccess,type ExternalAction } from "@/lib/actions/contracts";
 import { post } from "./remote";
+import { trackProductEvent } from "@/lib/product/analytics";
 
 const labels={ proposed:"Awaiting approval",executing:"Creating event",succeeded:"Created",failed:"Failed",cancelled:"Cancelled" } as const;
 
@@ -25,7 +26,7 @@ export function CalendarActions({ id,title,actions,access,analysisComplete,refre
   }
   async function change(actionId:string,kind:"approve"|"cancel") {
     setPending(actionId); setError("");
-    try { await post(`/api/actions/${actionId}/${kind}`,kind==="approve" ? { confirmation:"CREATE" } : {}); setReviewing(null); refresh(); }
+    try { await post(`/api/actions/${actionId}/${kind}`,kind==="approve" ? { confirmation:"CREATE" } : {}); if(kind==="approve") trackProductEvent("calendar_action_succeeded", "/problems/:id"); setReviewing(null); refresh(); }
     catch(error) { setError(error instanceof Error ? error.message : "Unable to update this action."); refresh(); }
     finally { setPending(""); }
   }

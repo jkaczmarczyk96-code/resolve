@@ -14,11 +14,11 @@ export function CategoryIcon({ category }: { category: DemoProblem["category"] }
 }
 
 export function PageHeading({ eyebrow, title, description, action = false, demo = false }: { eyebrow: string; title: string; description: string; action?: boolean; demo?: boolean }) {
-  return <div className="flex flex-wrap items-start justify-between gap-5"><div className="space-y-2"><p className="text-sm font-medium text-primary">{eyebrow}</p><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1><p className="max-w-2xl leading-relaxed text-muted-foreground">{description}</p></div>{action && <Button asChild><Link href={demo ? "/problems/new?demo=1" : "/problems/new"}><Plus aria-hidden="true" />New problem</Link></Button>}</div>;
+  return <div className="flex flex-wrap items-start justify-between gap-5"><div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-[.16em] text-primary">{eyebrow}</p><h1 className="text-3xl font-semibold tracking-[-.035em] text-[#111653] sm:text-4xl">{title}</h1><p className="max-w-2xl leading-relaxed text-muted-foreground">{description}</p></div>{action && <Button asChild className="rounded-xl bg-[linear-gradient(135deg,#4055ef,#7c39ef)] shadow-md shadow-violet-200"><Link href={demo ? "/problems/new?demo=1" : "/problems/new"}><Plus aria-hidden="true" />New problem</Link></Button>}</div>;
 }
 
 export function Panel({ title, description, children, className }: { title: string; description?: string; children: React.ReactNode; className?: string }) {
-  return <section className={cn("rounded-xl border bg-card p-5 sm:p-6", className)}><h2 className="text-lg font-semibold tracking-tight">{title}</h2>{description && <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>}<div className="mt-5">{children}</div></section>;
+  return <section className={cn("rounded-2xl border border-[#e4e6f1] bg-white p-5 shadow-[0_8px_30px_rgba(28,32,92,.045)] sm:p-6", className)}><h2 className="text-lg font-semibold tracking-tight text-[#151955]">{title}</h2>{description && <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>}<div className="mt-5">{children}</div></section>;
 }
 
 export function EmptyState({ title, detail, children }: { title: string; detail: string; children?: React.ReactNode }) {

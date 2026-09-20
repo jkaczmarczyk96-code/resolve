@@ -24,7 +24,7 @@ export async function mail(request: APIRequestContext, email: string, type = "si
   if (typeof body !== "object" || !body || !("url" in body) || typeof body.url !== "string") throw new Error("Test email not found");
   return body.url;
 }
-export async function register(page: Page, request: APIRequestContext) {
+export async function register(page: Page, request: APIRequestContext, completeOnboarding = true) {
   const email = `resolve-${randomUUID()}@example.com`;
   await page.goto("/register");
   await page.getByLabel("Display name (optional)").fill("Resolve Tester");
@@ -36,6 +36,14 @@ export async function register(page: Page, request: APIRequestContext) {
   const confirmation = await mail(request, email);
   await page.goto(confirmation);
   await expect(page).toHaveURL(/\/dashboard$/);
+  if (completeOnboarding) {
+    const onboarding = page.getByRole("dialog");
+    await expect(onboarding.getByRole("heading", { name: "Tell Avenli what you need to achieve." })).toBeVisible();
+    await onboarding.getByRole("button", { name: "Continue" }).click();
+    await onboarding.getByRole("button", { name: "Continue" }).click();
+    await onboarding.getByRole("button", { name: "Create your first problem" }).click();
+    await expect(onboarding).toBeHidden();
+  }
   await expect(page.getByRole("heading", { name: "Welcome, Resolve Tester" })).toBeVisible();
   return { email, confirmation };
 }

@@ -8,7 +8,7 @@ export function LegalPage({ title, intro, children }: { title: string; intro: st
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Avenli</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight">{title}</h1>
         <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{intro}</p>
-        <p className="mt-4 text-sm text-muted-foreground">Effective September 13, 2026</p>
+        <p className="mt-4 text-sm text-muted-foreground">Effective September 14, 2026</p>
       </header>
       <div className="space-y-8 py-8 leading-relaxed [&_a]:text-primary [&_a]:underline [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_ul]:ml-6 [&_ul]:list-disc [&_ul]:space-y-2">{children}</div>
     </article>
