@@ -31,12 +31,32 @@ it("isolates inbox and preferences and prevents forged domain events", async () 
   await actor(owner);
 });
 it("suppresses future delivery while retaining the event and independent preferences", async () => {
-  await db.query("select public.save_notification_preferences(false,true,true)");
+  await db.query("select public.save_notification_preferences(false,true,true,true)");
   const muted = await run();
   expect((await db.query("select id from public.notifications where problem_id=$1", [muted.problem])).rows).toHaveLength(0);
   await db.exec("reset role");
   expect((await db.query("select id from public.notification_events where problem_id=$1", [muted.problem])).rows).toHaveLength(1);
   await actor(other); expect((await db.query("select * from public.notification_preferences")).rows).toHaveLength(0); await actor(owner);
+});
+it("emits one optional reminder for each active due task", async () => {
+  await db.exec("reset role");
+  const task = randomUUID();
+  await db.query("insert into public.tasks(id,problem_id,title,due_at) values($1,$2,'Review recommendation',now()+interval '1 hour')", [task, problem]);
+  await actor(owner);
+  await expect(db.query("select public.emit_due_task_notifications(100)")).rejects.toThrow(/permission denied/);
+  await db.exec("reset role; set role service_role");
+  expect((await db.query<{ count: number }>("select public.emit_due_task_notifications(100) as count")).rows).toEqual([{ count: 1 }]);
+  expect((await db.query<{ count: number }>("select public.emit_due_task_notifications(100) as count")).rows).toEqual([{ count: 0 }]);
+  await actor(owner);
+  expect((await db.query("select kind from public.notifications where kind='task_due' and problem_id=$1",[problem])).rows).toEqual([{ kind:"task_due" }]);
+
+  await db.query("select public.save_notification_preferences(true,true,true,false)");
+  await db.exec("reset role");
+  await db.query("insert into public.tasks(problem_id,title,due_at) values($1,'Muted reminder',now()+interval '2 hours')",[problem]);
+  await db.exec("set role service_role");
+  expect((await db.query<{ count:number }>("select public.emit_due_task_notifications(100) as count")).rows).toEqual([{ count:1 }]);
+  await actor(owner);
+  expect((await db.query("select kind from public.notifications where kind='task_due' and problem_id=$1",[problem])).rows).toHaveLength(1);
 });
 it("delivers monitoring updates through the same event abstraction", async () => {
   const condition = (await db.query<{ item: { id: string } }>("select public.create_monitoring_condition($1,'A public threshold is reached.','current official public threshold') as item", [problem])).rows[0].item.id;

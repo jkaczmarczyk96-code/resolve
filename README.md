@@ -173,7 +173,7 @@ The release matrix covers unit, integration, RLS, authentication, security, agen
 
 The production deployment, reproducible setup, architecture diagram, demo script and initial release screenshots are ready. Devpost registration, the final live screenshots, public repository switch and demo-video URL remain before the reviewed final entry. See the [release checklist](docs/hackathon-release.md) and [demo guide](docs/demo.md).
 
-Generated tasks from completed analyses are also persisted as an owner-controlled action plan. Users can move each item between to do, in progress, completed and cancelled without triggering an AI call or external action; the original generated proposal stays immutable in its workflow snapshot.
+Generated tasks from completed analyses are also persisted as an owner-controlled action plan. Users can move each item between to do, in progress, completed and cancelled, add or clear a due date, and receive an optional in-app reminder when it is due within 24 hours. These changes never trigger an AI call or external action; the original generated proposal stays immutable in its workflow snapshot.
 
 Completed problems can be marked solved and reopened. Solving pauses active monitoring, records an owner-only lifecycle event and keeps the recommendation, evidence, tasks and action audit available for later review.
 

@@ -6,7 +6,7 @@ export async function GET() {
     const { client, user } = await identity();
     const [items, preferences] = await Promise.all([
       client.from("notifications").select("id,problem_id,kind,created_at,read_at").eq("user_id", user.id).order("created_at", { ascending: false }).order("id").limit(100).abortSignal(AbortSignal.timeout(10_000)),
-      client.from("notification_preferences").select("analysis_updates,action_required,monitoring_updates").eq("user_id", user.id).abortSignal(AbortSignal.timeout(10_000)).maybeSingle(),
+      client.from("notification_preferences").select("analysis_updates,action_required,monitoring_updates,task_updates").eq("user_id", user.id).abortSignal(AbortSignal.timeout(10_000)).maybeSingle(),
     ]);
     if (items.error || preferences.error) throw new WorkspaceError("LOAD_FAILED", 503);
     return json({ items: items.data, preferences: preferences.data ?? defaultPreferences });

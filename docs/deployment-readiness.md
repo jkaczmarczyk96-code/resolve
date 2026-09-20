@@ -102,4 +102,10 @@ A completed problem can now be marked solved and reopened from its workspace. So
 
 Migration `20260920010000_problem_lifecycle.sql` applied successfully to hosted Supabase and remote database lint found no schema errors. Local validation passed 299 tests across 48 files, zero-warning lint, strict TypeScript, production build and 17 executed Chromium scenarios; three live-provider scenarios were skipped. The live-provider suite now also covers task persistence and a solved/reopened round trip when run against disposable local data.
 
+## Task deadlines and reminders — 2026-09-20
+
+Materialized tasks now accept a future due date without changing the immutable generated proposal. Active deadlines due within seven days appear in the dashboard summary and on problem cards. The existing daily Hobby-compatible cron emits one idempotent in-app reminder per task and saved deadline when it is due within 24 hours. Task reminders have an independent account preference; solved problems and completed or cancelled tasks are excluded.
+
+Migration `20260920020000_task_deadlines.sql` applied successfully to hosted Supabase and remote database lint found no schema errors. Local validation passed 304 tests across 49 files, zero-warning lint, strict TypeScript, a production build and 17 executed Chromium scenarios; three live-provider scenarios were skipped.
+
 Commit `84451fd` deployed as `dpl_J7NpTDdcN2hjb1XQPcMHRxAKETSW`. A reversible production check on the existing fictional Phase 14 review problem showed the `Solved` state, closure timestamp and `Marked solved` history entry, then restored the problem to its prior open state through `Reopen problem`; the ordered history contains both transitions.

@@ -3,7 +3,7 @@ import { register } from "./helpers";
 test("inbox filtering, read acknowledgement and preference persistence", async ({ page, request }) => {
   await register(page, request);
   let readAt: string | null = null;
-  let preferences = { analysis_updates: true, action_required: true, monitoring_updates: true };
+  let preferences = { analysis_updates: true, action_required: true, monitoring_updates: true, task_updates: true };
   await page.route("**/api/notifications", async (route) => {
     if (route.request().method() === "PATCH") { readAt = new Date().toISOString(); await route.fulfill({ json: { saved: true } }); return; }
     await route.fulfill({ json: { items: [{ id: "11111111-1111-4111-8111-111111111111", problem_id: "22222222-2222-4222-8222-222222222222", kind: "input_required", created_at: new Date().toISOString(), read_at: readAt }], preferences } });
@@ -16,6 +16,7 @@ test("inbox filtering, read acknowledgement and preference persistence", async (
   await page.getByRole("button", { name: "Mark as read", exact: true }).click();
   await expect(page.getByText("No unread notifications.", { exact: true })).toBeVisible();
   await page.getByLabel("Analysis completion and failures", { exact: true }).uncheck();
+  await expect(page.getByLabel("Task due date reminders", { exact: true })).toBeChecked();
   await page.getByRole("button", { name: "Save preferences", exact: true }).click();
   await expect(page.getByText("Preferences saved.", { exact: true })).toBeVisible();
   await page.reload(); await expect(page.getByLabel("Analysis completion and failures", { exact: true })).not.toBeChecked();

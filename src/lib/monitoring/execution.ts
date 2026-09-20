@@ -35,6 +35,10 @@ export function authorizedCron(header: string | null) {
   return timingSafeEqual(Buffer.from(header), Buffer.from(expected));
 }
 
+export async function emitDueTaskNotifications() {
+  return z.number().int().nonnegative().parse(await rpc("emit_due_task_notifications", { p_limit: 100 }));
+}
+
 export async function monitorDueConditions() {
   const claims = claimsSchema.parse(await rpc("claim_due_monitoring_conditions", { p_limit: 2 }));
   const ai = createNebiusProvider(); const research = createTavilyProvider();

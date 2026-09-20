@@ -22,10 +22,10 @@ Monitoring does not execute tasks, purchases, bookings, messages or account chan
 
 When an analysis reaches `COMPLETED`, its validated generated tasks are materialized into the owner-scoped `tasks` table in the same transaction that completes the web run. Existing completed snapshots are backfilled by the task-progress migration. The immutable workflow snapshot remains the audit source for what the agent proposed; the task rows store only the user's later progress (`pending`, `in_progress`, `completed`, or `cancelled`) and the completion timestamp.
 
-Changing a task status never invokes an AI provider or an external integration. The task API validates the exact status, scopes the update to the requested problem and relies on problem-owner RLS. Calendar writes remain a separate proposal and explicit-approval flow.
+Changing a task status or due date never invokes an AI provider or an external integration. The task API validates the exact status and a future ISO timestamp, scopes the update to the requested problem and relies on problem-owner RLS. The dashboard counts active tasks due within seven days. The daily cron publishes at most one in-app reminder per task and saved deadline when that deadline is within 24 hours; changing the deadline creates a new reminder identity. Solved problems and completed or cancelled tasks are excluded. Calendar writes remain a separate proposal and explicit-approval flow.
 
 ## Problem lifecycle
 
 The owner can mark a completed problem solved and later reopen it. Solving sets `problems.solved_at`, pauses active or claimed monitoring conditions, and appends an immutable owner-scoped lifecycle event. Reopening clears `solved_at`; monitoring stays paused until the owner resumes it explicitly. Both transitions are idempotent and included in the account export. A solved problem cannot create or resume monitoring through either the UI or the database functions.
 
-Apply `20260912000000_persistent_agent.sql`, `20260920000000_task_progress.sql` and `20260920010000_problem_lifecycle.sql`, set `SUPABASE_SECRET_KEY` and `CRON_SECRET` in the production environment, and keep both values out of browser-prefixed variables and source control.
+Apply `20260912000000_persistent_agent.sql`, `20260920000000_task_progress.sql`, `20260920010000_problem_lifecycle.sql` and `20260920020000_task_deadlines.sql`, set `SUPABASE_SECRET_KEY` and `CRON_SECRET` in the production environment, and keep both values out of browser-prefixed variables and source control.

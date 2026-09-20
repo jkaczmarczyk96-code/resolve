@@ -29,7 +29,7 @@ Route groups do not provide security by themselves. Proxy refreshes sessions and
 - `GET /api/problems/[id]`: owned problem, latest job and validated saved full snapshot.
 - `POST /api/problems/[id]/respond`: `{ requestId: UUID, runId: UUID, answers: string[] }`; saves answers and continues the same waiting analysis.
 - `POST /api/problems/[id]/retry`: `{ requestId: UUID }`; explicitly reserves a fresh attempt.
-- `PATCH /api/problems/[id]/tasks`: update one materialized task status inside the owned problem.
+- `PATCH /api/problems/[id]/tasks`: update one materialized task status or future due date inside the owned problem.
 - `PATCH /api/problems/[id]/resolution`: mark a completed problem solved or reopen it; solving pauses its active monitoring conditions.
 - `POST /api/account/onboarding`: persist completed or skipped onboarding for the verified account.
 - `POST /api/account/analytics`: enable or disable first-party product analytics.

@@ -16,14 +16,14 @@ export const monitoringConditionSchema = z.object({ id: z.uuid(), problemId: z.u
 export const monitoringCreateSchema = z.strictObject({ description: z.string().trim().min(10).max(1000), searchQuery: z.string().trim().min(10).max(500) });
 export const monitoringUpdateSchema = z.strictObject({ conditionId: z.uuid(), status: z.enum(["active", "paused"]) });
 export const taskStatusSchema = z.enum(["pending", "in_progress", "completed", "cancelled"]);
-export const taskUpdateSchema = z.strictObject({ taskId: z.uuid(), status: taskStatusSchema });
-export const savedTaskSchema = z.object({ id: z.uuid(), sourceId: z.string(), status: taskStatusSchema, completedAt: z.string().nullable() });
+export const taskUpdateSchema = z.strictObject({ taskId: z.uuid(), status: taskStatusSchema.optional(), dueAt: z.iso.datetime({ offset: true }).nullable().optional() }).refine((value) => value.status !== undefined || value.dueAt !== undefined);
+export const savedTaskSchema = z.object({ id: z.uuid(), sourceId: z.string(), status: taskStatusSchema, completedAt: z.string().nullable(), dueAt: z.string().nullable() });
 export const resolutionUpdateSchema = z.strictObject({ solved: z.boolean() });
 export const resolutionResultSchema = z.object({ status: problemStatusSchema, solvedAt: z.string().nullable() });
 export const lifecycleEventSchema = z.object({ id: z.uuid(), event: z.enum(["solved", "reopened"]), createdAt: z.string() });
 export const detailSchema = z.object({ problem: problemSummarySchema, job: webJobSchema.nullable(), snapshot: fullSnapshotSchema.nullable(), humanRequest: humanRequestSchema.nullable(), conditions: z.array(monitoringConditionSchema).default([]), tasks: z.array(savedTaskSchema).default([]), lifecycle: z.array(lifecycleEventSchema).default([]), actions:z.array(externalActionSchema).default([]),actionAccess:actionAccessSchema.default({ calendarEnabled:false,calendarWriteAuthorized:false }) });
 export type ProblemDetail = z.infer<typeof detailSchema>;
-export const listSchema = z.array(z.object({ problem: problemSummarySchema, job: webJobSchema.nullable() }));
+export const listSchema = z.array(z.object({ problem: problemSummarySchema, job: webJobSchema.nullable(), dueTaskCount: z.number().int().nonnegative().default(0) }));
 export type ProblemList = z.infer<typeof listSchema>;
 export function jobActive(job: WebJob | null) { return Boolean(job && ["queued", "running"].includes(job.status) && Date.parse(job.expiresAt) > Date.now()); }
 export function jobLabel(job: WebJob | null) {

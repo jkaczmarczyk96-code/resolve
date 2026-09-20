@@ -439,18 +439,21 @@ export type Database = {
           analysis_updates: boolean;
           action_required: boolean;
           monitoring_updates: boolean;
+          task_updates: boolean;
         };
         Insert: {
           user_id: string;
           analysis_updates?: boolean;
           action_required?: boolean;
           monitoring_updates?: boolean;
+          task_updates?: boolean;
         };
         Update: {
           user_id?: string;
           analysis_updates?: boolean;
           action_required?: boolean;
           monitoring_updates?: boolean;
+          task_updates?: boolean;
         };
         Relationships: [
         ];
@@ -592,6 +595,32 @@ export type Database = {
           { foreignKeyName: "plan_steps_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
         ];
       };
+      problem_lifecycle_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          event: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          problem_id: string;
+          event: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          problem_id?: string;
+          event?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "problem_lifecycle_events_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
+        ];
+      };
       problems: {
         Row: {
           id: string;
@@ -667,32 +696,6 @@ export type Database = {
           occurred_at?: string;
         };
         Relationships: [
-        ];
-      };
-      problem_lifecycle_events: {
-        Row: {
-          id: string;
-          user_id: string;
-          problem_id: string;
-          event: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          problem_id: string;
-          event: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          problem_id?: string;
-          event?: string;
-          created_at?: string;
-        };
-        Relationships: [
-          { foreignKeyName: "problem_lifecycle_events_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
         ];
       };
       profiles: {
@@ -857,7 +860,7 @@ export type Database = {
         };
         Relationships: [
           { foreignKeyName: "tasks_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
-          { foreignKeyName: "tasks_workflow_run_fkey"; columns: ["problem_id", "workflow_run_id"]; isOneToOne: false; referencedRelation: "full_workflow_runs"; referencedColumns: ["problem_id", "id"]; },
+          { foreignKeyName: "tasks_workflow_run_fkey"; columns: ["problem_id","workflow_run_id"]; isOneToOne: false; referencedRelation: "full_workflow_runs"; referencedColumns: ["problem_id","id"]; },
         ];
       };
       unknowns: {
@@ -1046,6 +1049,7 @@ export type Database = {
         p_analysis: boolean | null;
         p_action: boolean | null;
         p_monitoring: boolean | null;
+        p_tasks: boolean | null;
       }; Returns: undefined; };
       set_google_integration_service: { Args: {
         p_service: string | null;
