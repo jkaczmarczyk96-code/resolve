@@ -7,6 +7,7 @@ Official submission deadline: **October 30, 2026 at 10:00 AM Pacific Time** (`20
 ## Ready
 
 - Production app: <https://avenli.vercel.app>
+- Public no-account demo: <https://avenli.vercel.app/demo>
 - GitHub source is synchronized with the production deployment.
 - Hosted Supabase migrations and database lint are complete.
 - README, setup instructions and `.env.example` describe a reproducible local environment.
@@ -15,12 +16,12 @@ Official submission deadline: **October 30, 2026 at 10:00 AM Pacific Time** (`20
 - Architecture and trust boundaries are documented in [architecture.md](architecture.md).
 - The demo flow and recording script are documented in [demo.md](demo.md).
 - Three release screenshots are checked in under `docs/screenshots/`.
-- Phase 16 verification passed 288 tests, zero-warning lint, strict TypeScript, production build, 16 Chromium scenarios and a zero-vulnerability runtime audit.
+- Phase 16 verification passed 288 tests, zero-warning lint, strict TypeScript, production build, 16 Chromium scenarios and a zero-vulnerability runtime audit. The later public-demo regression brings the normal browser suite to 17 passing scenarios, with three live-provider scenarios skipped.
 - Real Nebius/NVIDIA and Tavily workflows were verified during development; paid-provider checks stay opt-in.
 
 ## Before the Devpost write
 
-- Complete Devpost registration and acknowledge the current official rules.
+- Devpost registration is complete. Acknowledge the current official rules only when ready to continue the submission workflow.
 - Make the GitHub repository public after one final committed-secret scan.
 - Capture the two remaining live screenshots listed in [demo.md](demo.md).
 - Record and upload the short demo video.

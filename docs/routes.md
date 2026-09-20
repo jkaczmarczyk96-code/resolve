@@ -1,8 +1,6 @@
 # Route structure
 
-Phases 2–3 implement the public/auth routes and protected dashboard, problem, new-draft, workspace, and settings screens. Global layout, loading, error, and not-found boundaries are included.
-
-The notification directory remains reserved with no UI yet. Unauthenticated requests redirect to login through proxy; authenticated notification requests return 404 until its implementation phase.
+The application separates public/auth routes, a fictional public demo and the protected saved workspace. Global layout, loading, error and not-found boundaries are included.
 
 | Directory under `src/app` | Future URL | Access / implementation |
 | --- | --- | --- |
@@ -11,14 +9,18 @@ The notification directory remains reserved with no UI yet. Unauthenticated requ
 | `(auth)/forgot-password` | `/forgot-password` | Implemented; account-neutral response |
 | `(auth)/reset-password` | `/reset-password` | Implemented; requires fresh recovery proof |
 | `auth/callback` | `/auth/callback` | Implemented; custom email templates required |
+| `demo` | `/demo` | Public fictional dashboard; no account, database, AI, analytics or external-service calls |
+| `demo/problems` | `/demo/problems` | Public searchable fictional scenarios |
+| `demo/problems/new` | `/demo/problems/new` | Public temporary in-memory draft |
+| `demo/problems/[id]` | `/demo/problems/[id]` | Public fictional workspace; only allowlisted demo IDs or current-session draft IDs |
 | `(workspace)/dashboard` | `/dashboard` | Protected saved-problem overview; `?demo=1` for examples |
 | `(workspace)/problems` | `/problems` | Protected, searchable saved list; `?demo=1` for examples |
 | `(workspace)/problems/new` | `/problems/new` | Protected live submission; `?demo=1` for temporary drafts |
 | `(workspace)/problems/[id]` | `/problems/[id]` | UUID: saved live workspace; demo-/draft-: temporary examples |
-| `(workspace)/notifications` | `/notifications` | Protected; later notification phase |
+| `(workspace)/notifications` | `/notifications` | Protected saved notification inbox |
 | `(workspace)/settings` | `/settings` | Protected real profile + explicit demo preference controls |
 
-Route groups do not provide security by themselves. Proxy refreshes sessions and guards private routes; the workspace layout and dashboard independently verify identity through Auth `getUser()`. RLS remains active. Future APIs and actions must perform their own authorization. Auth pages are dynamic/private/no-store; credential mutations and logout use POST Server Actions with Next.js Origin/Host validation.
+Route groups do not provide security by themselves. Proxy refreshes sessions and guards private routes; protected pages independently verify identity through Auth `getUser()`. RLS remains active. The `/demo` tree has a separate layout with static fictional data and no authenticated components. APIs and actions perform their own authorization. Auth pages are dynamic/private/no-store; credential mutations and logout use POST Server Actions with Next.js Origin/Host validation.
 
 ## Phase 7 APIs
 

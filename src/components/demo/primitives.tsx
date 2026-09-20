@@ -1,8 +1,11 @@
+"use client";
+
 import { ArrowUpRight, BriefcaseBusiness, Compass, House, Plane, Plus } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { DemoProblem, DemoStatus } from "@/lib/demo/types";
+import { useDemo } from "./demo-provider";
 
 export function StatusBadge({ status }: { status: DemoStatus }) {
   return <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium", status === "Needs your input" ? "bg-amber-50 text-amber-900" : status === "Ready to review" ? "bg-emerald-50 text-emerald-800" : "bg-secondary text-secondary-foreground")}><span className="size-1.5 rounded-full bg-current" aria-hidden="true" />{status}</span>;
@@ -13,8 +16,9 @@ export function CategoryIcon({ category }: { category: DemoProblem["category"] }
   return <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary"><Icon className="size-5" aria-hidden="true" /></span>;
 }
 
-export function PageHeading({ eyebrow, title, description, action = false, demo = false }: { eyebrow: string; title: string; description: string; action?: boolean; demo?: boolean }) {
-  return <div className="flex flex-wrap items-start justify-between gap-5"><div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-[.16em] text-primary">{eyebrow}</p><h1 className="text-3xl font-semibold tracking-[-.035em] text-[#111653] sm:text-4xl">{title}</h1><p className="max-w-2xl leading-relaxed text-muted-foreground">{description}</p></div>{action && <Button asChild className="rounded-xl bg-[linear-gradient(135deg,#4055ef,#7c39ef)] shadow-md shadow-violet-200"><Link href={demo ? "/problems/new?demo=1" : "/problems/new"}><Plus aria-hidden="true" />New problem</Link></Button>}</div>;
+export function PageHeading({ eyebrow, title, description, action = false, demo = false, actionHref }: { eyebrow: string; title: string; description: string; action?: boolean; demo?: boolean; actionHref?: string }) {
+  const href = actionHref ?? (action ? (demo ? "/problems/new?demo=1" : "/problems/new") : undefined);
+  return <div className="flex flex-wrap items-start justify-between gap-5"><div className="space-y-2"><p className="text-xs font-semibold uppercase tracking-[.16em] text-primary">{eyebrow}</p><h1 className="text-3xl font-semibold tracking-[-.035em] text-[#111653] sm:text-4xl">{title}</h1><p className="max-w-2xl leading-relaxed text-muted-foreground">{description}</p></div>{href && <Button asChild className="rounded-xl bg-[linear-gradient(135deg,#4055ef,#7c39ef)] shadow-md shadow-violet-200"><Link href={href}><Plus aria-hidden="true" />New problem</Link></Button>}</div>;
 }
 
 export function Panel({ title, description, children, className }: { title: string; description?: string; children: React.ReactNode; className?: string }) {
@@ -26,8 +30,9 @@ export function EmptyState({ title, detail, children }: { title: string; detail:
 }
 
 export function ProblemCard({ problem }: { problem: DemoProblem }) {
+  const { basePath } = useDemo();
   const completed = problem.tasks.filter((task) => task.done).length;
-  return <Link href={`/problems/${problem.id}`} className="group flex h-full flex-col rounded-xl border bg-card p-5 transition-colors hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring">
+  return <Link href={`${basePath}/problems/${problem.id}`} className="group flex h-full flex-col rounded-xl border bg-card p-5 transition-colors hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring">
     <div className="flex items-start justify-between gap-3"><CategoryIcon category={problem.category} /><StatusBadge status={problem.status} /></div>
     <div className="mt-5 flex-1"><p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{problem.category} · {problem.status === "Draft" ? "Your demo draft" : "Sample scenario"}</p><h2 className="mt-2 text-lg font-semibold tracking-tight group-hover:text-primary">{problem.title}</h2><p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{problem.goal}</p></div>
     <div className="mt-6"><div className="mb-2 flex justify-between text-xs text-muted-foreground"><span>Illustrative progress</span><span>{problem.progress}%</span></div><div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary/75" style={{ width: `${problem.progress}%` }} /></div></div>

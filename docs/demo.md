@@ -14,7 +14,7 @@ Open the landing page and say:
 
 > Complex personal and work decisions usually scatter context, research and next steps across tabs. Avenli keeps the outcome, evidence, trade-offs and actions in one reviewable workspace.
 
-Show **Give it a problem. Get it solved.**, then enter the authenticated workspace.
+Show **Give it a problem. Get it solved.**, then open the no-account public demo. Explain that it uses fictional in-memory data and makes no AI or external-service calls. Use the authenticated workspace later in the recording only for the real saved workflow and action review.
 
 ### 0:20–0:50 — Create an outcome
 

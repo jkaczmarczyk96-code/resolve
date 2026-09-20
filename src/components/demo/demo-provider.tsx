@@ -7,7 +7,7 @@ import type { DemoPreferences, DemoProblem } from "@/lib/demo/types";
 
 export type AccountProfile = { id: string; email: string; displayName: string | null; timezone: string; language: string };
 type DemoContextValue = {
-  problems: DemoProblem[]; account: AccountProfile; preferences: DemoPreferences;
+  problems: DemoProblem[]; account: AccountProfile; preferences: DemoPreferences; basePath: string;
   addDraft: (input: string) => string;
   toggleTask: (problemId: string, taskId: string) => void;
   savePreferences: (values: DemoPreferences) => void;
@@ -15,7 +15,7 @@ type DemoContextValue = {
 };
 const DemoContext = createContext<DemoContextValue | null>(null);
 
-export function DemoProvider({ account, children }: { account: AccountProfile; children: React.ReactNode }) {
+export function DemoProvider({ account, children, basePath = "" }: { account: AccountProfile; children: React.ReactNode; basePath?: string }) {
   const [problems, setProblems] = useState(demoProblems);
   const defaults: DemoPreferences = { language: account.language, timezone: account.timezone, inputAlerts: true, researchAlerts: false };
   const [preferences, setPreferences] = useState(defaults);
@@ -28,7 +28,7 @@ export function DemoProvider({ account, children }: { account: AccountProfile; c
   function toggleTask(problemId: string, taskId: string) {
     setProblems((current) => current.map((problem) => problem.id === problemId ? { ...problem, tasks: problem.tasks.map((task) => task.id === taskId ? { ...task, done: !task.done } : task) } : problem));
   }
-  return <DemoContext.Provider value={{ problems, account, preferences, addDraft, toggleTask, savePreferences: setPreferences, reset: () => { setProblems(demoProblems); setPreferences(defaults); } }}>{children}</DemoContext.Provider>;
+  return <DemoContext.Provider value={{ problems, account, preferences, basePath, addDraft, toggleTask, savePreferences: setPreferences, reset: () => { setProblems(demoProblems); setPreferences(defaults); } }}>{children}</DemoContext.Provider>;
 }
 
 export function useDemo() {

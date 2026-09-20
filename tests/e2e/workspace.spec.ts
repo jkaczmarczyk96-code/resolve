@@ -11,6 +11,23 @@ test("production surface exposes health and defensive browser headers", async ({
   expect(home.headers()["x-content-type-options"]).toBe("nosniff");
 });
 
+test("public demo is fully explorable without an account", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Explore the demo" }).click();
+  await expect(page).toHaveURL(/\/demo$/);
+  await expect(page.getByText("Interactive public demo", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Welcome, Demo visitor" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign out" })).toHaveCount(0);
+  await page.getByRole("navigation", { name: "Demo workspace", exact: true }).getByRole("link", { name: "Problems", exact: true }).click();
+  await expect(page).toHaveURL(/\/demo\/problems$/);
+  await page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Find a way to Tokyo" }) }).click();
+  await expect(page).toHaveURL(/\/demo\/problems\/demo-flight$/);
+  await expect(page.getByRole("heading", { name: "The outcome" })).toBeVisible();
+  await page.getByRole("navigation", { name: "Problem sections" }).getByRole("link", { name: "Options", exact: true }).click();
+  await expect(page).toHaveURL(/view=options$/);
+  await expect(page.getByRole("table", { name: "Illustrative option comparison" })).toBeVisible();
+});
+
 test("new accounts get a short, controllable onboarding", async ({ page, request }) => {
   await register(page, request, false);
   const dialog = page.getByRole("dialog");

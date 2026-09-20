@@ -4,7 +4,7 @@
 
 Avenli is an outcome-oriented AI problem workspace in development. **Phases 1–16** implement accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery, daily monitoring, notifications, optional Google context, explicitly approved Calendar actions, onboarding, production web polish and release hardening using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, monitor a completed result and prepare a reviewable Calendar event. Fictional examples remain available through **Explore demo**.
 
-[Try the production app](https://avenli.vercel.app) · [Architecture](docs/architecture.md) · [Demo guide](docs/demo.md)
+[Try the production app](https://avenli.vercel.app) · [Explore the public demo](https://avenli.vercel.app/demo) · [Architecture](docs/architecture.md) · [Demo guide](docs/demo.md)
 
 ![Avenli desktop workspace](docs/screenshots/workspace-desktop.png)
 
