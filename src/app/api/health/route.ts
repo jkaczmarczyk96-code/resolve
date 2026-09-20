@@ -4,8 +4,8 @@ export async function GET() {
   const checkedAt = new Date().toISOString();
   try {
     const { url, publishableKey } = getPublicEnvironment();
-    const response = await fetch(`${url}/rest/v1/profiles?select=id&limit=1`, {
-      headers: { apikey: publishableKey, Authorization: `Bearer ${publishableKey}` },
+    const response = await fetch(`${url}/auth/v1/health`, {
+      headers: { apikey: publishableKey },
       cache: "no-store",
       signal: AbortSignal.timeout(3_000),
     });

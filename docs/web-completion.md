@@ -16,7 +16,7 @@ Analytics can be disabled independently in Settings. The RPC stops recording imm
 
 ## Operations and security
 
-`GET /api/health` performs a bounded anonymous Supabase REST check and returns only `ok` or `degraded`, the service name and check time. It never returns configuration or account data. Production responses add CSP, frame denial, MIME sniffing protection, a restrictive permissions policy, no-referrer behavior and HSTS. Existing same-origin checks, bounded JSON bodies, authentication and RLS remain the mutation boundary.
+`GET /api/health` performs a bounded Supabase Auth health check and returns only `ok` or `degraded`, the service name and check time. It never returns configuration or account data. Production responses add CSP, frame denial, MIME sniffing protection, a restrictive permissions policy, no-referrer behavior and HSTS. Existing same-origin checks, bounded JSON bodies, authentication and RLS remain the mutation boundary.
 
 The health endpoint is suitable for an external uptime check. Vercel runtime logs remain the operational error source; they must not include request bodies, credentials or authentication query strings.
 

@@ -37,6 +37,7 @@ createServer(async (req, res) => {
   const current = sessions.get(req.headers.authorization?.replace('Bearer ', ''));
 
   if (url.pathname === '/health') return send({ mode: 'TEST DOUBLE ONLY' });
+  if (url.pathname === '/auth/v1/health') return send({ version: 'TEST DOUBLE ONLY' });
   if (url.pathname === '/__test/mail') return send(outbox.filter((mail) => mail.email === url.searchParams.get('email')).at(-1) ?? {});
   if (url.pathname === '/__test/refreshes') return send({ count: refreshes });
   if (url.pathname === '/auth/v1/signup') {
@@ -82,7 +83,6 @@ createServer(async (req, res) => {
     return send({});
   }
   if (url.pathname === '/rest/v1/profiles') {
-    if (!current && url.searchParams.get('select') === 'id') return send([]);
     if (!current) return send({ message: 'denied' }, 401);
     const profile = profiles.get(current.user.id) ?? { id: current.user.id, display_name: current.user.user_metadata.display_name || null, avatar_url: null, timezone: 'UTC', preferred_language: 'en', onboarding_completed_at: null, product_analytics_enabled: true };
     if (req.method === 'PATCH') { Object.assign(profile, body); profiles.set(current.user.id, profile); }
