@@ -83,3 +83,9 @@ Phase 15 adds the Avenli visual system, persistent three-step onboarding, deskto
 Local validation passed 285 tests, lint, strict TypeScript and the production build. All 16 executed browser scenarios passed, including onboarding persistence, mobile overflow, health and response-header assertions; three live-provider scenarios were skipped. Hosted migration `20260914020000_web_completion.sql` applied successfully and remote database lint found no schema errors.
 
 Commit `c4ce833` deployed successfully as Vercel production deployment `dpl_E33AgEj8tqiKGKFNTE4Kdw1Q9YYU` and is aliased to `https://avenli.vercel.app`. Post-deploy smoke checks returned 200 for the landing page, login, privacy policy and healthy dependency endpoint; the private dashboard returned the expected unauthenticated redirect and all checked pages carried the defensive headers. An existing authenticated account loaded its saved problem in the redesigned workspace and displayed the new onboarding dialog. Phase 15 is production-verified.
+
+## Phase 16 — Testing and hardening
+
+The regression matrix now explicitly covers prompt-injection boundaries in addition to the existing unit, integration, RLS, Auth, security, external-action, agent-failure and browser suites. Malicious user/source instructions remain model input data, shared system instructions label them untrusted, agents have no tools, and strict schemas reject appended action claims. See `docs/testing-hardening.md` for the release commands and live-provider boundary.
+
+Local release verification passed 288 tests across 41 files, zero-warning lint, strict TypeScript, the optimized production build and all 16 executed Chromium scenarios; three opt-in live-provider scenarios were skipped. The production dependency audit reports zero known runtime vulnerabilities. No database migration is part of this phase.

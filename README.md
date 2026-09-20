@@ -2,7 +2,7 @@
 
 **Give it a problem. Get it solved.**
 
-Avenli is an outcome-oriented AI problem workspace in development. **Phases 1–15** implement accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery, daily monitoring, notifications, optional Google context, explicitly approved Calendar actions, onboarding and production web polish using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, monitor a completed result and prepare a reviewable Calendar event. Fictional examples remain available through **Explore demo**.
+Avenli is an outcome-oriented AI problem workspace in development. **Phases 1–16** implement accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery, daily monitoring, notifications, optional Google context, explicitly approved Calendar actions, onboarding, production web polish and release hardening using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, monitor a completed result and prepare a reviewable Calendar event. Fictional examples remain available through **Explore demo**.
 
 ## Local setup
 
@@ -150,6 +150,10 @@ Completed problems can prepare a Google Calendar event proposal. Creation requir
 ## Phase 15: web completion
 
 The Avenli visual system now covers the public site, authentication and responsive workspace. Persistent onboarding, mobile navigation, defensive browser headers, a bounded health check and opt-out first-party product analytics complete the production web surface. See [`docs/web-completion.md`](docs/web-completion.md).
+
+## Phase 16: testing and hardening
+
+The release matrix covers unit, integration, RLS, authentication, security, agent failure, prompt injection and browser behavior. Strict contracts keep untrusted source instructions out of system prompts and prevent agents from appending tool calls. See [`docs/testing-hardening.md`](docs/testing-hardening.md).
 
 ## Reference documentation
 
