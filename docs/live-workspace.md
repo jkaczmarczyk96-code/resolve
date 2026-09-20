@@ -20,7 +20,7 @@ Node execution uses Next.js [`after`](https://nextjs.org/docs/app/api-reference/
 
 This is a finite in-process run, not a crash-resumable queue. Process termination may leave a job interrupted until lease expiry. The UI then allows explicit retry, starting the whole chain with a new run ID; old snapshots remain stored until the problem is deleted, while the workspace displays the latest attempt. There is no automatic paid retry. Missing finish acknowledgements are handled conservatively through lease expiry. Rotating the Nebius key can prevent idempotent recovery of a previous queued reservation; let its lease expire before retrying.
 
-Research still investigates one planned question. Confidence and model evidence assessments retain Phase 6 limitations. Tasks are proposals; no task is executed. Answer collection and continuation are implemented in Phase 8; persistent monitoring is Phase 10.
+Research investigates up to three priority questions in new runs and records incomplete plan coverage. Confidence and model evidence assessments retain the documented conservative limits. Tasks are proposals; no task is executed. Answer collection and continuation are implemented in Phase 8; persistent monitoring is Phase 10.
 
 ## Verification
 

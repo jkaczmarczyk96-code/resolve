@@ -20,7 +20,7 @@ const base = z.strictObject({
   ...snapshotSchema.shape, version: z.literal(2), state: fullStateSchema, revision: z.number().int().min(0).max(12),
   events: z.array(z.strictObject({ state: fullStateSchema, at: z.iso.datetime() })).min(1).max(13),
   human: z.strictObject({ questions: z.array(z.string().trim().min(1).max(2000)).min(1).max(8), responseId: z.uuid().nullable(), responses: userResponsesSchema.nullable() }).optional(),
-  research: z.strictObject({ question: z.string().min(1).max(2000), output: researchOutput, sources: sourcesSchema }).nullable(),
+  research: z.strictObject({ question: z.string().min(1).max(2000), questions: z.array(z.string().trim().min(1).max(2000)).min(1).max(3).optional(), output: researchOutput, sources: sourcesSchema }).nullable(),
   verification: verifierOutput.nullable(), options: optionsOutput.nullable(), critique: criticOutput.nullable(), tasks: tasksOutput.nullable(),
 });
 export type FullSnapshot = z.infer<typeof base>;
@@ -37,9 +37,12 @@ export function fullCriticInput(s: FullSnapshot): AgentInput<"critic"> {
 }
 export function fullDecisionInput(s: FullSnapshot): AgentInput<"decision"> {
   const context = fullCriticInput(s);
+  const planned=[...new Set(context.plan.steps.flatMap((step)=>step.researchQuestions))];
+  const researched=s.research?.questions?.length ?? (s.research ? 1 : 0);
+  const coverage=planned.length>researched ? [`Research covered ${researched} of ${planned.length} planned questions; the remaining questions still require review.`] : [];
   return { goal: context.problem.goal, constraints: context.problem.constraints, options: context.options,
     sources: context.sources, claims: context.claims, verification: context.verification, critique: required(s.critique),
-    risks: ["Research was limited to one question; remaining plan questions and source limitations still require review.", ...required(s.critique).risks].slice(0, 30), planningContext: { problem: context.problem, plan: context.plan },
+    risks: [...coverage, ...required(s.critique).risks].slice(0, 30), planningContext: { problem: context.problem, plan: context.plan },
   };
 }
 export function fullTasksInput(s: FullSnapshot): AgentInput<"tasks"> {
@@ -57,7 +60,9 @@ export function fullConfidence(s: FullSnapshot, decision: NonNullable<FullSnapsh
   const domains = new Set(supporting.map((source) => new URL(source.url).hostname));
   const unknown = (s.intake?.unknowns.length ?? 0) + (s.intake?.assumptions.length ?? 0) + decision.assumptions.length + decision.unresolvedUnknowns.length;
   const objections = s.critique ? s.critique.evidenceWeaknesses.length + s.critique.risks.length + s.critique.overlookedConstraints.length + s.critique.unsupportedAssumptions.length : 1;
-  const remaining = (s.plan?.steps.flatMap((step) => step.researchQuestions).length ?? 0) > 1 || (s.research?.output.limitations.length ?? 0) > 0 || (s.options?.limitations.length ?? 0) > 0;
+  const plannedQuestions=new Set(s.plan?.steps.flatMap((step)=>step.researchQuestions)??[]).size;
+  const researchedQuestions=s.research?.questions?.length ?? (s.research ? 1 : 0);
+  const remaining = plannedQuestions > researchedQuestions || (s.research?.output.limitations.length ?? 0) > 0 || (s.options?.limitations.length ?? 0) > 0;
   if (decision.confidence === "low" || !decision.selectedOptionId || unknown || objections || remaining || domains.size < 2 || !verified.length || verified.some((item) => item.status !== "VERIFIED") || decision.supportingEvidence.some((id) => !verified.some((item) => item.sourceIds.includes(id)))) return "low";
   return "medium";
 }

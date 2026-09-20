@@ -2,7 +2,8 @@ import { expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 import { runAgent } from "@/lib/ai/agents";
 import { createNebiusProvider } from "@/lib/ai/nebius";
-import { createTavilyProvider } from "@/lib/ai/research";
+import { createTavilyProvider, searchMany } from "@/lib/ai/research";
+import { canonicalSource } from "@/lib/ai/quality";
 import type { AgentName } from "@/lib/ai/schemas";
 import { inputs, sources } from "../fixtures/ai";
 
@@ -18,6 +19,16 @@ it.skipIf(!process.env.TAVILY_API_KEY)("live search provider returns attributabl
   const results = await createTavilyProvider().search("Nebius Token Factory structured output documentation", new AbortController().signal);
   expect(results.length).toBeGreaterThan(0);
   expect(results.every((source) => source.url.startsWith("https://") && source.content.length > 0)).toBe(true);
+});
+it.skipIf(!process.env.TAVILY_API_KEY)("live multi-query research returns one bounded deduplicated evidence set",async()=>{
+  const results=await searchMany(createTavilyProvider(),[
+    "Nebius Token Factory official structured output documentation",
+    "Nebius Token Factory official API authentication documentation",
+    "Nebius Token Factory official NVIDIA model documentation",
+  ],new AbortController().signal);
+  expect(results.length).toBeGreaterThan(0); expect(results.length).toBeLessThanOrEqual(10);
+  expect(new Set(results.map((source)=>canonicalSource(source.url))).size).toBe(results.length);
+  expect(results.map((source)=>source.id)).toEqual(results.map((_,index)=>`source-${index+1}`));
 });
 
 it("live Czech intake validates the deployment scenario", async () => {

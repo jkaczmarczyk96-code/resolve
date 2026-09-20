@@ -3,11 +3,12 @@ import { z } from "zod";
 import { AIError, bounded } from "./errors";
 import { readJSON } from "./http";
 import { canonicalSource } from "./quality";
-import { type Source, sourcesSchema } from "./schemas";
+import { type Source, sourceSchema, sourcesSchema } from "./schemas";
 
 export interface ResearchProvider {
   search(question: string, signal: AbortSignal): Promise<Source[]>;
 }
+const researchQuestions = z.array(z.string().trim().min(1).max(2000)).min(1).max(3);
 const searchResponse = z.object({ results: z.array(z.object({
   url: z.url({ protocol: /^https?$/ }).max(2048), title: z.string().min(1).max(2000),
   content: z.string().min(1).max(50_000), published_date: z.string().max(100).nullable().optional(),
@@ -34,6 +35,25 @@ export function createTavilyProvider(env: Record<string, string | undefined> = p
       })));
     }, 20_000, parent);
   } };
+}
+
+/** Run a small query set concurrently, then deduplicate and re-key evidence for one agent context. */
+export async function searchMany(provider: ResearchProvider, rawQuestions: string[], signal: AbortSignal): Promise<Source[]> {
+  const parsed=researchQuestions.safeParse([...new Set(rawQuestions.map((question)=>question.trim()))]);
+  if (!parsed.success) throw new AIError("INVALID_INPUT");
+  const batches=await Promise.all(parsed.data.map((question)=>provider.search(question,signal)));
+  const unique=new Map<string,Source>();
+  const depth=Math.max(...batches.map((batch)=>batch.length));
+  for (let index=0;index<depth;index++) {
+    for (const batch of batches) {
+      const source=batch[index]; if (!source) continue;
+      const checked=sourceSchema.safeParse(source);
+      if (!checked.success) throw new AIError("INVALID_OUTPUT");
+      const key=canonicalSource(checked.data.url);
+      if (!unique.has(key)) unique.set(key,checked.data);
+    }
+  }
+  return sourcesSchema.parse([...unique.values()].slice(0,10).map((source,index)=>({...source,id:`source-${index+1}`,content:source.content.slice(0,6000)})));
 }
 
 /** Only explicit ISO metadata from search is accepted; never infer dates from snippets or URLs. */

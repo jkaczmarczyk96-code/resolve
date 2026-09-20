@@ -50,7 +50,9 @@ export function evidenceQuality(s: FullSnapshot, decision: AgentOutput<"decision
   if ((decision?.unresolvedUnknowns.length ?? 0) || (!s.human?.responses && s.intake?.unknowns.length)) reasons.push("User or decision unknowns remain unresolved.");
   if ((decision?.assumptions.length ?? 0) || s.intake?.assumptions.length) reasons.push("The recommendation depends on assumptions.");
   if (!s.critique || s.critique.risks.length || s.critique.evidenceWeaknesses.length || s.critique.overlookedConstraints.length || s.critique.unsupportedAssumptions.length) reasons.push("Critic concerns remain open or have not been assessed.");
-  if ((s.plan?.steps.flatMap((step) => step.researchQuestions).length ?? 0) > 1 || s.research?.output.limitations.length || s.options?.limitations.length) reasons.push("Research coverage or candidate options have stated limitations.");
+  const plannedQuestions=new Set(s.plan?.steps.flatMap((step)=>step.researchQuestions)??[]).size;
+  const researchedQuestions=s.research?.questions?.length ?? (s.research ? 1 : 0);
+  if (plannedQuestions>researchedQuestions || s.research?.output.limitations.length || s.options?.limitations.length) reasons.push("Research coverage or candidate options have stated limitations.");
   if (decision?.supportingEvidence.some((id) => !s.verification?.assessments.some((claim) => claim.status === "VERIFIED" && claim.sourceIds.includes(id) && claim.supportingQuotes?.some((quote) => quote.sourceId === id)))) reasons.push("A recommendation citation lacks a verified supporting excerpt.");
   return { assessedAt: at, refreshDays, sources, claims, distinctPages: unique.size, supportingPublisherGroups: groups.size, maxConfidence: reasons.length ? "low" as const : "medium" as const, reasons, caveat: "Source kinds and verification are model assessments. Different domains do not prove independent ownership. High confidence is withheld until independence and completeness are established." };
 }

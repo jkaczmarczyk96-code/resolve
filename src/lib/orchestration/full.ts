@@ -3,6 +3,7 @@ import { z } from "zod";
 import { runAgent, type AgentDependencies } from "@/lib/ai/agents";
 import { AIError } from "@/lib/ai/errors";
 import { intakeInput } from "@/lib/ai/schemas";
+import { searchMany } from "@/lib/ai/research";
 import { WorkflowError, type WorkflowStore } from "./state";
 import { canAdvance, parseFullSnapshot, fullProblem, fullOptionsInput, fullCriticInput, fullDecisionInput, fullTasksInput, fullConfidence, type FullState, type FullSnapshot } from "./full-state";
 import type { BasicRequest } from "./basic";
@@ -64,11 +65,13 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
           return current;
         }
       }
-      // Bounded research: first question by priority. All remaining questions stay in the plan.
+      // Research at most three distinct, highest-priority questions without adding model calls.
       const priority = { high: 0, medium: 1, low: 2 };
-      const question = [...current.plan!.steps].sort((a, b) => priority[a.priority] - priority[b.priority]).flatMap((step) => step.researchQuestions)[0] ?? current.intake!.goal;
-      const researched = await runAgent("researcher", { question }, deps, options);
-      await advance("VERIFY", { research: { question, output: researched.output, sources: researched.sources } });
+      const planned=[...current.plan!.steps].sort((a,b)=>priority[a.priority]-priority[b.priority]).flatMap((step)=>step.researchQuestions);
+      const questions=[...new Set(planned.length ? planned : [current.intake!.goal])].slice(0,3);
+      const question=questions.length===1 ? questions[0] : questions.map((item,index)=>`${index+1}. ${item.slice(0,620)}`).join("\n");
+      const researched=await runAgent("researcher",{ question },{ ...deps,research:{ search:(_combined,signal)=>searchMany(deps.research!,questions,signal) } },options);
+      await advance("VERIFY",{ research:{ question,questions,output:researched.output,sources:researched.sources } });
     }
     if (current.state === "VERIFY") {
       const verified = await runAgent("verifier", { claims: current.research!.output.claims, sources: current.research!.sources }, deps, options);

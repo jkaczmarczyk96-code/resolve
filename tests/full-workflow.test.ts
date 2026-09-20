@@ -29,6 +29,17 @@ it("runs all eight stages in order with actual upstream data and durable checkpo
   expect(result.tasks?.tasks.every((item) => item.status === "proposed")).toBe(true);
   expect(await store.load(request.runId)).toEqual(result);
 });
+it("researches the first three distinct priority questions and records incomplete coverage",async()=>{
+  const deps=fullDependencies(); const original=deps.ai.generate.getMockImplementation()!;
+  const questions=["official capacity documentation","official pricing documentation","official accessibility documentation","official cancellation documentation"];
+  deps.ai.generate.mockImplementation(async(request)=>request.name==="planner" ? { steps:[{ ...outputs.planner.steps[0],researchQuestions:questions }] } : original(request));
+  const result=await runFullWorkflow(workflowRequest(),new MemoryFullStore(),deps);
+  expect(deps.research.search.mock.calls.map(([question])=>question)).toEqual(questions.slice(0,3));
+  expect(result.research?.questions).toEqual(questions.slice(0,3));
+  expect(result.research?.question).toContain("1. official capacity documentation");
+  const decisionCall=deps.ai.generate.mock.calls.find(([request])=>request.name==="decision")?.[0];
+  expect(decisionCall?.input).toMatchObject({ risks:expect.arrayContaining(["Research covered 3 of 4 planned questions; the remaining questions still require review."]) });
+});
 it.each(names)("halts and preserves earlier outputs when %s fails", async (name) => {
   const store = new MemoryFullStore(); const deps = fullDependencies();
   const generate = deps.ai.generate.getMockImplementation()!;

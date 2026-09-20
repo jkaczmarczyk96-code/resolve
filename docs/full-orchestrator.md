@@ -2,7 +2,7 @@
 
 This documents the original finite chain. Phase 7 connects it to the web; Phase 8 adds optional `ACTION_REQUIRED → RESUME → RESEARCH` continuation with structured user responses and a replanning call. See [human-input.md](human-input.md) for the compatible extended v2 contract.
 
-The internal server function `runFullWorkflow` runs the finite chain Intake → Plan → Research → Verify → Options → Critique → Decide → Tasks. It makes at most eight model requests and one search request, with no retries or autonomous loop. The original basic workflow remains supported. Web integration is Phase 7 and is not enabled by this phase.
+The internal server function `runFullWorkflow` runs the finite chain Intake → Plan → Research → Verify → Options → Critique → Decide → Tasks. It makes at most eight model requests and three search requests, with no retries or autonomous loop. The original basic workflow remains supported. Web integration is Phase 7 and is not enabled by this phase.
 
 ## New stages
 
@@ -12,9 +12,9 @@ Both stages use the same typed input/output validation, system/data separation, 
 
 ## Research and confidence limits
 
-The workflow investigates the first research question from the highest-priority plan step that has one. If no step has a question, the structured goal is used. The selected question, returned sources, and analysis are persisted together. Other questions remain in the stored plan; they are not represented as researched. Tavily retrieval and model analysis remain separate. Missing search configuration fails before any paid agent call; failed search stops the chain. Empty results are valid, but cannot support fabricated claims.
+The workflow investigates up to three distinct research questions, ordered by plan-step priority and then by the planner's order. If no step has a question, the structured goal is used. Tavily searches run concurrently within the existing research-stage timeout. Results are deduplicated across queries by canonical URL, re-keyed into one evidence set and capped at ten sources with bounded excerpts. The exact researched questions, returned sources and analysis are persisted together. Other questions remain in the stored plan and the decision receives an explicit coverage limitation. Tavily retrieval and model analysis remain separate. Missing search configuration fails before any paid agent call; any failed search stops the chain. Empty results are valid, but cannot support fabricated claims.
 
-Verifier consumes the exact research claims and sources. Options and Critic consume the actual verification result. Decision receives the real options, critique, evidence, and original plan, plus an explicit reminder that research covered only one question. No missing agent result is replaced with a fake success.
+Verifier consumes the exact research claims and merged sources. Options and Critic consume the actual verification result. Decision receives the real options, critique, evidence and original plan, plus an explicit reminder whenever the bounded run did not cover every planned question. No missing agent result is replaced with a fake success.
 
 Persisted confidence is capped conservatively: Low for unresolved assumptions/unknowns, objections, research/option limitations, unprocessed research questions, absent or non-verified evidence, abstention, or fewer than two supporting source hostnames. Otherwise it is at most Medium and never higher than the model rating. Distinct hostnames do not prove source independence, and model verification is not a guarantee of truth. More detailed evidence quality, freshness and conflict handling remains Phase 9. No percentage is invented.
 
@@ -54,7 +54,7 @@ npm run lint
 npm run typecheck
 npm run build
 npx supabase db lint --local --level warning
-# Opt-in: eight real model requests plus a real Tavily search.
+# Opt-in: eight real model requests plus up to three real Tavily searches.
 npm run test:full:live
 ```
 

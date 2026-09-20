@@ -108,4 +108,10 @@ Materialized tasks now accept a future due date without changing the immutable g
 
 Migration `20260920020000_task_deadlines.sql` applied successfully to hosted Supabase and remote database lint found no schema errors. Local validation passed 304 tests across 49 files, zero-warning lint, strict TypeScript, a production build and 17 executed Chromium scenarios; three live-provider scenarios were skipped.
 
+## Multi-query research coverage — 2026-09-20
+
+New analyses now research up to three distinct priority questions concurrently without adding model calls. Search results are canonicalized across queries, deduplicated, re-keyed and capped at ten bounded excerpts before the Researcher sees them. The checkpoint records the exact query set, the UI shows covered and remaining questions, and the decision receives a deterministic coverage warning when the plan contains more questions than the bounded run processed. Existing one-question checkpoints remain valid.
+
+Local validation passed 306 tests across 49 files, zero-warning lint, strict TypeScript, a production build and 17 executed Chromium scenarios; three local-Supabase live scenarios were skipped. A focused live-provider check executed three real Tavily queries and verified the bounded, canonicalized evidence set. The full local live workflow could not run in this pass because Docker Desktop failed to start its Linux engine on a locked local socket.
+
 Commit `84451fd` deployed as `dpl_J7NpTDdcN2hjb1XQPcMHRxAKETSW`. A reversible production check on the existing fictional Phase 14 review problem showed the `Solved` state, closure timestamp and `Marked solved` history entry, then restored the problem to its prior open state through `Reopen problem`; the ordered history contains both transitions.
