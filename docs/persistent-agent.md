@@ -24,4 +24,8 @@ When an analysis reaches `COMPLETED`, its validated generated tasks are material
 
 Changing a task status never invokes an AI provider or an external integration. The task API validates the exact status, scopes the update to the requested problem and relies on problem-owner RLS. Calendar writes remain a separate proposal and explicit-approval flow.
 
-Apply `20260912000000_persistent_agent.sql` and `20260920000000_task_progress.sql`, set `SUPABASE_SECRET_KEY` and `CRON_SECRET` in the production environment, and keep both values out of browser-prefixed variables and source control.
+## Problem lifecycle
+
+The owner can mark a completed problem solved and later reopen it. Solving sets `problems.solved_at`, pauses active or claimed monitoring conditions, and appends an immutable owner-scoped lifecycle event. Reopening clears `solved_at`; monitoring stays paused until the owner resumes it explicitly. Both transitions are idempotent and included in the account export. A solved problem cannot create or resume monitoring through either the UI or the database functions.
+
+Apply `20260912000000_persistent_agent.sql`, `20260920000000_task_progress.sql` and `20260920010000_problem_lifecycle.sql`, set `SUPABASE_SECRET_KEY` and `CRON_SECRET` in the production environment, and keep both values out of browser-prefixed variables and source control.

@@ -45,6 +45,12 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   await expect(firstTaskStatus).toHaveValue("completed");
   await page.reload();
   await expect(page.locator('select[aria-label^="Status for"]').first()).toHaveValue("completed");
+  await page.getByRole("button", { name: "Mark solved", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Reopen problem", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Reopen problem", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Mark solved", exact: true })).toBeVisible();
+  await sections.getByRole("link", { name: "Overview", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Problem history", exact: true })).toBeVisible();
   await page.screenshot({ path: "test-results/live-workspace-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await sections.getByRole("link", { name: "Research", exact: true }).click();

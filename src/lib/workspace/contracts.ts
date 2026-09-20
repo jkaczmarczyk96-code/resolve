@@ -7,7 +7,8 @@ export const submissionSchema = z.strictObject({ requestId: z.uuid(), descriptio
 export const retrySchema = z.strictObject({ requestId: z.uuid() });
 export const webJobSchema = z.object({ id: z.uuid(), problemId: z.uuid().nullable(), status: z.enum(["queued", "running", "action_required", "completed", "failed"]), error: z.string().nullable(), expiresAt: z.iso.datetime({ offset: true }) });
 export type WebJob = z.infer<typeof webJobSchema>;
-export const problemSummarySchema = z.object({ id: z.uuid(), title: z.string(), original_input: z.string(), created_at: z.string() });
+export const problemStatusSchema = z.enum(["analyzing", "planning", "researching", "verifying", "evaluating", "action_required", "waiting", "monitoring", "solved", "failed"]);
+export const problemSummarySchema = z.object({ id: z.uuid(), title: z.string(), original_input: z.string(), status: problemStatusSchema, created_at: z.string(), solved_at: z.string().nullable() });
 export const responseSchema = z.strictObject({ requestId: z.uuid(), runId: z.uuid(), answers: z.array(z.string().trim().min(1).max(1200)).min(1).max(8) });
 export const humanRequestSchema = z.object({ runId: z.uuid(), questions: z.array(z.string()).min(1).max(8), answers: z.array(z.string()).nullable(), answeredAt: z.string().nullable() });
 export const monitoringResultSchema = z.object({ outcome: z.enum(["met", "not_met", "uncertain"]), summary: z.string(), evidenceSourceIds: z.array(z.string()), evidence: z.array(z.object({ id: z.string(), url: z.url(), title: z.string(), publishedAt: z.string().nullable() })) });
@@ -17,7 +18,10 @@ export const monitoringUpdateSchema = z.strictObject({ conditionId: z.uuid(), st
 export const taskStatusSchema = z.enum(["pending", "in_progress", "completed", "cancelled"]);
 export const taskUpdateSchema = z.strictObject({ taskId: z.uuid(), status: taskStatusSchema });
 export const savedTaskSchema = z.object({ id: z.uuid(), sourceId: z.string(), status: taskStatusSchema, completedAt: z.string().nullable() });
-export const detailSchema = z.object({ problem: problemSummarySchema, job: webJobSchema.nullable(), snapshot: fullSnapshotSchema.nullable(), humanRequest: humanRequestSchema.nullable(), conditions: z.array(monitoringConditionSchema).default([]), tasks: z.array(savedTaskSchema).default([]), actions:z.array(externalActionSchema).default([]),actionAccess:actionAccessSchema.default({ calendarEnabled:false,calendarWriteAuthorized:false }) });
+export const resolutionUpdateSchema = z.strictObject({ solved: z.boolean() });
+export const resolutionResultSchema = z.object({ status: problemStatusSchema, solvedAt: z.string().nullable() });
+export const lifecycleEventSchema = z.object({ id: z.uuid(), event: z.enum(["solved", "reopened"]), createdAt: z.string() });
+export const detailSchema = z.object({ problem: problemSummarySchema, job: webJobSchema.nullable(), snapshot: fullSnapshotSchema.nullable(), humanRequest: humanRequestSchema.nullable(), conditions: z.array(monitoringConditionSchema).default([]), tasks: z.array(savedTaskSchema).default([]), lifecycle: z.array(lifecycleEventSchema).default([]), actions:z.array(externalActionSchema).default([]),actionAccess:actionAccessSchema.default({ calendarEnabled:false,calendarWriteAuthorized:false }) });
 export type ProblemDetail = z.infer<typeof detailSchema>;
 export const listSchema = z.array(z.object({ problem: problemSummarySchema, job: webJobSchema.nullable() }));
 export type ProblemList = z.infer<typeof listSchema>;
@@ -27,3 +31,4 @@ export function jobLabel(job: WebJob | null) {
   if (["queued", "running"].includes(job.status) && !jobActive(job)) return "Interrupted";
   return { queued: "Queued", running: "Analyzing", action_required: "Needs your input", completed: "Ready to review", failed: "Needs retry" }[job.status];
 }
+export function problemLabel(problem: z.infer<typeof problemSummarySchema>, job: WebJob | null) { return problem.status === "solved" ? "Solved" : jobLabel(job); }

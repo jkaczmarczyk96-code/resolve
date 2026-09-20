@@ -669,6 +669,32 @@ export type Database = {
         Relationships: [
         ];
       };
+      problem_lifecycle_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          problem_id: string;
+          event: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          problem_id: string;
+          event: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          problem_id?: string;
+          event?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "problem_lifecycle_events_problem_id_fkey"; columns: ["problem_id"]; isOneToOne: false; referencedRelation: "problems"; referencedColumns: ["id"]; },
+        ];
+      };
       profiles: {
         Row: {
           id: string;
@@ -1028,6 +1054,10 @@ export type Database = {
       set_monitoring_condition_status: { Args: {
         p_condition_id: string | null;
         p_status: string | null;
+      }; Returns: Json; };
+      set_problem_resolution: { Args: {
+        p_problem_id: string | null;
+        p_solved: boolean | null;
       }; Returns: Json; };
       yield_web_run: { Args: {
         p_run_id: string | null;

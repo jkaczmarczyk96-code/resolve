@@ -175,6 +175,8 @@ The production deployment, reproducible setup, architecture diagram, demo script
 
 Generated tasks from completed analyses are also persisted as an owner-controlled action plan. Users can move each item between to do, in progress, completed and cancelled without triggering an AI call or external action; the original generated proposal stays immutable in its workflow snapshot.
 
+Completed problems can be marked solved and reopened. Solving pauses active monitoring, records an owner-only lifecycle event and keeps the recommendation, evidence, tasks and action audit available for later review.
+
 This repository is released under the [MIT License](LICENSE).
 
 ## Reference documentation

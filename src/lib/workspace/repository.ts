@@ -11,7 +11,7 @@ function job(row: { id: string; problem_id: string | null; status: string; error
   return webJobSchema.parse({ id: row.id, problemId: row.problem_id, status: row.status, error: row.error, expiresAt: row.expires_at });
 }
 export async function listProblems(client: SupabaseClient<Database>, userId: string) {
-  const problems = await client.from("problems").select("id,title,original_input,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(100).abortSignal(AbortSignal.timeout(10_000));
+  const problems = await client.from("problems").select("id,title,original_input,status,created_at,solved_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(100).abortSignal(AbortSignal.timeout(10_000));
   if (problems.error) throw new WorkspaceError("LOAD_FAILED", 503);
   if (!problems.data.length) return [];
   const jobs = await client.from("web_runs").select(jobColumns).eq("user_id", userId).in("problem_id", problems.data.map((item) => item.id)).order("created_at", { ascending: false }).limit(300).abortSignal(AbortSignal.timeout(10_000));
@@ -19,7 +19,7 @@ export async function listProblems(client: SupabaseClient<Database>, userId: str
   return problems.data.map((problem) => { const latest = jobs.data.find((item) => item.problem_id === problem.id); return { problem, job: latest ? job(latest) : null }; });
 }
 export async function getProblem(client: SupabaseClient<Database>, userId: string, id: string) {
-  const problem = await client.from("problems").select("id,title,original_input,created_at").eq("id", id).eq("user_id", userId).abortSignal(AbortSignal.timeout(10_000)).maybeSingle();
+  const problem = await client.from("problems").select("id,title,original_input,status,created_at,solved_at").eq("id", id).eq("user_id", userId).abortSignal(AbortSignal.timeout(10_000)).maybeSingle();
   if (problem.error) throw new WorkspaceError("LOAD_FAILED", 503);
   if (!problem.data) throw new WorkspaceError("NOT_FOUND", 404);
   const jobs = await client.from("web_runs").select(jobColumns).eq("problem_id", id).eq("user_id", userId).order("created_at", { ascending: false }).limit(1).abortSignal(AbortSignal.timeout(10_000));
@@ -39,15 +39,17 @@ export async function getProblem(client: SupabaseClient<Database>, userId: strin
   const monitors = await client.from("monitoring_conditions").select("id,problem_id,description,search_query,status,last_result,last_error,last_checked_at,next_check_at").eq("problem_id", id).eq("user_id", userId).order("created_at", { ascending: false }).abortSignal(AbortSignal.timeout(10_000));
   if (monitors.error) throw new WorkspaceError("LOAD_FAILED", 503);
   const conditions = monitors.data.map((item) => ({ id: item.id, problemId: item.problem_id, description: item.description, searchQuery: item.search_query, status: item.status, lastResult: item.last_result, lastError: item.last_error, lastCheckedAt: item.last_checked_at, nextCheckAt: item.next_check_at }));
-  const [taskRows,actionRows,integration]=await Promise.all([
+  const [taskRows,lifecycleRows,actionRows,integration]=await Promise.all([
     latest ? client.from("tasks").select("id,source_task_id,status,completed_at").eq("problem_id",id).eq("workflow_run_id",latest.id).order("created_at").abortSignal(AbortSignal.timeout(10_000)) : Promise.resolve({ data:[],error:null }),
+    client.from("problem_lifecycle_events").select("id,event,created_at").eq("problem_id",id).eq("user_id",userId).order("created_at",{ ascending:false }).limit(50).abortSignal(AbortSignal.timeout(10_000)),
     client.from("external_actions").select("id,problem_id,action_type,status,payload,result,error,attempt_count,requested_at,approved_at,executed_at").eq("problem_id",id).eq("user_id",userId).order("requested_at",{ ascending:false }).limit(50).abortSignal(AbortSignal.timeout(10_000)),
     client.from("integrations").select("status,scopes,enabled_services").eq("user_id",userId).eq("provider","google").abortSignal(AbortSignal.timeout(10_000)).maybeSingle(),
   ]);
-  if (taskRows.error || actionRows.error || integration.error) throw new WorkspaceError("LOAD_FAILED",503);
+  if (taskRows.error || lifecycleRows.error || actionRows.error || integration.error) throw new WorkspaceError("LOAD_FAILED",503);
   const tasks=taskRows.data.filter((item)=>item.source_task_id).map((item)=>({ id:item.id,sourceId:item.source_task_id!,status:item.status,completedAt:item.completed_at }));
+  const lifecycle=lifecycleRows.data.map((item)=>({ id:item.id,event:item.event as "solved"|"reopened",createdAt:item.created_at }));
   const actions=actionRows.data.map((item)=>({ id:item.id,problemId:item.problem_id,actionType:item.action_type,status:item.status,payload:item.payload,result:item.result,error:item.error,attemptCount:item.attempt_count,requestedAt:item.requested_at,approvedAt:item.approved_at,executedAt:item.executed_at }));
   const connected=integration.data?.status==="connected";
   const actionAccess={ calendarEnabled:Boolean(connected&&integration.data?.enabled_services.includes("calendar")),calendarWriteAuthorized:Boolean(connected&&integration.data?.scopes.includes(GOOGLE_CALENDAR_WRITE_SCOPE)) };
-  return { problem: problem.data, job: latest ? job(latest) : null, snapshot, humanRequest, conditions,tasks,actions,actionAccess };
+  return { problem: problem.data, job: latest ? job(latest) : null, snapshot, humanRequest, conditions,tasks,lifecycle,actions,actionAccess };
 }

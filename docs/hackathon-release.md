@@ -16,7 +16,7 @@ Official submission deadline: **October 30, 2026 at 10:00 AM Pacific Time** (`20
 - Architecture and trust boundaries are documented in [architecture.md](architecture.md).
 - The demo flow and recording script are documented in [demo.md](demo.md).
 - Three release screenshots are checked in under `docs/screenshots/`.
-- Phase 16 verification passed 288 tests, zero-warning lint, strict TypeScript, production build, 16 Chromium scenarios and a zero-vulnerability runtime audit. Public-demo and saved-task regressions now bring the offline suite to 293 tests across 44 files and the normal browser suite to 17 passing scenarios, with three live-provider scenarios skipped.
+- Phase 16 verification passed 288 tests, zero-warning lint, strict TypeScript, production build, 16 Chromium scenarios and a zero-vulnerability runtime audit. Public-demo, saved-task and problem-lifecycle regressions now bring the offline suite to 298 tests across 47 files and the normal browser suite to 17 passing scenarios, with three live-provider scenarios skipped.
 - Real Nebius/NVIDIA and Tavily workflows were verified during development; paid-provider checks stay opt-in.
 
 ## Before the Devpost write

@@ -8,7 +8,7 @@ import { patch, post } from "./remote";
 
 const statusLabel = { active: "Watching", checking: "Checking now", met: "Condition met", paused: "Paused", failed: "Check failed" } as const;
 
-export function MonitoringConditions({ id, conditions, enabled, refresh }: { id: string; conditions: ProblemDetail["conditions"]; enabled: boolean; refresh: () => void }) {
+export function MonitoringConditions({ id, conditions, enabled, problemSolved, refresh }: { id: string; conditions: ProblemDetail["conditions"]; enabled: boolean; problemSolved: boolean; refresh: () => void }) {
   const [description, setDescription] = useState(""); const [searchQuery, setSearchQuery] = useState("");
   const [pending, setPending] = useState(false); const [error, setError] = useState("");
   async function setStatus(conditionId: string, status: "active" | "paused") {
@@ -19,13 +19,13 @@ export function MonitoringConditions({ id, conditions, enabled, refresh }: { id:
   }
   return <Panel title="Monitoring conditions" description="Avenli checks active conditions once a day and brings the problem back for review when current evidence shows that a condition was met.">
     {conditions.length > 0 && <div className="mb-6 space-y-4">{conditions.map((condition) => <article key={condition.id} className="rounded-lg border p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-medium text-primary">{statusLabel[condition.status]}</p><h3 className="mt-1 font-semibold">{condition.description}</h3></div>{["active", "paused", "failed"].includes(condition.status) && <Button variant="outline" disabled={pending} onClick={() => void setStatus(condition.id, condition.status === "active" ? "paused" : "active")}>{condition.status === "active" ? "Pause" : "Resume"}</Button>}</div>
+      <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-medium text-primary">{statusLabel[condition.status]}</p><h3 className="mt-1 font-semibold">{condition.description}</h3></div>{["active", "paused", "failed"].includes(condition.status) && <Button variant="outline" disabled={pending || (problemSolved && condition.status !== "active")} onClick={() => void setStatus(condition.id, condition.status === "active" ? "paused" : "active")}>{condition.status === "active" ? "Pause" : "Resume"}</Button>}</div>
       <p className="mt-3 text-xs text-muted-foreground">Search: {condition.searchQuery}</p>
       {condition.lastResult && <div className="mt-4"><p className="text-sm leading-relaxed">{condition.lastResult.summary}</p>{condition.lastResult.evidence.length > 0 && <div className="mt-3 flex flex-wrap gap-3">{condition.lastResult.evidence.map((source) => <a key={source.id} href={source.url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">{source.title}</a>)}</div>}</div>}
       {condition.lastError && <p className="mt-3 text-sm text-destructive">The latest check failed. Resume to try again.</p>}
       <p className="mt-3 text-xs text-muted-foreground">{condition.lastCheckedAt ? `Last checked ${new Date(condition.lastCheckedAt).toLocaleString()}` : `Next check after ${new Date(condition.nextCheckAt).toLocaleString()}`}</p>
     </article>)}</div>}
-    {enabled ? <form className="space-y-4" onSubmit={async (event) => {
+    {problemSolved && <p className="mb-4 text-sm text-muted-foreground">Reopen this problem before resuming or adding monitoring.</p>}{enabled ? <form className="space-y-4" onSubmit={async (event) => {
       event.preventDefault(); const value = monitoringCreateSchema.safeParse({ description, searchQuery });
       if (!value.success) { setError("Describe the condition and provide a specific search query using at least 10 characters each."); return; }
       setPending(true); setError("");
