@@ -16,7 +16,7 @@ export function canAdvance(from: FullState, to: FullState) {
   return to === "FAILED" || to === "CANCELLED" || fullStates[index + 1] === to;
 }
 const base = z.strictObject({
-  qualityPolicy: z.literal(1).optional(),
+  qualityPolicy: z.union([z.literal(1), z.literal(2)]).optional(),
   ...snapshotSchema.shape, version: z.literal(2), state: fullStateSchema, revision: z.number().int().min(0).max(12),
   events: z.array(z.strictObject({ state: fullStateSchema, at: z.iso.datetime() })).min(1).max(13),
   human: z.strictObject({ questions: z.array(z.string().trim().min(1).max(2000)).min(1).max(8), responseId: z.uuid().nullable(), responses: userResponsesSchema.nullable() }).optional(),
@@ -47,6 +47,27 @@ export function fullDecisionInput(s: FullSnapshot): AgentInput<"decision"> {
 }
 export function fullTasksInput(s: FullSnapshot): AgentInput<"tasks"> {
   return { problem: fullProblem(s), plan: required(s.plan), options: required(s.options).options, decision: required(s.decision) };
+}
+function hasGroundedSupport(s: FullSnapshot) {
+  return (s.verification?.assessments ?? []).some((assessment) =>
+    (assessment.status === "VERIFIED" || assessment.status === "PARTIALLY_VERIFIED") &&
+    Boolean(assessment.supportingQuotes?.some((quote) => assessment.sourceIds.includes(quote.sourceId))),
+  );
+}
+/** Policy two refuses to select an option when no claim has a traceable supporting excerpt. */
+export function guardDecisionEvidence(s: FullSnapshot, decision: NonNullable<FullSnapshot["decision"]>): NonNullable<FullSnapshot["decision"]> {
+  if (s.qualityPolicy !== 2 || hasGroundedSupport(s) || decision.selectedOptionId === null) return decision;
+  const reason = "No option can be recommended yet because the saved evidence contains no traceable verified supporting excerpt.";
+  return {
+    ...decision,
+    recommendation: `${reason} Review the sources or start a focused follow-up analysis.`,
+    selectedOptionId: null,
+    confidence: "low",
+    reasoningSummary: reason,
+    supportingEvidence: [],
+    unresolvedUnknowns: [...new Set([...decision.unresolvedUnknowns, "At least one decision-relevant claim needs a traceable verified supporting excerpt."])],
+    rejectedAlternatives: (s.options?.options ?? []).map((option) => ({ optionId: option.id, reason })),
+  };
 }
 /** Conservative cap until the dedicated evidence-quality phase; never raises the model rating. */
 export function fullConfidence(s: FullSnapshot, decision: NonNullable<FullSnapshot["decision"]>): "low" | "medium" {
@@ -88,6 +109,7 @@ export const fullSnapshotSchema = base.superRefine((s, ctx) => {
     if (s.decision) {
       validateInput("decision", fullDecisionInput(s)); validateOutput("decision", fullDecisionInput(s), s.decision, []);
       if (s.decision.confidence !== fullConfidence(s, s.decision)) fail();
+      if (s.qualityPolicy === 2 && !hasGroundedSupport(s) && s.decision.selectedOptionId !== null) fail();
     }
     if (s.tasks) { validateInput("tasks", fullTasksInput(s)); validateOutput("tasks", fullTasksInput(s), s.tasks, []); }
   } catch { fail(); }

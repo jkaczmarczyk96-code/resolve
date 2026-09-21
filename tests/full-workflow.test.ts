@@ -77,6 +77,19 @@ it("can finish with no evidence, no viable option and no proposed tasks without 
   expect(result.state).toBe("COMPLETED"); expect(result.decision?.selectedOptionId).toBeNull();
   expect(result.decision?.supportingEvidence).toEqual([]); expect(result.tasks?.tasks).toEqual([]);
 });
+it("abstains deterministically when no claim has a grounded supporting excerpt", async () => {
+  const deps = fullDependencies(); const generate = deps.ai.generate.getMockImplementation()!;
+  deps.ai.generate.mockImplementation(async (request) => {
+    if (request.name === "verifier") return { ...outputs.verifier, assessments: outputs.verifier.assessments.map((item) => ({ ...item, supportingQuotes: [] })) };
+    if (request.name === "tasks") return { tasks: [{ ...outputs.tasks.tasks[0], optionId: null }] };
+    return generate(request);
+  });
+  const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps);
+  expect(result).toMatchObject({ state: "COMPLETED", qualityPolicy: 2, decision: { selectedOptionId: null, confidence: "low", supportingEvidence: [] } });
+  expect(result.decision?.recommendation).toContain("no traceable verified supporting excerpt");
+  expect(result.tasks?.tasks[0].optionId).toBeNull();
+  expect(() => parseFullSnapshot({ ...result, decision: { ...result.decision, selectedOptionId: outputs.options.options[0].id } })).toThrow("INVALID_CHECKPOINT");
+});
 it("does not rerun completed IDs or accept inconsistent persisted states", async () => {
   const deps = fullDependencies(); const store = new MemoryFullStore(); const request = workflowRequest();
   const result = await runFullWorkflow(request, store, deps);

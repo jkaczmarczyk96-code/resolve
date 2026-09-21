@@ -5,7 +5,7 @@ import { AIError } from "@/lib/ai/errors";
 import { intakeInput } from "@/lib/ai/schemas";
 import { searchMany } from "@/lib/ai/research";
 import { WorkflowError, type WorkflowStore } from "./state";
-import { canAdvance, parseFullSnapshot, fullProblem, fullOptionsInput, fullCriticInput, fullDecisionInput, fullTasksInput, fullConfidence, type FullState, type FullSnapshot } from "./full-state";
+import { canAdvance, parseFullSnapshot, fullProblem, fullOptionsInput, fullCriticInput, fullDecisionInput, fullTasksInput, fullConfidence, guardDecisionEvidence, type FullState, type FullSnapshot } from "./full-state";
 import type { BasicRequest } from "./basic";
 
 export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<FullSnapshot>, deps: AgentDependencies, options: { signal?: AbortSignal; humanInput?: boolean; recover?: boolean; preserveInterrupt?: boolean; resume?: { responseId: string; answers: string[] } } = {}): Promise<FullSnapshot> {
@@ -19,7 +19,7 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
   const problem = await durable(() => store.loadProblem(request.data.problemId));
   const input = intakeInput.safeParse({ description: problem.description });
   if (!input.success) throw new AIError("INVALID_INPUT");
-  let current = options.resume || options.recover ? parseFullSnapshot(await durable(() => store.load(request.data.runId))) : parseFullSnapshot({ qualityPolicy: 1, version: 2, id: request.data.runId, problemId: request.data.problemId, description: input.data.description,
+  let current = options.resume || options.recover ? parseFullSnapshot(await durable(() => store.load(request.data.runId))) : parseFullSnapshot({ qualityPolicy: 2, version: 2, id: request.data.runId, problemId: request.data.problemId, description: input.data.description,
     model: deps.ai.model, state: "PENDING", revision: 0, intake: null, plan: null, research: null, verification: null, options: null, critique: null, decision: null, tasks: null, error: null,
     events: [{ state: "PENDING", at: new Date().toISOString() }],
   });
@@ -87,7 +87,8 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
     }
     if (current.state === "DECIDE") {
       const decided = await runAgent("decision", fullDecisionInput(current), deps, options);
-      await advance("TASKS", { decision: { ...decided.output, confidence: fullConfidence(current, decided.output) } });
+      const guarded = guardDecisionEvidence(current, decided.output);
+      await advance("TASKS", { decision: { ...guarded, confidence: fullConfidence(current, guarded) } });
     }
     if (current.state === "TASKS") {
       const tasks = await runAgent("tasks", fullTasksInput(current), deps, options);

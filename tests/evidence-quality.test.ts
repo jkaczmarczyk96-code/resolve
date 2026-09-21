@@ -68,11 +68,12 @@ it("rejects fabricated supporting excerpts and preserves exact quoted support", 
   grounded.assessments[0].supportingQuotes![0].sourceId = "foreign";
   expect(() => validateOutput("verifier", context, groundVerification(grounded, context), [])).toThrow("INVALID_OUTPUT");
 });
-it("preserves legacy snapshots and prevents raising a policy-one saved rating", async () => {
+it("preserves legacy snapshots and prevents raising a saved rating", async () => {
   const s = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), fullDependencies());
-  expect(s.qualityPolicy).toBe(1);
+  expect(s.qualityPolicy).toBe(2);
   expect(fullConfidence(s, s.decision!)).toBe("low");
   expect(() => parseFullSnapshot({ ...s, decision: { ...s.decision, confidence: "high" } })).toThrow("INVALID_CHECKPOINT");
+  expect(parseFullSnapshot({ ...s, qualityPolicy: 1 }).qualityPolicy).toBe(1);
   const legacy = { ...s }; delete legacy.qualityPolicy;
   expect(parseFullSnapshot(legacy).decision?.confidence).toBe("low");
 });
