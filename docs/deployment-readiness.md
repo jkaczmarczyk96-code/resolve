@@ -114,4 +114,10 @@ New analyses now research up to three distinct priority questions concurrently w
 
 Local validation passed 306 tests across 49 files, zero-warning lint, strict TypeScript, a production build and 17 executed Chromium scenarios; three local-Supabase live scenarios were skipped. A focused live-provider check executed three real Tavily queries and verified the bounded, canonicalized evidence set. The full local live workflow could not run in this pass because Docker Desktop failed to start its Linux engine on a locked local socket.
 
+## Live recommendation quality evaluation — 2026-09-21
+
+An opt-in, database-independent evaluation now runs the complete eight-agent workflow against Nebius/NVIDIA and Tavily for three materially different scenarios. Its deterministic 100-point report checks multi-question coverage, canonical and independent sources, claim-by-claim verification, primary-source use, adversarial critique, citation-safe decisions, conservative confidence and valid proposed tasks. All three scenarios completed and met the required gates during development.
+
+The evaluation exposed an intermittent Verifier response that satisfied the JSON schema but violated cross-agent reference integrity. Agents now make at most one repair generation only for `INVALID_OUTPUT`, reusing the same validated input and evidence; the replacement must pass the full schema and integrity checks. Timeouts, cancellation, refusal, authentication, rate limits and provider failures remain non-retriable. Offline validation passes 307 tests across 49 files, zero-warning lint, strict TypeScript, production build and 17 Chromium scenarios; three local-Supabase live scenarios remain skipped until the Windows-held Docker socket is released.
+
 Commit `84451fd` deployed as `dpl_J7NpTDdcN2hjb1XQPcMHRxAKETSW`. A reversible production check on the existing fictional Phase 14 review problem showed the `Solved` state, closure timestamp and `Marked solved` history entry, then restored the problem to its prior open state through `Reopen problem`; the ordered history contains both transitions.

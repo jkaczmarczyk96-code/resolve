@@ -2,12 +2,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 import { runAgent } from "@/lib/ai/agents";
 import { AIError, bounded } from "@/lib/ai/errors";
+import type { GenerationRequest } from "@/lib/ai/provider";
 import type { AgentName } from "@/lib/ai/schemas";
 import { inputs, outputs, sources } from "./fixtures/ai";
 
 afterEach(() => vi.useRealTimers());
 function dependencies(output: unknown) {
-  return { ai: { model: "fixture-model", generate: vi.fn(async () => output) }, research: { search: vi.fn(async () => sources) } };
+  return { ai: { model: "fixture-model", generate: vi.fn(async (request: GenerationRequest) => { void request; return output; }) }, research: { search: vi.fn(async () => sources) } };
 }
 describe.each(Object.keys(inputs) as AgentName[])("%s agent", (name) => {
   it("validates its independent input and structured output", async () => {
@@ -25,7 +26,9 @@ describe.each(Object.keys(inputs) as AgentName[])("%s agent", (name) => {
     expect(deps.ai.generate).not.toHaveBeenCalled();
   });
   it("rejects malformed output rather than passing it to another agent", async () => {
-    await expect(runAgent(name, inputs[name], dependencies({ fabricated: true }))).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
+    const deps = dependencies({ fabricated: true });
+    await expect(runAgent(name, inputs[name], deps)).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
+    expect(deps.ai.generate).toHaveBeenCalledTimes(2);
   });
   it("has a bounded timeout even if an injected provider ignores abort", async () => {
     vi.useFakeTimers();
@@ -35,6 +38,13 @@ describe.each(Object.keys(inputs) as AgentName[])("%s agent", (name) => {
     await vi.advanceTimersByTimeAsync(90_001);
     await pending;
   });
+});
+it("repairs one invalid read-only model response and validates the replacement", async () => {
+  const deps = dependencies(outputs.intake);
+  deps.ai.generate.mockRejectedValueOnce(new AIError("INVALID_OUTPUT")).mockResolvedValueOnce(outputs.intake);
+  await expect(runAgent("intake", inputs.intake, deps)).resolves.toMatchObject({ output: outputs.intake });
+  expect(deps.ai.generate).toHaveBeenCalledTimes(2);
+  expect(deps.ai.generate.mock.calls[1][0].instructions).toContain("previous response was rejected");
 });
 it("rejects fabricated source IDs and model-generated URLs", async () => {
   await expect(runAgent("researcher", inputs.researcher, dependencies({ ...outputs.researcher, claims: [{ id: "c", statement: "Invented", sourceIds: ["invented-source"] }] }))).rejects.toMatchObject({ code: "INVALID_OUTPUT" });

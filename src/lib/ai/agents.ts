@@ -36,17 +36,27 @@ export function runAgent<N extends AgentName>(name: N, rawInput: AgentInput<N>, 
       sources = checked.data;
       validateSources(sources);
     }
-    const response = await dependencies.ai.generate({
-      name, input: name === "researcher" ? { ...parsed.data, sources } : parsed.data,
-      instructions: `${commonInstructions}\n${instructions[name]}`,
-      schema: contract.output, signal,
-    });
-    const output = contract.output.safeParse(response);
-    if (!output.success) throw new AIError("INVALID_OUTPUT");
-    const checked = name === "verifier" ? groundVerification(verifierOutput.parse(output.data), verifierInput.parse(parsed.data)) : output.data;
-    validateOutput(name, parsed.data, checked, sources);
-    // The selected contract validated this exact named agent's output above.
-    return { agent: name, model: dependencies.ai.model, output: checked as AgentOutput<N>, sources };
+    const input = name === "researcher" ? { ...parsed.data, sources } : parsed.data;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const response = await dependencies.ai.generate({
+          name,
+          input,
+          instructions: `${commonInstructions}\n${instructions[name]}${attempt ? "\nYour previous response was rejected because it violated the required output contract. Rebuild the complete response from the supplied input. Follow the schema and every ID, cardinality, reference, dependency and evidence rule exactly; do not mention this repair attempt." : ""}`,
+          schema: contract.output,
+          signal,
+        });
+        const output = contract.output.safeParse(response);
+        if (!output.success) throw new AIError("INVALID_OUTPUT");
+        const checked = name === "verifier" ? groundVerification(verifierOutput.parse(output.data), verifierInput.parse(parsed.data)) : output.data;
+        validateOutput(name, parsed.data, checked, sources);
+        // The selected contract validated this exact named agent's output above.
+        return { agent: name, model: dependencies.ai.model, output: checked as AgentOutput<N>, sources };
+      } catch (error) {
+        if (!(error instanceof AIError) || error.code !== "INVALID_OUTPUT" || attempt === 1) throw error;
+      }
+    }
+    throw new AIError("INVALID_OUTPUT");
   }, 90_000, options.signal);
 }
 

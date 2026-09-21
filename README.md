@@ -84,6 +84,8 @@ npm run test:e2e:live
 
 `test:e2e` uses an isolated HTTP test double (ports 3001/54331). `test:e2e:live` requires this project's running Supabase stack, `.env.local`, and local Mailpit; it refuses a production URL. Both use the production Next.js build and create disposable test accounts. The live suite includes two standard analyses and one clarified analysis (up to 25 model calls and three Tavily searches), incurs provider usage, and requires both API keys. The retry case seeds one failed job locally before invoking a real retry. They start/stop their own app server; do not run another Next.js server concurrently in this checkout. After test-double runs, rebuild using your normal environment before `npm start`.
 
+`npm run test:quality:live` runs three complete in-memory workflows against real Nebius/NVIDIA and Tavily providers and prints deterministic quality reports. It does not require Docker or Supabase, but it makes up to 24 model calls and nine searches. See [`docs/quality-evaluation.md`](docs/quality-evaluation.md).
+
 ## Project structure
 
 ```text
