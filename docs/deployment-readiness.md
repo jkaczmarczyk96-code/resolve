@@ -120,4 +120,10 @@ An opt-in, database-independent evaluation now runs the complete eight-agent wor
 
 The evaluation exposed an intermittent Verifier response that satisfied the JSON schema but violated cross-agent reference integrity. Agents now make at most one repair generation only for `INVALID_OUTPUT`, reusing the same validated input and evidence; the replacement must pass the full schema and integrity checks. Timeouts, cancellation, refusal, authentication, rate limits and provider failures remain non-retriable. Offline validation passes 307 tests across 49 files, zero-warning lint, strict TypeScript, production build and 17 Chromium scenarios; three local-Supabase live scenarios remain skipped until the Windows-held Docker socket is released.
 
+## Focused follow-up analysis — 2026-09-21
+
+Every decision-level unresolved unknown can now start a separate focused analysis after an explicit user click. The quota-counted follow-up includes the original goal, the exact selected question and instructions to preserve unsupported details as unknowns and avoid external actions. This keeps the original decision snapshot immutable while implementing the PRD's `Resolve unknown` path without hidden provider spend or automatic writes.
+
+Local verification passes 309 tests across 50 files, zero-warning lint, strict TypeScript, the production build and 17 executed Chromium scenarios; the three local-Supabase scenarios remain skipped because the damaged Windows Docker socket still requires an administrator-approved boot-time repair.
+
 Commit `84451fd` deployed as `dpl_J7NpTDdcN2hjb1XQPcMHRxAKETSW`. A reversible production check on the existing fictional Phase 14 review problem showed the `Solved` state, closure timestamp and `Marked solved` history entry, then restored the problem to its prior open state through `Reopen problem`; the ordered history contains both transitions.

@@ -179,6 +179,8 @@ Generated tasks from completed analyses are also persisted as an owner-controlle
 
 Completed problems can be marked solved and reopened. Solving pauses active monitoring, records an owner-only lifecycle event and keeps the recommendation, evidence, tasks and action audit available for later review.
 
+Decision-level unknowns can start an explicit, separately quota-counted follow-up analysis. The new problem carries the original goal and selected question, preserves uncertainty and does not perform an external action; the original workflow snapshot remains immutable.
+
 This repository is released under the [MIT License](LICENSE).
 
 ## Reference documentation

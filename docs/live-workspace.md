@@ -22,6 +22,8 @@ This is a finite in-process run, not a crash-resumable queue. Process terminatio
 
 Research investigates up to three priority questions in new runs and records incomplete plan coverage. Confidence and model evidence assessments retain the documented conservative limits. Tasks are proposals; no task is executed. Answer collection and continuation are implemented in Phase 8; persistent monitoring is Phase 10.
 
+After a decision is saved, each remaining decision-level unknown offers **Start follow-up analysis**. The user must select the exact question. Avenli then creates a separate quota-counted problem containing the original goal, that question and explicit evidence/uncertainty instructions. This keeps the original workflow immutable and makes the additional provider spend visible; it never executes an external action.
+
 ## Verification
 
 Offline SQL tests cover body binding, duplicate claims, hidden secrets, foreign-account access, direct mutation denial, active/daily/attempt limits, deletion-resistant quota and expired workers. HTTP tests cover origin, JSON, byte limits and sanitized errors. Worker tests cover successful completion, consumed claims and sanitized failures.
