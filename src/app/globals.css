@@ -4,23 +4,23 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #f7f8ff;
-  --foreground: #12184f;
+  --background: #f5f7ff;
+  --foreground: #101650;
   --card: #ffffff;
   --card-foreground: #12184f;
   --popover: #ffffff;
   --popover-foreground: #162438;
-  --primary: #4b3fea;
+  --primary: #493cf1;
   --primary-foreground: #ffffff;
   --secondary: #eef0ff;
   --secondary-foreground: #302e94;
-  --muted: #f0f2f8;
-  --muted-foreground: #626983;
+  --muted: #eff2fa;
+  --muted-foreground: #626a88;
   --accent: #eef0ff;
   --accent-foreground: #3e35ce;
   --destructive: #ba2435;
-  --border: #e0e3ef;
-  --input: #dfe2ee;
+  --border: #dfe4f2;
+  --input: #dce2f1;
   --ring: #5747ee;
   --radius: 1rem;
 }
@@ -53,9 +53,29 @@
 
 @layer base {
   * { @apply border-border; }
-  body { @apply bg-background text-foreground antialiased; }
+  html { background: var(--background); }
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at 8% -8%, rgba(108, 91, 255, .12), transparent 28rem),
+      radial-gradient(circle at 92% 2%, rgba(82, 167, 255, .1), transparent 30rem);
+  }
+  button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
   :focus-visible { @apply outline-2 outline-offset-4 outline-ring; }
   ::selection { background: #d9d8ff; color: #11154e; }
+}
+
+@layer utilities {
+  .avenli-panel {
+    border: 1px solid rgba(218, 224, 241, .92);
+    background: rgba(255, 255, 255, .94);
+    box-shadow: 0 14px 40px rgba(32, 39, 100, .055);
+  }
+  .avenli-glow {
+    background:
+      radial-gradient(circle at 82% 12%, rgba(104, 82, 255, .2), transparent 34%),
+      linear-gradient(145deg, #f8f7ff 0%, #eef4ff 54%, #e7edff 100%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

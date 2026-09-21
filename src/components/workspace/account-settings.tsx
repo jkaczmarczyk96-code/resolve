@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Panel } from "@/components/demo/primitives";
+import { PageHeading, Panel } from "@/components/demo/primitives";
 import { profileSchema, passwordChangeSchema } from "@/lib/account/contracts";
 import { post } from "./remote";
 import { GoogleIntegrationSettings, type GoogleConnection } from "./google-integration-settings";
@@ -23,7 +23,7 @@ export function AccountSettings({ profile, email, providers, googleEnabled, goog
     finally { setPending(""); }
   }
   const feedback = (section: string) => message?.section === section && <p role={message.error ? "alert" : "status"} className="mt-3 text-sm">{message.text}</p>;
-  return <div className="max-w-3xl space-y-6"><h1 className="text-3xl font-semibold">Account settings</h1>
+  return <div className="max-w-5xl space-y-6"><PageHeading eyebrow="Settings" title="Account settings" description="Manage your profile, optional services, privacy and account security." />
     <Panel title="Profile" description={`Signed in as ${email}`}><form className="space-y-4" onSubmit={async (event) => {
       event.preventDefault(); const parsed = profileSchema.safeParse(values);
       if (!parsed.success) { setMessage({ section: "profile", text: "Check your name, HTTPS avatar URL, language and timezone.", error: true }); return; }

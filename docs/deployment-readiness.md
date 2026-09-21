@@ -127,3 +127,9 @@ Every decision-level unresolved unknown can now start a separate focused analysi
 Local verification passes 309 tests across 50 files, zero-warning lint, strict TypeScript, the production build and 17 executed Chromium scenarios; the three local-Supabase scenarios remain skipped because the damaged Windows Docker socket still requires an administrator-approved boot-time repair.
 
 Commit `84451fd` deployed as `dpl_J7NpTDdcN2hjb1XQPcMHRxAKETSW`. A reversible production check on the existing fictional Phase 14 review problem showed the `Solved` state, closure timestamp and `Marked solved` history entry, then restored the problem to its prior open state through `Reopen problem`; the ordered history contains both transitions.
+
+## Full interface redesign — 2026-09-21
+
+The landing, authentication and authenticated workspace now apply the supplied Avenli visual direction throughout the live product: bright layered surfaces, navy hierarchy, restrained blue/violet gradients, compact dashboard statistics, a recent-problems list, clearer primary actions and responsive desktop/mobile navigation. Problem detail uses a structured two-column overview on larger screens, while account settings, notifications and the new-problem flow share the same panel and heading system.
+
+The public demo and authenticated components continue to expose the same implemented behavior and accessible labels, so the visual work did not replace product state with mock data. Release screenshots for the landing page and desktop/mobile workspace were regenerated from the production build. Local verification passed 309 tests across 50 files, zero-warning lint, strict TypeScript, the optimized production build and 17 executed Chromium scenarios; three Docker-dependent local-Supabase scenarios remain skipped because of the Windows-held Docker socket.
