@@ -8,7 +8,7 @@ Complex decisions rarely fail because we need one more list of ideas. The real p
 
 ## 0:20–0:48 — Start a problem
 
-I describe the outcome I need, the deadline, hard constraints and anything I still do not know. Avenli saves the problem, then runs a finite workflow instead of an open-ended chat. This public demo uses fictional data and makes no external calls, while signed-in workspaces persist real analyses.
+In the signed-in workspace, I can describe the outcome, deadline, hard constraints and anything I still do not know. Avenli saves the problem, then runs a finite workflow instead of an open-ended chat. This public demo uses fictional data and makes no external calls; it shows how a saved analysis is organized.
 
 ## 0:48–1:18 — Nebius and NVIDIA
 
@@ -16,15 +16,15 @@ Eight specialized stages run on NVIDIA Nemotron 3 Super through Nebius Token Fac
 
 ## 1:18–1:48 — Evidence
 
-For live analyses, Tavily supplies a bounded set of search results. Avenli assigns its own source IDs, keeps retrieved text outside system instructions and requires exact supporting excerpts for verified claims. Here I can inspect the sources, publication uncertainty and coverage. If the evidence is missing, stale or contradictory, confidence drops. If no decision-relevant claim has a traceable excerpt, Avenli abstains instead of selecting an option.
+For live analyses, Tavily supplies a bounded set of search results. Avenli assigns its own source IDs, keeps retrieved text outside system instructions and requires exact supporting excerpts for verified claims. In this fictional example, no sources were fetched, so the evidence panel correctly reports zero traceable claims. In a real analysis, missing, stale or contradictory evidence lowers confidence. If no decision-relevant claim has a traceable excerpt, Avenli abstains instead of selecting an option.
 
 ## 1:48–2:12 — Durable human control
 
-The workflow can pause for a clarification, survive a reload and resume the same saved run. The Overview keeps the goal, constraints, unknowns and activity visible. Proposed tasks remain editable and do not execute automatically.
+A real workflow can pause for a clarification, survive a reload and resume the same saved run. The Overview keeps the goal, constraints, unknowns and activity visible. Proposed tasks remain editable and do not execute automatically.
 
 ## 2:12–2:35 — Safe external action
 
-Services are optional in Settings. For Google Calendar, Avenli first shows the exact title, time and description. Creating the event requires a separate approval. The write is idempotent, creates no attendees or invitations and leaves an audit record.
+Services are optional in Settings. This fictional Calendar proposal shows the exact title, time and description; its create button is disabled. In a connected account, creating the event requires a separate approval. The write is idempotent, creates no attendees or invitations and leaves an audit record.
 
 ## 2:35–2:55 — Close
 

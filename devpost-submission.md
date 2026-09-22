@@ -113,7 +113,7 @@ TODO before final review: make <https://github.com/jkaczmarczyk96-code/resolve> 
 
 ## Demo Video
 
-TODO: add the public YouTube URL. A private 2:47 H.264/AAC draft now exists locally and includes audio explaining how Avenli uses Nebius Token Factory and NVIDIA Nemotron. It must be reviewed, captioned and approved before upload.
+TODO: add the public YouTube URL. A private 2:53 H.264/AAC draft now exists locally and includes audio explaining how Avenli uses Nebius Token Factory and NVIDIA Nemotron, with burned-in captions. It must be reviewed and approved before upload.
 
 Planned flow:
 
@@ -168,7 +168,7 @@ Both views were visually checked after export and neither performs a live provid
 
 ## TODO Official Form Fields
 
-Official requirements fetched from Devpost on 2026-09-21. These are draft answers only and must be reviewed before the final submit step.
+Official requirements rechecked on Devpost on 2026-09-22. These are draft answers only and must be reviewed before the final submit step.
 
 - **Submitter Type:** Individual
 - **Organization Name:** N/A

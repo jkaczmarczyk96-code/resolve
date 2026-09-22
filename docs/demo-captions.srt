@@ -1,103 +1,103 @@
 1
-00:00:00,000 --> 00:00:06,098
+00:00:00,000 --> 00:00:06,012
 Complex decisions rarely fail because we need one more list of ideas.
 
 2
-00:00:06,098 --> 00:00:14,229
+00:00:06,012 --> 00:00:14,028
 The real problem is that goals, constraints, research, trade-offs and next steps are scattered across tabs.
 
 3
-00:00:14,229 --> 00:00:20,835
+00:00:14,028 --> 00:00:20,540
 Avenli turns that work into one saved, reviewable path from problem to action.
 
 4
-00:00:20,835 --> 00:00:29,474
-I describe the outcome I need, the deadline, hard constraints and anything I still do not know.
+00:00:20,540 --> 00:00:30,059
+In the signed-in workspace, I can describe the outcome, deadline, hard constraints and anything I still do not know.
 
 5
-00:00:29,474 --> 00:00:36,588
+00:00:30,059 --> 00:00:37,073
 Avenli saves the problem, then runs a finite workflow instead of an open-ended chat.
 
 6
-00:00:36,588 --> 00:00:45,227
-This public demo uses fictional data and makes no external calls, while signed-in workspaces persist real analyses.
+00:00:37,073 --> 00:00:46,592
+This public demo uses fictional data and makes no external calls; it shows how a saved analysis is organized.
 
 7
-00:00:45,227 --> 00:00:51,833
+00:00:46,592 --> 00:00:53,105
 Eight specialized stages run on NVIDIA Nemotron 3 Super through Nebius Token Factory.
 
 8
-00:00:51,833 --> 00:00:53,866
+00:00:53,105 --> 00:00:55,108
 Intake structures the request.
 
 9
-00:00:53,866 --> 00:00:58,439
+00:00:55,108 --> 00:00:59,617
 Planning identifies dependencies and the most important research questions.
 
 10
-00:00:58,439 --> 00:01:10,635
+00:00:59,617 --> 00:01:11,641
 Research, verification, option generation, critique, decision and task planning each return typed output that must pass strict validation before the next stage can begin.
 
 11
-00:01:10,635 --> 00:01:16,225
+00:01:11,641 --> 00:01:17,152
 For live analyses, Tavily supplies a bounded set of search results.
 
 12
-00:01:16,225 --> 00:01:26,389
+00:01:17,152 --> 00:01:27,172
 Avenli assigns its own source IDs, keeps retrieved text outside system instructions and requires exact supporting excerpts for verified claims.
 
 13
-00:01:26,389 --> 00:01:31,470
-Here I can inspect the sources, publication uncertainty and coverage.
+00:01:27,172 --> 00:01:35,688
+In this fictional example, no sources were fetched, so the evidence panel correctly reports zero traceable claims.
 
 14
-00:01:31,470 --> 00:01:36,552
-If the evidence is missing, stale or contradictory, confidence drops.
+00:01:35,688 --> 00:01:41,199
+In a real analysis, missing, stale or contradictory evidence lowers confidence.
 
 15
-00:01:36,552 --> 00:01:44,175
+00:01:41,199 --> 00:01:48,714
 If no decision-relevant claim has a traceable excerpt, Avenli abstains instead of selecting an option.
 
 16
-00:01:44,175 --> 00:01:52,305
-The workflow can pause for a clarification, survive a reload and resume the same saved run.
+00:01:48,714 --> 00:01:57,231
+A real workflow can pause for a clarification, survive a reload and resume the same saved run.
 
 17
-00:01:52,305 --> 00:01:57,387
+00:01:57,231 --> 00:02:02,241
 The Overview keeps the goal, constraints, unknowns and activity visible.
 
 18
-00:01:57,387 --> 00:02:01,960
+00:02:02,241 --> 00:02:06,749
 Proposed tasks remain editable and do not execute automatically.
 
 19
-00:02:01,960 --> 00:02:04,501
+00:02:06,749 --> 00:02:09,254
 Services are optional in Settings.
 
 20
-00:02:04,501 --> 00:02:10,599
-For Google Calendar, Avenli first shows the exact title, time and description.
+00:02:09,254 --> 00:02:17,270
+This fictional Calendar proposal shows the exact title, time and description; its create button is disabled.
 
 21
-00:02:10,599 --> 00:02:14,156
-Creating the event requires a separate approval.
+00:02:17,270 --> 00:02:22,781
+In a connected account, creating the event requires a separate approval.
 
 22
-00:02:14,156 --> 00:02:21,271
+00:02:22,781 --> 00:02:29,795
 The write is idempotent, creates no attendees or invitations and leaves an audit record.
 
 23
-00:02:21,271 --> 00:02:31,434
+00:02:29,795 --> 00:02:39,815
 The architecture keeps the browser, authenticated server, durable Supabase state, model and research providers, and external writes behind clear boundaries.
 
 24
-00:02:31,434 --> 00:02:41,089
+00:02:39,815 --> 00:02:49,333
 Avenli uses open-model reasoning to produce an evidence-aware plan while keeping the person in control of every real-world action.
 
 25
-00:02:41,089 --> 00:02:43,122
+00:02:49,333 --> 00:02:51,337
 Give it a problem.
 
 26
-00:02:43,122 --> 00:02:44,647
+00:02:51,337 --> 00:02:52,840
 Get it solved.
