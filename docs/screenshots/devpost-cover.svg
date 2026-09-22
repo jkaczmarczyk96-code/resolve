@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Avenli — Give it a problem. Get it solved.</title>
+  <desc id="description">Avenli hackathon cover with the product mark, promise, workflow and technology stack.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbfcff"/>
+      <stop offset="0.58" stop-color="#f4f6ff"/>
+      <stop offset="1" stop-color="#ece8ff"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4358f4"/>
+      <stop offset="1" stop-color="#8b3cf1"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#7084ff" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#7084ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#272a72" flood-opacity=".18"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#background)"/>
+  <circle cx="1060" cy="40" r="340" fill="url(#glow)"/>
+  <circle cx="110" cy="650" r="290" fill="url(#glow)" opacity=".55"/>
+  <path d="M800 630C900 460 1050 485 1200 350V630Z" fill="#7358f4" opacity=".07"/>
+  <path d="M740 630C890 420 1015 520 1200 400V630Z" fill="#48a1fa" opacity=".08"/>
+
+  <g transform="translate(72 66)">
+    <g transform="scale(1.72)">
+      <path fill="#6039f5" d="M7.3 35.4 18.6 9.8a5.8 5.8 0 0 1 10.6.1l2.5 5.7-9.1 20.6a8.4 8.4 0 0 1-15.3-.8Z"/>
+      <path fill="#397bf6" d="M21.1 8.1a5.8 5.8 0 0 1 8.1 1.8l11.5 25.6a5.8 5.8 0 0 1-10.6 4.7L18.7 14.7a5.8 5.8 0 0 1 2.4-6.6Z"/>
+      <path fill="#8154f7" d="m13.5 21.4 9.8 5.9-4 9a8.4 8.4 0 0 1-12 3.7 5.8 5.8 0 0 1 0-4.6l6.2-14Z" opacity=".8"/>
+    </g>
+    <text x="96" y="62" font-family="Inter, Arial, sans-serif" font-size="55" font-weight="700" letter-spacing="-2.5" fill="#10175c">Avenli</text>
+  </g>
+
+  <g transform="translate(76 220)">
+    <text font-family="Inter, Arial, sans-serif" font-size="64" font-weight="700" letter-spacing="-3.4" fill="#0e1450">
+      <tspan x="0" y="0">Give it a problem.</tspan>
+      <tspan x="0" y="74">Get it solved.</tspan>
+    </text>
+    <text x="2" y="132" font-family="Inter, Arial, sans-serif" font-size="22" fill="#555c83">Evidence-aware decisions. Reviewable actions. You stay in control.</text>
+  </g>
+
+  <g transform="translate(76 442)" font-family="Inter, Arial, sans-serif">
+    <g><rect width="194" height="64" rx="20" fill="#fff" stroke="#dfe3f3"/><circle cx="34" cy="32" r="14" fill="#eef0ff"/><text x="64" y="38" font-size="18" font-weight="600" fill="#1a205c">Understand</text></g>
+    <g transform="translate(210)"><rect width="194" height="64" rx="20" fill="#fff" stroke="#dfe3f3"/><circle cx="34" cy="32" r="14" fill="#eef0ff"/><text x="64" y="38" font-size="18" font-weight="600" fill="#1a205c">Research</text></g>
+    <g transform="translate(420)"><rect width="194" height="64" rx="20" fill="#fff" stroke="#dfe3f3"/><circle cx="34" cy="32" r="14" fill="#eef0ff"/><text x="64" y="38" font-size="18" font-weight="600" fill="#1a205c">Compare</text></g>
+    <g transform="translate(630)"><rect width="194" height="64" rx="20" fill="url(#accent)" filter="url(#shadow)"/><circle cx="34" cy="32" r="14" fill="#fff" fill-opacity=".22"/><text x="64" y="38" font-size="18" font-weight="600" fill="#fff">Decide</text></g>
+  </g>
+
+  <text x="78" y="574" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="600" letter-spacing="1.3" fill="#58608a">NVIDIA NEMOTRON · NEBIUS TOKEN FACTORY · TAVILY</text>
+  <text x="1122" y="574" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600" fill="#4c42d6">avenli.vercel.app</text>
+</svg>

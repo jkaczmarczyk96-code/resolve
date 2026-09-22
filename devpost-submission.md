@@ -99,7 +99,7 @@ npm run test:e2e
 npm audit --omit=dev
 ```
 
-The current release passes 310 offline tests across 50 files, zero-warning lint, strict TypeScript, the optimized production build, 17 normal Chromium scenarios and a zero-known-vulnerability production dependency audit. Three complete in-memory quality scenarios have also exercised real Nemotron/Nebius and Tavily calls. Three opt-in local-Supabase browser scenarios are excluded from the normal suite because they create disposable accounts and incur provider usage.
+The current release passes 311 offline tests across 50 files, zero-warning lint, strict TypeScript, the optimized production build, 17 normal Chromium scenarios and a zero-known-vulnerability production dependency audit. Three complete in-memory quality scenarios have also exercised real Nemotron/Nebius and Tavily calls. Three opt-in local-Supabase browser scenarios are excluded from the normal suite because they create disposable accounts and incur provider usage.
 
 ## Public Demo Link
 
@@ -125,18 +125,24 @@ Planned flow:
 - 2:30–2:50 — show the architecture and explain Nebius/Nemotron plus Tavily.
 - 2:50–3:00 — close on the recommendation and production URL.
 
+The ready-to-read voiceover is in `docs/demo-narration.md`.
+
 ## Screenshot Shot List
 
-Checked in and regenerated from the current production build:
+Checked in and regenerated for the current release:
 
-1. `docs/screenshots/landing.png` — product promise and Avenli identity.
-2. `docs/screenshots/workspace-desktop.png` — desktop problem workspace.
-3. `docs/screenshots/workspace-mobile.png` — responsive comparison and mobile navigation.
+1. `docs/screenshots/devpost-cover.png` — 1200×630 cover image.
+2. `docs/screenshots/devpost-thumbnail.png` — square submission thumbnail.
+3. `docs/screenshots/landing.png` — product promise and Avenli identity.
+4. `docs/screenshots/workspace-desktop.png` — desktop problem workspace.
+5. `docs/screenshots/workspace-mobile.png` — responsive comparison and mobile navigation.
 
 Still to capture immediately before the final Devpost review:
 
-4. A live completed problem on the Research tab with source quality visible and no private data.
-5. A Calendar action proposal before approval with no email address, token or sensitive event content.
+6. A live completed problem on the Research tab with source quality visible and no private data.
+7. A Calendar action proposal before approval with no email address, token or sensitive event content.
+
+The two live views have been visually checked in production; exporting them remains intentionally deferred until the final deployment is fixed.
 
 ## Submission Readiness Notes
 

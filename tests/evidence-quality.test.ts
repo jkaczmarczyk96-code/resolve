@@ -68,6 +68,20 @@ it("rejects fabricated supporting excerpts and preserves exact quoted support", 
   grounded.assessments[0].supportingQuotes![0].sourceId = "foreign";
   expect(() => validateOutput("verifier", context, groundVerification(grounded, context), [])).toThrow("INVALID_OUTPUT");
 });
+it("downgrades a supported label when the model supplies no traceable excerpt", async () => {
+  const s = await ideal(); const context = { claims: s.research!.output.claims, sources: s.research!.sources };
+  const withoutQuotes = {
+    ...s.verification!,
+    assessments: s.verification!.assessments.map((item) => ({ ...item, status: "VERIFIED" as const, supportingQuotes: [] })),
+  };
+  const grounded = groundVerification(withoutQuotes, context);
+  expect(grounded.assessments[0]).toMatchObject({
+    status: "UNVERIFIED",
+    supportingQuotes: [],
+    summary: expect.stringContaining("did not provide a traceable supporting excerpt"),
+  });
+  expect(() => validateOutput("verifier", context, grounded, [])).not.toThrow();
+});
 it("preserves legacy snapshots and prevents raising a saved rating", async () => {
   const s = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), fullDependencies());
   expect(s.qualityPolicy).toBe(2);

@@ -8,6 +8,8 @@ People bring Avenli a real-world outcome with constraints and unknowns. Eight bo
 
 ## Three-minute recording script
 
+The exact ready-to-read voiceover is in [demo-narration.md](demo-narration.md).
+
 ### 0:00–0:20 — The problem
 
 Open the landing page and say:
@@ -58,13 +60,15 @@ End on the recommendation or dashboard screen and show `https://avenli.vercel.ap
 
 ## Screenshot shot list
 
-1. `screenshots/landing.png` — product promise and visual identity.
-2. `screenshots/workspace-desktop.png` — complete desktop problem workspace with goal, constraints, recommendation, plan and activity.
-3. `screenshots/workspace-mobile.png` — responsive option comparison and mobile navigation.
-4. Capture a live completed problem on the **Research** tab with source quality visible.
-5. Capture the Calendar action proposal before approval, with no private email, token or sensitive event content visible.
+1. `screenshots/devpost-cover.png` — 1200×630 Devpost/social cover.
+2. `screenshots/devpost-thumbnail.png` — square submission thumbnail.
+3. `screenshots/landing.png` — product promise and visual identity.
+4. `screenshots/workspace-desktop.png` — complete desktop problem workspace with goal, constraints, recommendation, plan and activity.
+5. `screenshots/workspace-mobile.png` — responsive option comparison and mobile navigation.
+6. Capture a live completed problem on the **Research** tab with source quality visible.
+7. Capture the Calendar action proposal before approval, with no private email, token or sensitive event content visible.
 
-The checked-in workspace screenshots use clearly labeled fictional demo data. The live screenshots in items 4–5 should be captured immediately before the final Devpost upload so they match the current production deployment.
+The checked-in workspace screenshots use clearly labeled fictional demo data. The live screenshots in items 6–7 were visually checked in production and should be freshly exported immediately before the final Devpost upload so they match the current deployment.
 
 ## Recording checklist
 

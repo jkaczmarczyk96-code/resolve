@@ -118,12 +118,17 @@ export function groundVerification(value: ReturnType<typeof verifierOutput.parse
       if (norm(source.content).includes(norm(quote.quote))) return true;
       rejected.push(quote.sourceId); return false;
     });
+    const missingQuote = (item.status === "VERIFIED" || item.status === "PARTIALLY_VERIFIED")
+      && (item.supportingQuotes?.length ?? 0) === 0;
     const { unmatchedQuoteSourceIds: _ignored, ...original } = item;
     void _ignored;
     return { ...original, ...(quotes ? { supportingQuotes: quotes } : {}), ...(rejected.length ? {
       unmatchedQuoteSourceIds: [...new Set(rejected)],
       status: item.status === "CONFLICTING" ? "CONFLICTING" as const : "UNVERIFIED" as const,
       summary: "One or more model-provided quotations did not match the retrieved content and were discarded. Review the evidence before relying on this claim.",
+    } : missingQuote ? {
+      status: "UNVERIFIED" as const,
+      summary: "The model did not provide a traceable supporting excerpt, so this claim remains unverified.",
     } : {}) };
   }) };
 }
