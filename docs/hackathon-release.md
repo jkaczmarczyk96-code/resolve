@@ -4,6 +4,8 @@ Target event: **Nebius x NVIDIA Global AI Hackathon**.
 
 Official submission deadline: **October 30, 2026 at 10:00 AM Pacific Time** (`2026-10-30T17:00:00Z`). Recommended track: **Best Apps and Agents**. Avenli also makes a functional Tavily API call and is eligible to be considered for **Best Use of Tavily**.
 
+The latest organizer judging announcement checked on 2026-09-22 keeps four equally weighted criteria—Technological Implementation, Design, Potential Impact and Quality of the Idea—and specifically says that multi-step autonomous workflows stand out in Best Apps and Agents. The deadline remains unchanged and submissions are open.
+
 ## Ready
 
 - Production app: <https://avenli.vercel.app>
