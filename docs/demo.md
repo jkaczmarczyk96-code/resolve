@@ -77,3 +77,14 @@ The checked-in workspace screenshots use clearly labeled fictional demo data. Th
 - Use one prepared problem to avoid waiting on provider latency in the final cut.
 - Keep the narration factual: research is bounded, recommendations are reviewable, and tasks are proposed.
 - Add captions and publish an unlisted or public YouTube/Vimeo link accepted by the event form.
+
+## Reproducible draft
+
+Windows can generate a private review copy from the production public demo without accounts or provider calls:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate-demo-voice.ps1
+node scripts/record-demo.mjs
+```
+
+The scripts create `artifacts/avenli-demo-draft.mp4`, a 1600×900 H.264/AAC video with an English system-voice reading of [demo-narration.md](demo-narration.md). The generated artifacts are ignored by Git. Treat this as a timing and visual draft; record or replace the narration, add final captions and review every frame before publishing.

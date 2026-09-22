@@ -11,4 +11,5 @@ supabase/.branches/
 *.log
 playwright-report/
 test-results/
+artifacts/
 .devpost-hackathon-state.json
