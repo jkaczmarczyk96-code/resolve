@@ -18,6 +18,7 @@ export type DemoProblem = {
   recommendation: { title: string; summary: string; assumptions: string[] } | null;
   risks: { title: string; severity: "High" | "Medium"; detail: string; mitigation: string }[];
   tasks: DemoTask[];
+  calendarProposal?: { summary: string; start: string; end: string; location: string; description: string };
   decisions: { title: string; summary: string; why: string; evidence: string[]; assumptions: string[]; time: string }[];
   activity: { label: string; detail: string; time: string }[];
 };

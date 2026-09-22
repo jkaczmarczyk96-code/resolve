@@ -26,6 +26,13 @@ test("public demo is fully explorable without an account", async ({ page }) => {
   await page.getByRole("navigation", { name: "Problem sections" }).getByRole("link", { name: "Options", exact: true }).click();
   await expect(page).toHaveURL(/view=options$/);
   await expect(page.getByRole("table", { name: "Illustrative option comparison" })).toBeVisible();
+  await page.goto("/demo/problems/demo-flight?view=research");
+  await expect(page.getByRole("heading", { name: "Evidence quality" })).toBeVisible();
+  await expect(page.getByText("0 / 3 claims", { exact: true })).toBeVisible();
+  await page.goto("/demo/problems/demo-launch?view=tasks");
+  await expect(page.getByRole("heading", { name: "External action preview" })).toBeVisible();
+  await page.getByRole("button", { name: "Review approval" }).click();
+  await expect(page.getByRole("button", { name: "Create event now" })).toBeDisabled();
 });
 
 test("new accounts get a short, controllable onboarding", async ({ page, request }) => {

@@ -84,7 +84,8 @@ Windows can generate a private review copy from the production public demo witho
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate-demo-voice.ps1
+node scripts/generate-demo-captions.mjs
 node scripts/record-demo.mjs
 ```
 
-The scripts create `artifacts/avenli-demo-draft.mp4`, a 1600×900 H.264/AAC video with an English system-voice reading of [demo-narration.md](demo-narration.md). The generated artifacts are ignored by Git. Treat this as a timing and visual draft; record or replace the narration, add final captions and review every frame before publishing.
+The scripts create `artifacts/avenli-demo-draft.mp4`, a 1600×900 H.264/AAC video with an English system-voice reading of [demo-narration.md](demo-narration.md) and burned-in captions generated as [demo-captions.srt](demo-captions.srt). The generated media artifacts are ignored by Git. Treat this as a timing and visual draft; record or replace the narration and review every frame before publishing.
