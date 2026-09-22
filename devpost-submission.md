@@ -113,7 +113,7 @@ TODO before final review: make <https://github.com/jkaczmarczyk96-code/resolve> 
 
 ## Demo Video
 
-TODO: add the public YouTube URL. The recording must be three minutes or shorter and include audio explaining how Avenli uses Nebius Token Factory and NVIDIA Nemotron.
+TODO: add the public YouTube URL. A private 2:47 H.264/AAC draft now exists locally and includes audio explaining how Avenli uses Nebius Token Factory and NVIDIA Nemotron. It must be reviewed, captioned and approved before upload.
 
 Planned flow:
 
@@ -152,7 +152,7 @@ The two live views have been visually checked in production; exporting them rema
 - License: MIT.
 - Devpost registration: confirmed through the live Devpost account.
 - Repository: private until the final secret scan and explicit public-release step.
-- Video: missing.
+- Video: private draft ready; reviewed public URL missing.
 - Two final live screenshots: missing.
 - Final Devpost payload review and explicit submit confirmation: pending.
 

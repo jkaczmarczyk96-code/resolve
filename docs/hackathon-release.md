@@ -15,16 +15,17 @@ Official submission deadline: **October 30, 2026 at 10:00 AM Pacific Time** (`20
 - README explains the runtime role of NVIDIA Nemotron on Nebius Token Factory and Tavily.
 - Architecture and trust boundaries are documented in [architecture.md](architecture.md).
 - The demo flow and recording script are documented in [demo.md](demo.md).
-- Three release screenshots are checked in under `docs/screenshots/`.
+- Five release visuals are checked in under `docs/screenshots/`, including the Devpost cover and square thumbnail.
+- A private 2:47 demo draft can be regenerated from production with the checked-in recording scripts; it includes English audio describing Nebius Token Factory and NVIDIA Nemotron.
 - Phase 16 verification passed 288 tests, zero-warning lint, strict TypeScript, production build, 16 Chromium scenarios and a zero-vulnerability runtime audit. Public-demo, saved-task, lifecycle, task-deadline, multi-query research, model-output repair, focused follow-up, evidence-abstention and unsupported-label regressions now bring the offline suite to 311 tests across 50 files and the normal browser suite to 17 passing scenarios, with three local-Supabase live scenarios skipped. A focused three-query Tavily live check and three complete quality-evaluation scenarios also pass; the transient Verifier contract failure found by the evaluation is covered by one strictly validated repair generation.
 - Real Nebius/NVIDIA and Tavily workflows were verified during development; paid-provider checks stay opt-in.
 
 ## Before the Devpost write
 
-- Devpost registration is complete. Acknowledge the current official rules only when ready to continue the submission workflow.
+- Devpost registration and rules acknowledgment are complete; no project or entry has been submitted.
 - Make the GitHub repository public after one final committed-secret scan.
 - Capture the two remaining live screenshots listed in [demo.md](demo.md).
-- Record and upload the short demo video.
+- Review or replace the local demo draft, add final captions and upload the approved short video.
 - Keep the public YouTube video at three minutes or less, with audio explaining Nebius Token Factory and the NVIDIA model.
 - Fetch the current official form fields and judging criteria, then finalize `devpost-submission.md`.
 - Submit only after a final explicit review of the exact Devpost payload.
