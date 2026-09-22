@@ -137,12 +137,12 @@ Checked in and regenerated for the current release:
 4. `docs/screenshots/workspace-desktop.png` — desktop problem workspace.
 5. `docs/screenshots/workspace-mobile.png` — responsive comparison and mobile navigation.
 
-Still to capture immediately before the final Devpost review:
+Captured from the production public demo without account data:
 
-6. A live completed problem on the Research tab with source quality visible and no private data.
-7. A Calendar action proposal before approval with no email address, token or sensitive event content.
+6. `docs/screenshots/research-evidence.png` — Research tab with deterministic evidence quality visible.
+7. `docs/screenshots/calendar-approval.png` — Calendar proposal at the separate approval boundary.
 
-The two live views have been visually checked in production; exporting them remains intentionally deferred until the final deployment is fixed.
+Both views were visually checked after export and neither performs a live provider or external-service call.
 
 ## Submission Readiness Notes
 
@@ -153,7 +153,7 @@ The two live views have been visually checked in production; exporting them rema
 - Devpost registration: confirmed through the live Devpost account.
 - Repository: private until the final secret scan and explicit public-release step.
 - Video: private draft ready; reviewed public URL missing.
-- Two final live screenshots: missing.
+- Final privacy-safe production screenshots: ready.
 - Final Devpost payload review and explicit submit confirmation: pending.
 
 ## Known Limitations

@@ -65,10 +65,10 @@ End on the recommendation or dashboard screen and show `https://avenli.vercel.ap
 3. `screenshots/landing.png` — product promise and visual identity.
 4. `screenshots/workspace-desktop.png` — complete desktop problem workspace with goal, constraints, recommendation, plan and activity.
 5. `screenshots/workspace-mobile.png` — responsive option comparison and mobile navigation.
-6. Capture a live completed problem on the **Research** tab with source quality visible.
-7. Capture the Calendar action proposal before approval, with no private email, token or sensitive event content visible.
+6. `screenshots/research-evidence.png` — production public-demo Research view with evidence quality visible.
+7. `screenshots/calendar-approval.png` — production public-demo Calendar proposal at its separate approval boundary.
 
-The checked-in workspace screenshots use clearly labeled fictional demo data. The live screenshots in items 6–7 were visually checked in production and should be freshly exported immediately before the final Devpost upload so they match the current deployment.
+All checked-in workspace screenshots use clearly labeled fictional demo data. Items 6–7 are regenerated directly from the current production deployment, contain no account data and perform no external action.
 
 ## Recording checklist
 
@@ -89,3 +89,9 @@ node scripts/record-demo.mjs
 ```
 
 The scripts create `artifacts/avenli-demo-draft.mp4`, a 1600×900 H.264/AAC video with an English system-voice reading of [demo-narration.md](demo-narration.md) and burned-in captions generated as [demo-captions.srt](demo-captions.srt). The generated media artifacts are ignored by Git. Treat this as a timing and visual draft; record or replace the narration and review every frame before publishing.
+
+After the final production deploy, regenerate the two public, privacy-safe submission screenshots with:
+
+```powershell
+node scripts/capture-release-screenshots.mjs
+```

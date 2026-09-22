@@ -35,5 +35,5 @@ const cues = sentences.map((sentence, index) => {
   elapsed = index === sentences.length - 1 ? duration : elapsed + (duration * weights[index] / totalWeight);
   return `${index + 1}\n${timestamp(start)} --> ${timestamp(elapsed)}\n${sentence}\n`;
 });
-await writeFile(outputPath, `${cues.join("\n")}\n`, "utf8");
+await writeFile(outputPath, cues.join("\n"), "utf8");
 console.log(outputPath);

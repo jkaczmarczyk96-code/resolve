@@ -9,7 +9,6 @@ const rawDir = resolve(outputDir, "raw-video");
 const audioPath = resolve(outputDir, "demo-narration.wav");
 const silentPath = resolve(outputDir, "avenli-demo-silent.webm");
 const finalPath = resolve(outputDir, "avenli-demo-draft.mp4");
-const captionsPath = resolve("docs/demo-captions.srt");
 
 const probe = spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", audioPath], { encoding: "utf8" });
 if (probe.status !== 0) throw new Error("Generate artifacts/demo-narration.wav before recording the video.");
@@ -66,7 +65,7 @@ await settle();
 await pause(10);
 await page.getByRole("button", { name: "Review approval" }).click();
 await page.getByRole("button", { name: "Create event now" }).waitFor();
-await pause(12);
+await pause(8);
 await page.getByRole("navigation", { name: "Problem sections" }).getByRole("link", { name: "Decisions", exact: true }).click();
 await settle();
 await pause(16);
@@ -84,7 +83,7 @@ await rename(resolve(rawDir, recordings[0]), silentPath);
 
 const encode = spawnSync("ffmpeg", [
   "-y", "-i", silentPath, "-i", audioPath,
-  "-vf", `subtitles=${captionsPath.replaceAll("\\", "/").replace(":", "\\:")}:force_style='FontName=Arial,FontSize=18,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,BorderStyle=3,Outline=1,Shadow=0,MarginV=28'`,
+  "-vf", "subtitles=docs/demo-captions.srt:force_style='FontName=Arial,FontSize=10,PrimaryColour=&H00FFFFFF,OutlineColour=&H80000000,BorderStyle=3,Outline=1,Shadow=0,MarginV=24'",
   "-c:v", "libx264", "-preset", "medium", "-crf", "22",
   "-c:a", "aac", "-b:a", "160k", "-pix_fmt", "yuv420p",
   "-movflags", "+faststart", "-shortest", finalPath,
