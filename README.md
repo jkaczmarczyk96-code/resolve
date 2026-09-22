@@ -2,7 +2,7 @@
 
 **Give it a problem. Get it solved.**
 
-Avenli is an outcome-oriented AI problem workspace in development. **Phases 1–16** implement accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery, daily monitoring, notifications, optional Google context, explicitly approved Calendar actions, onboarding, production web polish and release hardening using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, monitor a completed result and prepare a reviewable Calendar event. Fictional examples remain available through **Explore demo**.
+Avenli is an outcome-oriented AI problem workspace. The production release implements accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery, daily monitoring, notifications, optional Google context, explicitly approved Calendar actions, onboarding and evidence-aware recommendations using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, monitor a completed result and prepare a reviewable Calendar event. Fictional examples remain available through **Explore demo**.
 
 [Try the production app](https://avenli.vercel.app) · [Explore the public demo](https://avenli.vercel.app/demo) · [Architecture](docs/architecture.md) · [Demo guide](docs/demo.md)
 
@@ -29,9 +29,9 @@ Copy-Item .env.example .env.local
 npx supabase status
 ```
 
-Copy the local API URL (`http://127.0.0.1:55421`) and **publishable key** from the CLI output into `.env.local`. Set `SITE_URL=http://127.0.0.1:3000` and restart Next.js. Use the same hostname consistently; localhost and 127.0.0.1 have separate cookies. Clients accept only modern `sb_publishable_...` keys. Never use secret/service-role keys in `NEXT_PUBLIC_` variables. Resolve uses ports 55420–55429 to coexist with other local Supabase projects.
+Copy the local API URL (`http://127.0.0.1:55421`) and **publishable key** from the CLI output into `.env.local`. Set `SITE_URL=http://127.0.0.1:3000` and restart Next.js. Use the same hostname consistently; localhost and 127.0.0.1 have separate cookies. Clients accept only modern `sb_publishable_...` keys. Never use secret/service-role keys in `NEXT_PUBLIC_` variables. The local stack uses ports 55420–55429 to coexist with other Supabase projects.
 
-For an existing hosted Supabase project, use its project URL and publishable key instead. This phase does not create or modify a hosted project.
+For an existing hosted Supabase project, use its project URL and publishable key instead. Apply every checked-in migration before running authenticated workflows.
 
 `supabase start` applies migrations to a fresh local stack. After editing migrations during early local development, use `npm run db:reset` **only when you intend to erase and recreate the local database**. Stop local services with `npm run db:stop`.
 
@@ -107,7 +107,7 @@ docs/                    Route plan and original product brief
 
 Tailwind v4 uses CSS theme tokens in `src/app/globals.css`; `components.json` configures shadcn/ui (`new-york`, React Server Components, aliases). Button and Card are checked-in source components and can be extended using the shadcn CLI in later UI phases. Lucide supplies icons; fonts use the system stack, with no build-time font downloads.
 
-See [`docs/routes.md`](docs/routes.md) for active/reserved paths, [`docs/web-ui.md`](docs/web-ui.md) for demo behavior, and [`src/lib/README.md`](src/lib/README.md) for boundaries. Proxy protects private paths; each page also verifies identity. Notification routes remain reserved for a later phase.
+See [`docs/routes.md`](docs/routes.md) for routes, [`docs/web-ui.md`](docs/web-ui.md) for demo behavior, and [`src/lib/README.md`](src/lib/README.md) for boundaries. Proxy protects private paths; each page also verifies identity. Notification routes and user preferences are implemented.
 
 ## Architecture
 
@@ -115,13 +115,13 @@ The browser talks only to authenticated Next.js routes. A finite, checkpointed o
 
 ## AI foundation
 
-See [`docs/ai-foundation.md`](docs/ai-foundation.md) for server-only configuration, typed agent usage, evidence integrity, limits, and live testing. Set `NEBIUS_API_KEY` and `TAVILY_API_KEY` in `.env.local`. `npm run test:ai:live` explicitly invokes each agent with fictional input and incurs provider usage. Normal tests never call these services. Phase 6 adds Options and Tasks; the full chain has been verified with real NVIDIA model calls and Tavily search.
+See [`docs/ai-foundation.md`](docs/ai-foundation.md) for server-only configuration, typed agent usage, evidence integrity, limits, and live testing. Set `NEBIUS_API_KEY` and `TAVILY_API_KEY` in `.env.local`. `npm run test:ai:live` explicitly invokes each agent with fictional input and incurs provider usage. Normal tests never call these services. The complete eight-stage chain has been verified with real NVIDIA model calls and Tavily search.
 
 ### Nebius and NVIDIA are core to the runtime
 
 Avenli's eight analysis stages call the NVIDIA `nvidia/nemotron-3-super-120b-a12b` open model through the Nebius Token Factory inference API. The model performs structured intake, planning, evidence analysis, verification, option generation, critique, decision support and task generation; removing it removes the product's central workflow. The server-side provider abstraction reads the endpoint and model from environment variables, validates structured output at every boundary and lets a compatible Nebius-hosted model replace the default without changing agent code.
 
-Tavily performs bounded runtime retrieval for the Researcher. Retrieved excerpts remain untrusted input, source IDs come from application code, and the model may cite only those supplied IDs. Nebius provided the production-grade OpenAI-compatible inference surface used throughout development and deployment; its configurable model access let the same orchestration and validation code run offline with fixtures and live with Nemotron.
+Tavily performs bounded runtime retrieval for the Researcher. Retrieved excerpts remain untrusted input, source IDs come from application code, and the model may cite only those supplied IDs. Nebius provides the production OpenAI-compatible inference surface; its configurable model access lets the same orchestration and validation code run offline with fixtures and live with Nemotron.
 
 ## Basic workflow
 
@@ -141,7 +141,7 @@ See [`docs/human-input.md`](docs/human-input.md) for persistent questions, respo
 
 ## Evidence quality and deployment
 
-See [`docs/research-quality.md`](docs/research-quality.md) for source profiles, traceable excerpts, freshness reviews and confidence policy. [`docs/deployment-readiness.md`](docs/deployment-readiness.md) records the GitHub → hosted Supabase → Vercel path and the runtime issue to resolve before deployment.
+See [`docs/research-quality.md`](docs/research-quality.md) for source profiles, traceable excerpts, freshness reviews and confidence policy. [`docs/deployment-readiness.md`](docs/deployment-readiness.md) records the GitHub → hosted Supabase → Vercel release path and production verification.
 
 ## Persistent agent
 

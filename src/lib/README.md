@@ -1,4 +1,4 @@
-# Resolve Core boundaries
+# Avenli Core boundaries
 
 Phases 1–9 implement `config/`, `database/`, `supabase/`, `auth/`, `demo/`, `ai/`, `orchestration/`, `workspace/`, and `utils.ts`.
 

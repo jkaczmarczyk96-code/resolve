@@ -36,7 +36,7 @@ const research = await researcher(
   { question: "What does the venue publish about its capacity?" },
   { ai, research: createTavilyProvider() },
 );
-// Resolve citations through research.sources using claim.sourceIds.
+// Resolve source references through research.sources using claim.sourceIds.
 ```
 
 Future HTTP/server-action callers must authenticate, authorize the problem owner, and add durable quotas before exposing these functions to users. The current functions are internal primitives and have no public request surface.
