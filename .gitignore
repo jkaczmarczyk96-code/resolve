@@ -12,4 +12,5 @@ supabase/.branches/
 playwright-report/
 test-results/
 artifacts/
+__pycache__/
 .devpost-hackathon-state.json

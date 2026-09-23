@@ -1,103 +1,103 @@
 1
-00:00:00,000 --> 00:00:06,012
+00:00:00,000 --> 00:00:04,910
 Complex decisions rarely fail because we need one more list of ideas.
 
 2
-00:00:06,012 --> 00:00:14,028
+00:00:04,910 --> 00:00:11,456
 The real problem is that goals, constraints, research, trade-offs and next steps are scattered across tabs.
 
 3
-00:00:14,028 --> 00:00:20,540
+00:00:11,456 --> 00:00:16,775
 Avenli turns that work into one saved, reviewable path from problem to action.
 
 4
-00:00:20,540 --> 00:00:30,059
+00:00:17,175 --> 00:00:24,669
 In the signed-in workspace, I can describe the outcome, deadline, hard constraints and anything I still do not know.
 
 5
-00:00:30,059 --> 00:00:37,073
+00:00:24,669 --> 00:00:30,191
 Avenli saves the problem, then runs a finite workflow instead of an open-ended chat.
 
 6
-00:00:37,073 --> 00:00:46,592
+00:00:30,191 --> 00:00:37,685
 This public demo uses fictional data and makes no external calls; it shows how a saved analysis is organized.
 
 7
-00:00:46,592 --> 00:00:53,105
+00:00:38,085 --> 00:00:44,250
 Eight specialized stages run on NVIDIA Nemotron 3 Super through Nebius Token Factory.
 
 8
-00:00:53,105 --> 00:00:55,108
+00:00:44,250 --> 00:00:46,147
 Intake structures the request.
 
 9
-00:00:55,108 --> 00:00:59,617
+00:00:46,147 --> 00:00:50,414
 Planning identifies dependencies and the most important research questions.
 
 10
-00:00:59,617 --> 00:01:11,641
+00:00:50,414 --> 00:01:01,795
 Research, verification, option generation, critique, decision and task planning each return typed output that must pass strict validation before the next stage can begin.
 
 11
-00:01:11,641 --> 00:01:17,152
+00:01:02,195 --> 00:01:07,245
 For live analyses, Tavily supplies a bounded set of search results.
 
 12
-00:01:17,152 --> 00:01:27,172
+00:01:07,245 --> 00:01:16,427
 Avenli assigns its own source IDs, keeps retrieved text outside system instructions and requires exact supporting excerpts for verified claims.
 
 13
-00:01:27,172 --> 00:01:35,688
+00:01:16,427 --> 00:01:24,232
 In this fictional example, no sources were fetched, so the evidence panel correctly reports zero traceable claims.
 
 14
-00:01:35,688 --> 00:01:41,199
+00:01:24,232 --> 00:01:29,283
 In a real analysis, missing, stale or contradictory evidence lowers confidence.
 
 15
-00:01:41,199 --> 00:01:48,714
+00:01:29,283 --> 00:01:36,169
 If no decision-relevant claim has a traceable excerpt, Avenli abstains instead of selecting an option.
 
 16
-00:01:48,714 --> 00:01:57,231
+00:01:36,569 --> 00:01:44,029
 A real workflow can pause for a clarification, survive a reload and resume the same saved run.
 
 17
-00:01:57,231 --> 00:02:02,241
+00:01:44,029 --> 00:01:48,417
 The Overview keeps the goal, constraints, unknowns and activity visible.
 
 18
-00:02:02,241 --> 00:02:06,749
+00:01:48,417 --> 00:01:52,367
 Proposed tasks remain editable and do not execute automatically.
 
 19
-00:02:06,749 --> 00:02:09,254
+00:01:52,767 --> 00:01:54,952
 Services are optional in Settings.
 
 20
-00:02:09,254 --> 00:02:17,270
+00:01:54,952 --> 00:02:01,945
 This fictional Calendar proposal shows the exact title, time and description; its create button is disabled.
 
 21
-00:02:17,270 --> 00:02:22,781
+00:02:01,945 --> 00:02:06,753
 In a connected account, creating the event requires a separate approval.
 
 22
-00:02:22,781 --> 00:02:29,795
+00:02:06,753 --> 00:02:12,872
 The write is idempotent, creates no attendees or invitations and leaves an audit record.
 
 23
-00:02:29,795 --> 00:02:39,815
+00:02:13,272 --> 00:02:22,262
 The architecture keeps the browser, authenticated server, durable Supabase state, model and research providers, and external writes behind clear boundaries.
 
 24
-00:02:39,815 --> 00:02:49,333
+00:02:22,262 --> 00:02:30,803
 Avenli uses open-model reasoning to produce an evidence-aware plan while keeping the person in control of every real-world action.
 
 25
-00:02:49,333 --> 00:02:51,337
+00:02:30,803 --> 00:02:32,601
 Give it a problem.
 
 26
-00:02:51,337 --> 00:02:52,840
+00:02:32,601 --> 00:02:33,949
 Get it solved.
