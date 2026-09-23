@@ -173,7 +173,7 @@ The release matrix covers unit, integration, RLS, authentication, security, agen
 
 ## Phase 17: hackathon release
 
-The production deployment, reproducible setup, architecture diagram, demo script, release screenshots, public MIT-licensed repository and 2:34 public demo video are ready. The Devpost entry is drafted but has not been submitted; it remains the final step after review. See the [release checklist](docs/hackathon-release.md) and [demo guide](docs/demo.md).
+The production deployment, reproducible setup, architecture diagram, demo script, release screenshots, public MIT-licensed repository and 2:34 public demo video are ready. Avenli was submitted to the Nebius x NVIDIA Global AI Hackathon on September 23, 2026; see its [public Devpost page](https://devpost.com/software/avenli), the [release checklist](docs/hackathon-release.md) and [demo guide](docs/demo.md).
 
 Generated tasks from completed analyses are also persisted as an owner-controlled action plan. Users can move each item between to do, in progress, completed and cancelled, add or clear a due date, and receive an optional in-app reminder when it is due within 24 hours. These changes never trigger an AI call or external action; the original generated proposal stays immutable in its workflow snapshot.
 

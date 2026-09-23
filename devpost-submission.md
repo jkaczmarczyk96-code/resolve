@@ -154,7 +154,7 @@ Both views were visually checked after export and neither performs a live provid
 - Repository: public at <https://github.com/jkaczmarczyk96-code/resolve>; the Git-history secret scan passed before publication.
 - Video: public at <https://youtu.be/B1Aqo6qaYtc> and verified on the YouTube watch page.
 - Final privacy-safe production screenshots: ready.
-- Final Devpost payload review and explicit submit confirmation: pending.
+- Devpost entry: submitted on 2026-09-23 and verified live at <https://devpost.com/software/avenli>.
 
 ## Known Limitations
 
@@ -166,9 +166,9 @@ Both views were visually checked after export and neither performs a live provid
 - Google Calendar is the only implemented write action, and it always requires explicit review and approval.
 - The three local-Supabase live browser scenarios are currently blocked on this Windows machine by a Docker Desktop socket failure; hosted Supabase migrations, lint, production health and real provider workflows were verified separately.
 
-## Official Form Fields — Draft for Final Review
+## Official Form Fields — Submitted Answers
 
-Official requirements rechecked on Devpost on 2026-09-23. These are draft answers only and must be reviewed before the final submit step.
+Official requirements were rechecked on Devpost on 2026-09-23. The owner approved the final payload and Devpost confirmed submission ID `1194187`; the public project page is <https://devpost.com/software/avenli>.
 
 - **Submitter Type:** Individual
 - **Organization Name:** N/A
@@ -185,8 +185,8 @@ Official requirements rechecked on Devpost on 2026-09-23. These are draft answer
 - **Most valuable Nebius capabilities:** Token Factory's hosted OpenAI-compatible access to Nemotron let the same typed provider and validation layer support all eight stages without operating GPU infrastructure. Configurable endpoint/model values made live development and deployment consistent.
 - **Likelihood to recommend Nemotron on Nebius (1–10):** **8/10**, confirmed by the owner on 2026-09-23 — the hosted open-model endpoint supported the full workflow without GPU operations, while strict application-side validation remained necessary for production use.
 - **Inference experience versus previous cloud/local environments (1–10):** **8/10**, confirmed by the owner on 2026-09-23 — the OpenAI-compatible API made integration and deployment straightforward. The main development cost was handling occasional latency and structurally valid responses that still violated cross-stage reference rules.
-- **Requested Nebius improvement:** Draft for review — clearer per-model structured-output guidance and more granular request diagnostics would shorten debugging when a response is valid JSON but violates a cross-stage reference contract.
-- **What to see next from Nemotron:** Draft for review — stronger reliable structured generation, transparent model-version stability and smaller variants optimized for low-latency agent stages.
+- **Requested Nebius improvement:** Clearer per-model structured-output guidance and more granular request diagnostics would shorten debugging when a response is valid JSON but violates a cross-stage reference contract.
+- **What to see next from Nemotron:** More reliable structured generation, transparent model-version stability and smaller variants optimized for low-latency agent stages.
 - **Used Tavily:** Yes
 - **Builders & Brews city:** leave blank unless applicable.
 - **Age-of-majority checkbox:** Confirmed by the owner on 2026-09-23.

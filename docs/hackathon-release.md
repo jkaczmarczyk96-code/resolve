@@ -24,13 +24,13 @@ The latest organizer judging announcement checked on 2026-09-22 keeps four equal
 - Phase 16 verification passed 288 tests, zero-warning lint, strict TypeScript, production build, 16 Chromium scenarios and a zero-vulnerability runtime audit. Public-demo, saved-task, lifecycle, task-deadline, multi-query research, model-output repair, focused follow-up, evidence-abstention and unsupported-label regressions now bring the offline suite to 311 tests across 50 files and the normal browser suite to 17 passing scenarios, with three local-Supabase live scenarios skipped. A focused three-query Tavily live check and three complete quality-evaluation scenarios also pass; the transient Verifier contract failure found by the evaluation is covered by one strictly validated repair generation.
 - Real Nebius/NVIDIA and Tavily workflows were verified during development; paid-provider checks stay opt-in.
 
-## Before the Devpost write
+## Devpost submission
 
-- Devpost registration and rules acknowledgment are complete; no project or entry has been submitted.
+- Devpost registration and rules acknowledgment were completed. The owner explicitly approved the final payload on 2026-09-23; Devpost confirmed submission ID `1194187` and a live readback confirmed the `published` project with `submitted_at` recorded for the Nebius x NVIDIA Global AI Hackathon.
+- Public project page: <https://devpost.com/software/avenli>.
 - The owner approved publishing the repository; GitHub confirms it is public, with an MIT license and setup README. The committed-secret scan passed before publication.
 - The public YouTube demo is available at <https://youtu.be/B1Aqo6qaYtc>; its upload settings and description are recorded in [youtube-demo.md](youtube-demo.md).
 - Keep the public YouTube video at three minutes or less, with audio explaining Nebius Token Factory and the NVIDIA model.
-- Official form fields and judging criteria were rechecked through Devpost on 2026-09-23; `devpost-submission.md` contains the prepared answers for final review.
-- Submit only after a final explicit review of the exact Devpost payload.
+- Official form fields and judging criteria were rechecked through Devpost on 2026-09-23; `devpost-submission.md` records the submitted answers.
 
-Nothing in this document indicates that a Devpost entry has been sent.
+The submission remains editable on Devpost until the event deadline.
