@@ -1,6 +1,6 @@
 # Avenli demo guide
 
-This guide keeps a recorded demo under three minutes and uses only features that exist in production.
+The [published 2:34 demo](https://youtu.be/B1Aqo6qaYtc) uses the fictional public workspace and stays under the event's three-minute limit. The longer storyboard below is a reference for recording a new version; it is not a timeline of the published video.
 
 ## Core story
 
@@ -76,7 +76,7 @@ All checked-in workspace screenshots use clearly labeled fictional demo data. It
 - Hide bookmarks, unrelated tabs, email addresses and notification popups.
 - Use one prepared problem to avoid waiting on provider latency in the final cut.
 - Keep the narration factual: research is bounded, recommendations are reviewable, and tasks are proposed.
-- Add captions and publish an unlisted or public YouTube/Vimeo link accepted by the event form.
+- Add captions and publish the final video publicly on YouTube, as required by this hackathon.
 
 ## Reproducible draft
 

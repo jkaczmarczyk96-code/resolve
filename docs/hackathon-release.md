@@ -30,7 +30,7 @@ The latest organizer judging announcement checked on 2026-09-22 keeps four equal
 - The owner approved publishing the repository; GitHub confirms it is public, with an MIT license and setup README. The committed-secret scan passed before publication.
 - The public YouTube demo is available at <https://youtu.be/B1Aqo6qaYtc>; its upload settings and description are recorded in [youtube-demo.md](youtube-demo.md).
 - Keep the public YouTube video at three minutes or less, with audio explaining Nebius Token Factory and the NVIDIA model.
-- Fetch the current official form fields and judging criteria, then finalize `devpost-submission.md`.
+- Official form fields and judging criteria were rechecked through Devpost on 2026-09-23; `devpost-submission.md` contains the prepared answers for final review.
 - Submit only after a final explicit review of the exact Devpost payload.
 
 Nothing in this document indicates that a Devpost entry has been sent.

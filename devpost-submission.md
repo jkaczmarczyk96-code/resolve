@@ -115,7 +115,7 @@ No-account fictional workspace: <https://avenli.vercel.app/demo>
 
 Public YouTube demo: <https://youtu.be/B1Aqo6qaYtc>. The 2:34 H.264/AAC demo has locally generated English narration and synchronized captions. The owner approved public upload on 2026-09-23, and YouTube Studio confirmed publication with no copyright issues. Upload metadata is recorded in `docs/youtube-demo.md`.
 
-Planned flow:
+Published 2:34 video flow:
 
 - 0:00–0:17 — problem and product promise.
 - 0:17–0:38 — signed-in workflow and distinction from the fictional public demo.
