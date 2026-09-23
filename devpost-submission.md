@@ -169,27 +169,27 @@ Both views were visually checked after export and neither performs a live provid
 
 ## TODO Official Form Fields
 
-Official requirements rechecked on Devpost on 2026-09-22. These are draft answers only and must be reviewed before the final submit step.
+Official requirements rechecked on Devpost on 2026-09-23. These are draft answers only and must be reviewed before the final submit step.
 
 - **Submitter Type:** Individual
 - **Organization Name:** N/A
-- **Submitter Country of Residence:** TODO — confirm the exact Devpost option.
-- **Canadian province:** N/A, provided the confirmed residence is outside Canada.
+- **Submitter Country of Residence:** Czech Republic — confirmed by the owner on 2026-09-23.
+- **Canadian province:** N/A.
 - **Track:** Best apps and agents
 - **New or existing before August 26, 2026:** New
 - **Public repository:** `https://github.com/jkaczmarczyk96-code/resolve` — currently private; make public only at final release.
 - **Working demo:** `https://avenli.vercel.app`
 - **Model and variant:** NVIDIA `nvidia/nemotron-3-super-120b-a12b` via Nebius Token Factory; rationale is documented in **How We Used AI**.
-- **Nemotron output quality (1–10):** Proposed **8/10** — it followed complex role-specific JSON contracts well across repeated eight-stage runs. Live evaluation still exposed one invalid-output repair and unsupported verification labels, which the application now catches and downgrades deterministically.
+- **Nemotron output quality (1–10):** **8/10**, confirmed by the owner on 2026-09-23 — it followed complex role-specific JSON contracts well across repeated eight-stage runs. Live evaluation still exposed one invalid-output repair and unsupported verification labels, which the application now catches and downgrades deterministically.
 - **Prompt engineering or fine-tuning:** Prompt-engineered, no fine-tuning. Eight role-specific system contracts, strict structured outputs, untrusted-data boundaries, evidence references and one narrowly scoped invalid-output repair.
 - **Comparison with other models:** No controlled competitor benchmark was run for this hackathon, so Avenli does not claim that Nemotron outperformed another model. It was evaluated against fixed schemas, reference-integrity rules and three complete live quality scenarios instead.
 - **Most valuable Nebius capabilities:** Token Factory's hosted OpenAI-compatible access to Nemotron let the same typed provider and validation layer support all eight stages without operating GPU infrastructure. Configurable endpoint/model values made live development and deployment consistent.
-- **Likelihood to recommend Nemotron on Nebius (1–10):** Proposed **8/10** — the hosted open-model endpoint supported the full workflow without GPU operations, while strict application-side validation remained necessary for production use.
-- **Inference experience versus previous cloud/local environments (1–10):** Proposed **8/10** — the OpenAI-compatible API made integration and deployment straightforward. The main development cost was handling occasional latency and structurally valid responses that still violated cross-stage reference rules.
+- **Likelihood to recommend Nemotron on Nebius (1–10):** **8/10**, confirmed by the owner on 2026-09-23 — the hosted open-model endpoint supported the full workflow without GPU operations, while strict application-side validation remained necessary for production use.
+- **Inference experience versus previous cloud/local environments (1–10):** **8/10**, confirmed by the owner on 2026-09-23 — the OpenAI-compatible API made integration and deployment straightforward. The main development cost was handling occasional latency and structurally valid responses that still violated cross-stage reference rules.
 - **Requested Nebius improvement:** Draft for review — clearer per-model structured-output guidance and more granular request diagnostics would shorten debugging when a response is valid JSON but violates a cross-stage reference contract.
 - **What to see next from Nemotron:** Draft for review — stronger reliable structured generation, transparent model-version stability and smaller variants optimized for low-latency agent stages.
 - **Used Tavily:** Yes
 - **Builders & Brews city:** leave blank unless applicable.
-- **Age-of-majority checkbox:** TODO — user must confirm.
-- **Promotion-entity employee checkbox:** TODO — user must confirm.
+- **Age-of-majority checkbox:** Confirmed by the owner on 2026-09-23.
+- **Promotion-entity employee checkbox:** Confirmed by the owner on 2026-09-23 (not an employee, representative or agent of any Promotion Entity).
 - **Demo video URL:** `https://youtu.be/B1Aqo6qaYtc`.
