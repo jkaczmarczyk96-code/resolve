@@ -113,16 +113,17 @@ TODO before final review: make <https://github.com/jkaczmarczyk96-code/resolve> 
 
 ## Demo Video
 
-TODO: add the public YouTube URL. A private 2:34 H.264/AAC draft now exists locally and includes locally generated English narration explaining how Avenli uses Nebius Token Factory and NVIDIA Nemotron, with synchronized burned-in captions. It must be reviewed and approved before upload.
+Public YouTube demo: <https://youtu.be/B1Aqo6qaYtc>. The 2:34 H.264/AAC demo has locally generated English narration and synchronized captions. The owner approved public upload on 2026-09-23, and YouTube Studio confirmed publication with no copyright issues. Upload metadata is recorded in `docs/youtube-demo.md`.
 
 Planned flow:
 
-- 0:00–0:20 — problem and product promise.
-- 0:20–0:50 — create an outcome with constraints and an unknown.
-- 0:50–1:35 — inspect research, evidence quality, options and recommendation.
-- 1:35–2:00 — show clarification, persistence and checkpoint recovery.
-- 2:00–2:30 — show the exact Calendar proposal and separate approval boundary.
-- 2:30–2:50 — show the architecture and explain Nebius/Nemotron plus Tavily.
+- 0:00–0:17 — problem and product promise.
+- 0:17–0:38 — signed-in workflow and distinction from the fictional public demo.
+- 0:38–1:02 — eight Nemotron stages through Nebius Token Factory.
+- 1:02–1:36 — research evidence and the demo's zero traceable claims.
+- 1:36–1:53 — human clarification and durable workflow.
+- 1:53–2:13 — the fictional Calendar proposal and real approval boundary.
+- 2:13–2:34 — architecture boundaries and close.
 - 2:50–3:00 — close on the recommendation and production URL.
 
 The ready-to-read voiceover is in `docs/demo-narration.md`.
@@ -191,4 +192,4 @@ Official requirements rechecked on Devpost on 2026-09-22. These are draft answer
 - **Builders & Brews city:** leave blank unless applicable.
 - **Age-of-majority checkbox:** TODO — user must confirm.
 - **Promotion-entity employee checkbox:** TODO — user must confirm.
-- **Demo video URL:** TODO.
+- **Demo video URL:** `https://youtu.be/B1Aqo6qaYtc`.
