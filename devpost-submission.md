@@ -109,7 +109,7 @@ No-account fictional workspace: <https://avenli.vercel.app/demo>
 
 ## Public Repository Link
 
-TODO before final review: make <https://github.com/jkaczmarczyk96-code/resolve> public after the final committed-secret scan. It is intentionally private during preparation.
+<https://github.com/jkaczmarczyk96-code/resolve> — public, with an MIT license and setup instructions in the README. The committed-secret scan passed before publication.
 
 ## Demo Video
 
@@ -124,7 +124,6 @@ Planned flow:
 - 1:36–1:53 — human clarification and durable workflow.
 - 1:53–2:13 — the fictional Calendar proposal and real approval boundary.
 - 2:13–2:34 — architecture boundaries and close.
-- 2:50–3:00 — close on the recommendation and production URL.
 
 The ready-to-read voiceover is in `docs/demo-narration.md`.
 
@@ -152,8 +151,8 @@ Both views were visually checked after export and neither performs a live provid
 - Tavily eligibility: yes; the runtime makes functional Tavily API calls.
 - License: MIT.
 - Devpost registration: confirmed through the live Devpost account.
-- Repository: private until the final secret scan and explicit public-release step.
-- Video: private draft ready; reviewed public URL missing.
+- Repository: public at <https://github.com/jkaczmarczyk96-code/resolve>; the Git-history secret scan passed before publication.
+- Video: public at <https://youtu.be/B1Aqo6qaYtc> and verified on the YouTube watch page.
 - Final privacy-safe production screenshots: ready.
 - Final Devpost payload review and explicit submit confirmation: pending.
 
@@ -167,7 +166,7 @@ Both views were visually checked after export and neither performs a live provid
 - Google Calendar is the only implemented write action, and it always requires explicit review and approval.
 - The three local-Supabase live browser scenarios are currently blocked on this Windows machine by a Docker Desktop socket failure; hosted Supabase migrations, lint, production health and real provider workflows were verified separately.
 
-## TODO Official Form Fields
+## Official Form Fields — Draft for Final Review
 
 Official requirements rechecked on Devpost on 2026-09-23. These are draft answers only and must be reviewed before the final submit step.
 
@@ -177,7 +176,7 @@ Official requirements rechecked on Devpost on 2026-09-23. These are draft answer
 - **Canadian province:** N/A.
 - **Track:** Best apps and agents
 - **New or existing before August 26, 2026:** New
-- **Public repository:** `https://github.com/jkaczmarczyk96-code/resolve` — currently private; make public only at final release.
+- **Public repository:** `https://github.com/jkaczmarczyk96-code/resolve` — public, MIT-licensed, with README setup instructions.
 - **Working demo:** `https://avenli.vercel.app`
 - **Model and variant:** NVIDIA `nvidia/nemotron-3-super-120b-a12b` via Nebius Token Factory; rationale is documented in **How We Used AI**.
 - **Nemotron output quality (1–10):** **8/10**, confirmed by the owner on 2026-09-23 — it followed complex role-specific JSON contracts well across repeated eight-stage runs. Live evaluation still exposed one invalid-output repair and unsupported verification labels, which the application now catches and downgrades deterministically.
