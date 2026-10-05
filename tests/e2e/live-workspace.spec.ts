@@ -12,7 +12,7 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   const description = "Create a small developer checklist comparing JSON object output and JSON schema output in Nebius Token Factory. Research official public Nebius documentation. The result is a draft for one developer; no deployment or external actions are needed.";
   await page.getByLabel("Your problem", { exact: true }).fill(description);
   const outgoing = page.waitForRequest((r) => r.method() === "POST" && r.url().endsWith("/api/problems"));
-  await page.getByRole("button", { name: "Analyze problem", exact: true }).click();
+  await page.getByRole("button", { name: "Solve this", exact: true }).click();
   const submission = (await outgoing).postDataJSON();
   await expect(page).toHaveURL(/\/problems\/[0-9a-f-]{36}$/);
   const id = new URL(page.url()).pathname.split("/").at(-1)!;
@@ -22,15 +22,33 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   expect(duplicate.headers()["cache-control"]).toContain("no-store");
   await page.reload();
   await expect(page.getByRole("progressbar", { name: "Analysis progress" })).toBeVisible();
-  await expect.poll(async () => {
-    const detail = await (await page.request.get(`/api/problems/${id}`)).json();
-    return { status: detail.job?.status, error: detail.job?.error };
-  }, { timeout: 270_000, intervals: [2000, 5000] }).toEqual({ status: "completed", error: null });
+  async function finishAnalysis(problemId: string) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await expect.poll(async () => {
+        const detail = await (await page.request.get(`/api/problems/${problemId}`)).json();
+        return detail.job?.status;
+      }, { timeout: 270_000, intervals: [2000, 5000] }).toMatch(/^(completed|action_required|failed)$/);
+      const detail = await (await page.request.get(`/api/problems/${problemId}`)).json();
+      expect(detail.job?.status, `Analysis failed: ${detail.job?.error ?? "unknown error"}`).not.toBe("failed");
+      expect(detail.job?.error).toBeNull();
+      if (detail.job?.status === "completed") return;
+      expect(detail.humanRequest?.questions.length).toBeGreaterThan(0);
+      await page.goto(`/problems/${problemId}`);
+      for (const question of detail.humanRequest.questions as string[]) {
+        await page.getByLabel(question, { exact: true }).fill("I do not know. Please research official public documentation and state any unresolved uncertainty. No other personal constraints apply.");
+      }
+      await page.getByRole("button", { name: "Save answers and continue" }).click();
+      await expect(page.getByRole("heading", { name: "Your saved responses" })).toBeVisible();
+    }
+    const detail = await (await page.request.get(`/api/problems/${problemId}`)).json();
+    expect(detail.job?.status).toBe("completed");
+  }
+  await finishAnalysis(id);
   await page.getByRole("button", { name: "Refresh status" }).click();
   await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "100");
   const result = await (await page.request.get(`/api/problems/${id}`)).json();
-  expect(result.snapshot.events).toHaveLength(10);
-  expect(result.snapshot.qualityPolicy).toBe(1);
+  expect(result.snapshot.events.length).toBeGreaterThanOrEqual(10);
+  expect(result.snapshot.qualityPolicy).toBe(2);
   await expect(page.getByRole("heading", { name: "Evidence quality", exact: true })).toBeVisible();
   expect(result.snapshot.research.sources.length).toBeGreaterThan(0);
   const sections = page.getByRole("navigation", { name: "Problem sections" });
@@ -79,10 +97,7 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   await page.goto(`/problems/${retryProblem}`);
   await expect(page.getByRole("heading", { name: "This analysis did not finish" })).toBeVisible();
   await page.getByRole("button", { name: "Retry analysis", exact: true }).click();
-  await expect.poll(async () => {
-    const detail = await (await page.request.get(`/api/problems/${retryProblem}`)).json();
-    return { status: detail.job?.status, error: detail.job?.error };
-  }, { timeout: 270_000, intervals: [2000, 5000] }).toEqual({ status: "completed", error: null });
+  await finishAnalysis(retryProblem);
   await page.reload();
   await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "100");
   expect((await db.from("web_runs").select("id").eq("problem_id", id)).data).toHaveLength(1);

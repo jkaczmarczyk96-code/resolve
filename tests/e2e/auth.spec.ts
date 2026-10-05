@@ -20,6 +20,7 @@ test("register → confirm → persistent session → logout → login", async (
 test("recovery works in a fresh browser; replay cannot change the password", async ({ page, request, browser }) => {
   const { email } = await register(page, request);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page).toHaveURL(/\/login\?message=signed-out$/);
   await page.goto("/forgot-password");
   if (live) await page.waitForTimeout(1100); // Local Auth enforces a 1-second email cooldown.
   await page.getByLabel("Email", { exact: true }).fill(email);
@@ -83,6 +84,7 @@ test("password visibility and server validation work on a small screen", async (
 test("unsafe post-login destinations stay on Resolve", async ({ page, request }) => {
   const { email } = await register(page, request);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page).toHaveURL(/\/login\?message=signed-out$/);
   await page.goto("/login?next=https://attacker.invalid");
   await login(page, email);
   await expect(page).toHaveURL(`${baseURL}/dashboard`);
@@ -114,7 +116,9 @@ test("proxy refreshes an expiring cookie session and forwards the new cookie", a
 
 test("server actions reject a foreign Origin", async ({ page, request }) => {
   const { email } = await register(page, request);
+  expect((await page.request.post("/api/auth/logout", { headers: { Origin: "https://attacker.invalid", "Content-Type": "application/json" }, data: {} })).status()).toBe(403);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page).toHaveURL(/\/login(?:\?|$)/);
   const actionRequest = page.waitForRequest((req) => req.method() === "POST" && Boolean(req.headers()["next-action"]));
   await login(page, email);
   const action = (await actionRequest).headers()["next-action"];

@@ -21,5 +21,6 @@ test("saved profile, password verification and deletion confirmation controls", 
   await expect(page.getByRole("button", { name: "Permanently delete my account", exact: true })).toBeEnabled();
   await page.setViewportSize({ width: 390, height: 844 }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole("button", { name: "Sign out", exact: true }).filter({ visible: true }).click();
+  await expect(page).toHaveURL(/\/login(?:\?|$)/);
   await login(page, email, "ChangedPassword123"); await expect(page).toHaveURL(/\/dashboard$/);
 });

@@ -8,7 +8,7 @@ test("questions survive reload and submitted answers resume the same saved analy
   await register(page, request);
   await page.getByRole("link", { name: "New problem", exact: true }).first().click();
   await page.getByLabel("Your problem", { exact: true }).fill("Help me plan a two-hour beginner workshop about public Python documentation for local volunteers. The date, audience size, venue location and whether attendees have laptops are not specified yet. Ask me for those missing personal details before doing any research. The result should be a draft workshop plan only; do not contact people, spend money or take external actions.");
-  await page.getByRole("button", { name: "Analyze problem", exact: true }).click();
+  await page.getByRole("button", { name: "Solve this", exact: true }).click();
   await expect(page).toHaveURL(/\/problems\/[0-9a-f-]{36}$/);
   const id = new URL(page.url()).pathname.split("/").at(-1)!;
   await expect(page.getByRole("heading", { name: "Avenli needs your input" })).toBeVisible({ timeout: 120_000 });

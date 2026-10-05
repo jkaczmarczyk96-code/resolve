@@ -164,7 +164,7 @@ Both views were visually checked after export and neither performs a live provid
 - Daily monitoring is bounded and does not continuously watch every result.
 - Gmail uses a restricted Google scope and remains limited to the configured tester allowlist while public verification requirements are evaluated.
 - Google Calendar is the only implemented write action, and it always requires explicit review and approval.
-- The three local-Supabase live browser scenarios are currently blocked on this Windows machine by a Docker Desktop socket failure; hosted Supabase migrations, lint, production health and real provider workflows were verified separately.
+- Docker Desktop recovered on 2026-10-05. All pending local Supabase migrations applied, and each of the three local-Supabase live browser scenarios passed in focused runs. A subsequent combined run passed 19 of 20 scenarios; one repeat of the live retry flow failed because the model returned `INVALID_OUTPUT` after its repair attempt. Hosted Supabase migrations, lint, production health and real provider workflows were also verified separately.
 
 ## Official Form Fields — Submitted Answers
 

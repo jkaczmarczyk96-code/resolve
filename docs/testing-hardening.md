@@ -19,3 +19,5 @@ Release verification requires:
 7. Supabase hosted lint after every hosted migration
 
 The three live-provider browser scenarios remain skipped in the normal suite. Run `npm run test:e2e:live` only against local Supabase with disposable accounts and explicit provider-budget intent.
+
+On 2026-10-05, Docker Desktop and the local Supabase stack ran successfully. All pending local migrations were applied. The three opt-in scenarios each passed in focused runs: real PostgREST ownership checks, human-input pause/resume, and the saved workspace with an explicit retry. A subsequent combined run passed 19 of 20 browser scenarios; one repeat of the retry flow failed because the live verifier returned `INVALID_OUTPUT` after its repair attempt. This is a model-output reliability limit, not a database startup failure. The test now reports a failed run immediately with its error code. The workspace scenario passed again in a focused run after the Next.js 16.3.8 update.
