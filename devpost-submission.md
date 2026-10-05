@@ -99,7 +99,7 @@ npm run test:e2e
 npm audit --omit=dev
 ```
 
-The current release passes 311 offline tests across 50 files, zero-warning lint, strict TypeScript, the optimized production build, 17 normal Chromium scenarios and a zero-known-vulnerability production dependency audit. Three complete in-memory quality scenarios have also exercised real Nemotron/Nebius and Tavily calls. Three opt-in local-Supabase browser scenarios are excluded from the normal suite because they create disposable accounts and incur provider usage.
+The current release passes 312 offline tests across 50 files, zero-warning lint, strict TypeScript, the optimized production build, 17 normal Chromium scenarios, all 20 scenarios in the opt-in local-Supabase live suite, and a zero-known-vulnerability production dependency audit. Three complete in-memory quality scenarios have also exercised real Nemotron/Nebius and Tavily calls. The live suite creates disposable accounts and incurs provider usage, so it remains separate from the normal suite.
 
 ## Public Demo Link
 
@@ -164,7 +164,7 @@ Both views were visually checked after export and neither performs a live provid
 - Daily monitoring is bounded and does not continuously watch every result.
 - Gmail uses a restricted Google scope and remains limited to the configured tester allowlist while public verification requirements are evaluated.
 - Google Calendar is the only implemented write action, and it always requires explicit review and approval.
-- Docker Desktop recovered on 2026-10-05. All pending local Supabase migrations applied, and each of the three local-Supabase live browser scenarios passed in focused runs. A subsequent combined run passed 19 of 20 scenarios; one repeat of the live retry flow failed because the model returned `INVALID_OUTPUT` after its repair attempt. Hosted Supabase migrations, lint, production health and real provider workflows were also verified separately.
+- Docker Desktop recovered on 2026-10-05. All pending local Supabase migrations applied. After adding a conservative fallback for two invalid verifier responses, the complete local-Supabase live browser suite passed 20/20 scenarios against real providers. Hosted Supabase migrations, lint, production health and real provider workflows were also verified separately.
 
 ## Official Form Fields — Submitted Answers
 

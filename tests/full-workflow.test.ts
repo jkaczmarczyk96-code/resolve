@@ -77,6 +77,20 @@ it("can finish with no evidence, no viable option and no proposed tasks without 
   expect(result.state).toBe("COMPLETED"); expect(result.decision?.selectedOptionId).toBeNull();
   expect(result.decision?.supportingEvidence).toEqual([]); expect(result.tasks?.tasks).toEqual([]);
 });
+it("keeps claims unverified and abstains when both verifier responses violate the contract", async () => {
+  const deps = fullDependencies(); const generate = deps.ai.generate.getMockImplementation()!;
+  deps.ai.generate.mockImplementation(async (request) => {
+    if (request.name === "verifier") return { assessments: [] };
+    if (request.name === "tasks") return { tasks: [{ ...outputs.tasks.tasks[0], optionId: null }] };
+    return generate(request);
+  });
+  const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps);
+  expect(deps.ai.generate.mock.calls.filter(([request]) => request.name === "verifier")).toHaveLength(2);
+  expect(result).toMatchObject({ state: "COMPLETED", error: null, decision: { selectedOptionId: null, confidence: "low", supportingEvidence: [] } });
+  expect(result.verification?.assessments).toEqual([expect.objectContaining({ claimId: "claim-1", status: "UNVERIFIED", supportingQuotes: [] })]);
+  expect(result.verification?.sourceProfiles).toEqual([expect.objectContaining({ sourceId: "source-1", kind: "unknown" })]);
+  expect(result.tasks?.tasks[0].optionId).toBeNull();
+});
 it("abstains deterministically when no claim has a grounded supporting excerpt", async () => {
   const deps = fullDependencies(); const generate = deps.ai.generate.getMockImplementation()!;
   deps.ai.generate.mockImplementation(async (request) => {

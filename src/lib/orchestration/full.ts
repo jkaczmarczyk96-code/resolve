@@ -2,7 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { runAgent, type AgentDependencies } from "@/lib/ai/agents";
 import { AIError } from "@/lib/ai/errors";
-import { intakeInput } from "@/lib/ai/schemas";
+import { intakeInput, type AgentOutput } from "@/lib/ai/schemas";
 import { searchMany } from "@/lib/ai/research";
 import { WorkflowError, type WorkflowStore } from "./state";
 import { canAdvance, parseFullSnapshot, fullProblem, fullOptionsInput, fullCriticInput, fullDecisionInput, fullTasksInput, fullConfidence, guardDecisionEvidence, type FullState, type FullSnapshot } from "./full-state";
@@ -74,8 +74,23 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       await advance("VERIFY",{ research:{ question,questions,output:researched.output,sources:researched.sources } });
     }
     if (current.state === "VERIFY") {
-      const verified = await runAgent("verifier", { claims: current.research!.output.claims, sources: current.research!.sources }, deps, options);
-      await advance("OPTIONS", { verification: verified.output });
+      const evidence = { claims: current.research!.output.claims, sources: current.research!.sources };
+      let verification: AgentOutput<"verifier">;
+      try {
+        verification = (await runAgent("verifier", evidence, deps, options)).output;
+      } catch (error) {
+        if (!(error instanceof AIError) || error.code !== "INVALID_OUTPUT") throw error;
+        // A malformed model assessment must never turn retrieved claims into verified facts.
+        verification = {
+          assessments: evidence.claims.map((claim) => ({
+            claimId: claim.id, status: "UNVERIFIED", sourceIds: claim.sourceIds,
+            supportingQuotes: [], sourceQuality: "Not assessed", freshness: "Not assessed", contradictions: [],
+            summary: "Automated evidence verification failed validation. Review this claim and its sources before relying on it.",
+          })),
+          sourceProfiles: evidence.sources.map((source) => ({ sourceId: source.id, kind: "unknown", reason: "Automated source assessment failed validation." })),
+        };
+      }
+      await advance("OPTIONS", { verification });
     }
     if (current.state === "OPTIONS") {
       const candidates = await runAgent("options", fullOptionsInput(current), deps, options);
