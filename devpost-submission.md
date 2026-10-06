@@ -4,7 +4,7 @@ Avenli
 
 ## One-line Summary
 
-Avenli turns complex real-world problems into researched, reviewable action plans while keeping people in control of every external action.
+Avenli turns complex problems into saved, source-linked plans with clear next steps and human control over every action.
 
 ## Problem
 

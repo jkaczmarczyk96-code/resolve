@@ -38,3 +38,5 @@ The latest organizer judging announcement checked on 2026-09-22 keeps four equal
 - Official form fields and judging criteria were rechecked through Devpost on 2026-09-23; `devpost-submission.md` records the submitted answers.
 
 The submission remains editable on Devpost until the event deadline.
+
+On 2026-10-06, the published Devpost project description and tagline were updated to explain the distinction from a general AI chat and to replace the outdated Docker/test note. A live readback confirmed the project remains published and submitted to the hackathon.
