@@ -46,6 +46,12 @@ it("repairs one invalid read-only model response and validates the replacement",
   expect(deps.ai.generate).toHaveBeenCalledTimes(2);
   expect(deps.ai.generate.mock.calls[1][0].instructions).toContain("previous response was rejected");
 });
+it("requests Czech user-facing output without translating evidence identifiers", async () => {
+  const deps = dependencies(outputs.intake);
+  await runAgent("intake", inputs.intake, deps, { responseLanguage: "cs" });
+  expect(deps.ai.generate.mock.calls[0][0].instructions).toContain("Write user-facing titles, explanations, questions, recommendations and tasks in Czech");
+  expect(deps.ai.generate.mock.calls[0][0].instructions).toContain("Preserve exact source quotations, source IDs");
+});
 it("rejects fabricated source IDs and model-generated URLs", async () => {
   await expect(runAgent("researcher", inputs.researcher, dependencies({ ...outputs.researcher, claims: [{ id: "c", statement: "Invented", sourceIds: ["invented-source"] }] }))).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
   await expect(runAgent("researcher", inputs.researcher, dependencies({ ...outputs.researcher, sources: [{ url: "https://fake.example" }] }))).rejects.toMatchObject({ code: "INVALID_OUTPUT" });

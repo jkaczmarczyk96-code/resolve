@@ -26,6 +26,7 @@ The latest organizer judging announcement checked on 2026-09-22 keeps four equal
 - On 2026-10-05 Docker Desktop recovered, all pending local Supabase migrations were applied, and each of the three opt-in local-Supabase browser scenarios passed in focused runs. The combined 20-scenario run passed 19; an additional live retry ended with a model `INVALID_OUTPUT` after repair. The workspace scenario passed again after the Next.js update. See [testing-hardening.md](testing-hardening.md).
 - The same release check updated Next.js and its ESLint configuration to 16.3.8 after a critical advisory affected the previously installed version. The production dependency audit now reports zero known vulnerabilities; 311 tests, lint, TypeScript and all 17 normal Chromium scenarios pass after the update.
 - The 2026-10-05 hardening follow-up added a conservative verification fallback and passed 312 offline tests plus the full 20/20 local-Supabase live browser suite. Five audit findings remain confined to the development lint dependency chain while upstream `braces` has no patched release; see [testing-hardening.md](testing-hardening.md).
+- The 2026-10-06 interface pass added saved-stage analysis progress, automatic navigation to clarification questions, clearer result and next-step guidance, collapsible research sources, loading skeletons, gentle motion and Czech for the main problem-solving flow. The offline suite now passes 313 tests and the normal browser suite 19 scenarios; the last full paid-provider suite remains the 20/20 run above.
 
 ## Devpost submission
 

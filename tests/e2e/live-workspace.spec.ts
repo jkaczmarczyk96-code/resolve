@@ -49,10 +49,15 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   const result = await (await page.request.get(`/api/problems/${id}`)).json();
   expect(result.snapshot.events.length).toBeGreaterThanOrEqual(10);
   expect(result.snapshot.qualityPolicy).toBe(2);
-  await expect(page.getByRole("heading", { name: "Evidence quality", exact: true })).toBeVisible();
   expect(result.snapshot.research.sources.length).toBeGreaterThan(0);
   const sections = page.getByRole("navigation", { name: "Problem sections" });
-  for (const [tab, heading] of [["Research", "Retrieved sources"], ["Options", "Options to consider"], ["Risks", "Critic review"], ["Tasks", "Action plan"], ["Decisions", "Decision trail"]]) {
+  await sections.getByRole("link", { name: "Research", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Research summary" })).toBeVisible();
+  await page.getByText(/^Retrieved sources \(/).click();
+  await expect(page.getByRole("link", { name: result.snapshot.research.sources[0].title }).last()).toBeVisible();
+  await page.getByText("Evidence quality and detailed checks").click();
+  await expect(page.getByRole("heading", { name: "Evidence quality", exact: true })).toBeVisible();
+  for (const [tab, heading] of [["Options", "Options to consider"], ["Risks", "Critic review"], ["Tasks", "Action plan"], ["Decisions", "Decision trail"]]) {
     await sections.getByRole("link", { name: tab, exact: true }).click();
     await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
   }
@@ -68,11 +73,11 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   await page.getByRole("button", { name: "Reopen problem", exact: true }).click();
   await expect(page.getByRole("button", { name: "Mark solved", exact: true })).toBeVisible();
   await sections.getByRole("link", { name: "Overview", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Problem history", exact: true })).toBeVisible();
+  await expect(page.getByText("Problem history", { exact: true })).toBeVisible();
   await page.screenshot({ path: "test-results/live-workspace-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await sections.getByRole("link", { name: "Research", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Retrieved sources" })).toBeVisible();
+  await expect(page.getByText(/^Retrieved sources \(/)).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: "test-results/live-workspace-mobile.png", fullPage: true });
 

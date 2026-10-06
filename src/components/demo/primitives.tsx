@@ -17,8 +17,9 @@ export function CategoryIcon({ category }: { category: DemoProblem["category"] }
 }
 
 export function PageHeading({ eyebrow, title, description, action = false, demo = false, actionHref }: { eyebrow: string; title: string; description: string; action?: boolean; demo?: boolean; actionHref?: string }) {
+  const { preferences } = useDemo();
   const href = actionHref ?? (action ? (demo ? "/problems/new?demo=1" : "/problems/new") : undefined);
-  return <div className="flex flex-wrap items-start justify-between gap-5"><div className="space-y-2"><p className="text-[11px] font-semibold uppercase tracking-[.18em] text-primary">{eyebrow}</p><h1 className="text-3xl font-semibold tracking-[-.045em] text-[#0e1450] sm:text-[2.5rem] sm:leading-tight">{title}</h1><p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground">{description}</p></div>{href && <Button asChild size="lg"><Link href={href}><Plus aria-hidden="true" />New problem</Link></Button>}</div>;
+  return <div className="flex flex-wrap items-start justify-between gap-5"><div className="space-y-2"><p className="text-[11px] font-semibold uppercase tracking-[.18em] text-primary">{eyebrow}</p><h1 className="text-3xl font-semibold tracking-[-.045em] text-[#0e1450] sm:text-[2.5rem] sm:leading-tight">{title}</h1><p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground">{description}</p></div>{href && <Button asChild size="lg"><Link href={href}><Plus aria-hidden="true" />{preferences.language === "cs" ? "Nové zadání" : "New problem"}</Link></Button>}</div>;
 }
 
 export function Panel({ title, description, children, className }: { title: string; description?: string; children: React.ReactNode; className?: string }) {

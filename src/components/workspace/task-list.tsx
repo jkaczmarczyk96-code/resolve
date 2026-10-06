@@ -8,6 +8,7 @@ import { tasksOutput } from "@/lib/ai/schemas";
 import type { ProblemDetail } from "@/lib/workspace/contracts";
 import { cn } from "@/lib/utils";
 import { patch } from "./remote";
+import { ui, useCzech } from "./ui-language";
 
 type GeneratedTask = z.infer<typeof tasksOutput>["tasks"][number];
 type TaskStatus = ProblemDetail["tasks"][number]["status"];
@@ -19,12 +20,14 @@ const options: { value: TaskStatus; label: string; icon: typeof Circle }[] = [
 ];
 
 export function TaskList({ problemId, generated, saved, refresh }: { problemId: string; generated: GeneratedTask[]; saved: ProblemDetail["tasks"]; refresh: () => void }) {
+  const cs = useCzech();
+  const statusLabel: Record<TaskStatus,string> = { pending:"K vyřízení", in_progress:"Probíhá", completed:"Hotovo", cancelled:"Zrušeno" };
   const [pending, setPending] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<string, TaskStatus>>({});
   const [dueDrafts, setDueDrafts] = useState<Record<string, string>>({});
   const [minimumDue] = useState(() => { const now=new Date(); return new Date(now.getTime()-now.getTimezoneOffset()*60_000).toISOString().slice(0,16); });
   const [error, setError] = useState("");
-  if (!generated.length) return <p className="text-sm text-muted-foreground">No tasks were proposed.</p>;
+  if (!generated.length) return <p className="text-sm text-muted-foreground">{ui(cs,"No tasks were proposed.","Nebyly navrženy žádné úkoly.")}</p>;
 
   return <div className="space-y-4">{generated.map((task) => {
     const record = saved.find((item) => item.sourceId === task.id);
@@ -35,25 +38,25 @@ export function TaskList({ problemId, generated, saved, refresh }: { problemId: 
     const dueDraft = dueDrafts[task.id] ?? savedDue;
     return <article key={task.id} className={cn("rounded-xl border p-4 transition-colors", status === "completed" && "border-emerald-200 bg-emerald-50/60", status === "cancelled" && "bg-muted/50 opacity-70")}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0"><p className="text-xs font-medium text-primary">{task.priority} priority</p><h3 className={cn("mt-2 font-semibold", status === "completed" && "text-emerald-900")}>{task.title}</h3><p className="mt-2 text-sm leading-relaxed">{task.description}</p><p className="mt-3 text-xs text-muted-foreground">Depends on: {task.dependencies.join(", ") || "None"}</p></div>
+        <div className="min-w-0"><p className="text-xs font-medium text-primary">{ui(cs,task.priority + " priority", "Priorita: " + task.priority)}</p><h3 className={cn("mt-2 font-semibold", status === "completed" && "text-emerald-900")}>{task.title}</h3><details className="mt-2 text-sm"><summary className="cursor-pointer text-primary">{ui(cs,"Details","Podrobnosti")}</summary><p className="mt-2 leading-relaxed">{task.description}</p>{task.dependencies.length > 0 && <p className="mt-3 text-xs text-muted-foreground">{ui(cs,"Depends on: ","Navazuje na: ")}{task.dependencies.join(", ")}</p>}</details></div>
         <label className="flex shrink-0 items-center gap-2 text-sm"><Icon className="size-4" aria-hidden="true"/><span className="sr-only">Status for {task.title}</span><select aria-label={`Status for ${task.title}`} value={status} disabled={!record || pending === task.id} className="h-10 rounded-md border bg-background px-3" onChange={async (event) => {
           if (!record) return; const next = event.target.value as TaskStatus; setPending(task.id); setError("");
           try { await patch(`/api/problems/${problemId}/tasks`, { taskId: record.id, status: next }); setOverrides((current) => ({ ...current, [task.id]: next })); refresh(); }
           catch (error) { setError(error instanceof Error ? error.message : "Unable to update this task."); }
           finally { setPending(null); }
-        }}>{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+        }}>{options.map((option) => <option key={option.value} value={option.value}>{cs ? statusLabel[option.value] : option.label}</option>)}</select></label>
       </div>
-      {record && <div className="mt-4 flex flex-wrap items-end gap-2 border-t pt-4"><label className="min-w-56 flex-1 text-xs font-medium text-muted-foreground"><span className="mb-1 flex items-center gap-1"><CalendarClock className="size-3.5" aria-hidden="true"/>Due date</span><input aria-label={`Due date for ${task.title}`} type="datetime-local" value={dueDraft} min={minimumDue} disabled={pending===task.id || status==="completed" || status==="cancelled"} onChange={(event)=>setDueDrafts((current)=>({...current,[task.id]:event.target.value}))} className="h-10 w-full rounded-md border bg-background px-3 text-sm"/></label><Button type="button" variant="outline" disabled={pending===task.id || dueDraft===savedDue || status==="completed" || status==="cancelled"} onClick={async()=>{
+      {record && <div className="mt-4 flex flex-wrap items-end gap-2 border-t pt-4"><label className="min-w-56 flex-1 text-xs font-medium text-muted-foreground"><span className="mb-1 flex items-center gap-1"><CalendarClock className="size-3.5" aria-hidden="true"/>{ui(cs,"Due date","Termín")}</span><input aria-label={`Due date for ${task.title}`} type="datetime-local" value={dueDraft} min={minimumDue} disabled={pending===task.id || status==="completed" || status==="cancelled"} onChange={(event)=>setDueDrafts((current)=>({...current,[task.id]:event.target.value}))} className="h-10 w-full rounded-md border bg-background px-3 text-sm"/></label><Button type="button" variant="outline" disabled={pending===task.id || dueDraft===savedDue || status==="completed" || status==="cancelled"} onClick={async()=>{
         setPending(task.id); setError("");
         try { await patch(`/api/problems/${problemId}/tasks`,{ taskId:record.id,dueAt:dueDraft ? new Date(dueDraft).toISOString() : null }); refresh(); }
         catch(error){ setError(error instanceof Error ? error.message : "Unable to save this due date."); }
         finally { setPending(null); }
-      }}>{pending===task.id ? "Saving…" : "Save due date"}</Button>{record.dueAt && <Button type="button" variant="ghost" disabled={pending===task.id} onClick={async()=>{
+      }}>{pending===task.id ? ui(cs,"Saving…","Ukládám…") : ui(cs,"Save due date","Uložit termín")}</Button>{record.dueAt && <Button type="button" variant="ghost" disabled={pending===task.id} onClick={async()=>{
         setPending(task.id); setError("");
         try { await patch(`/api/problems/${problemId}/tasks`,{ taskId:record.id,dueAt:null }); setDueDrafts((current)=>({...current,[task.id]:""})); refresh(); }
         catch(error){ setError(error instanceof Error ? error.message : "Unable to clear this due date."); }
         finally { setPending(null); }
-      }}>Clear</Button>}</div>}
+      }}>{ui(cs,"Clear","Vymazat")}</Button>}</div>}
     </article>;
   })}{error && <p role="alert" className="text-sm text-destructive">{error}</p>}</div>;
 }

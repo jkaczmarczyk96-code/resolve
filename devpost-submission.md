@@ -26,6 +26,8 @@ A useful AI assistant should help a person reach a defensible outcome without hi
 
 The product demonstrates that open-model reasoning can power a coherent consumer workflow rather than only a technical chat demo. It combines durable state, human clarification, bounded research and explicit action approval in one responsive web application.
 
+Compared with a general chat assistant such as ChatGPT or Gemini, Avenli is designed around the life of a problem rather than a single response. It shows actual saved analysis progress, pauses for essential missing details, keeps source-linked claims and uncertainty available for review, and turns the result into trackable proposed tasks. External actions remain separate and require explicit approval. This is a workflow distinction, not a claim that every model answer is more accurate.
+
 ## How We Used AI
 
 Avenli uses the NVIDIA `nvidia/nemotron-3-super-120b-a12b` open model through the Nebius Token Factory OpenAI-compatible inference API. Nemotron is the core runtime of eight typed stages:
@@ -99,7 +101,7 @@ npm run test:e2e
 npm audit --omit=dev
 ```
 
-The current release passes 312 offline tests across 50 files, zero-warning lint, strict TypeScript, the optimized production build, 17 normal Chromium scenarios, all 20 scenarios in the opt-in local-Supabase live suite, and a zero-known-vulnerability production dependency audit. Three complete in-memory quality scenarios have also exercised real Nemotron/Nebius and Tavily calls. The live suite creates disposable accounts and incurs provider usage, so it remains separate from the normal suite.
+The current release passes 313 offline tests across 50 files, zero-warning lint, strict TypeScript, the optimized production build, 19 normal Chromium scenarios, all 20 scenarios in the opt-in local-Supabase live suite at the last full provider run, and a zero-known-vulnerability production dependency audit. Three complete in-memory quality scenarios have also exercised real Nemotron/Nebius and Tavily calls. The live suite creates disposable accounts and incurs provider usage, so it remains separate from the normal suite.
 
 ## Public Demo Link
 

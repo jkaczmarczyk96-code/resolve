@@ -4,6 +4,8 @@
 
 Avenli is an outcome-oriented AI problem workspace. The production release implements accounts, eight server-side agents, durable Supabase workflows, checkpoint recovery, daily monitoring, notifications, optional Google context, explicitly approved Calendar actions, onboarding and evidence-aware recommendations using Nebius/NVIDIA and Tavily. Create a problem, follow saved progress, inspect research, answer clarification questions, continue an interrupted analysis, monitor a completed result and prepare a reviewable Calendar event. Fictional examples remain available through **Explore demo**.
 
+Unlike a one-off general AI chat, Avenli keeps a problem in a durable workspace: saved checkpoints show actual progress, essential missing details trigger a question screen, source-linked claims and uncertainty remain inspectable, and the recommendation leads to proposed tasks. General assistants such as ChatGPT and Gemini remain useful for conversation; Avenli's distinction is this reviewable workflow and explicit approval boundary, not a claim that every answer is more accurate.
+
 [Try the production app](https://avenli.vercel.app) · [Explore the public demo](https://avenli.vercel.app/demo) · [Watch the 2:34 demo](https://youtu.be/B1Aqo6qaYtc) · [Architecture](docs/architecture.md) · [Demo guide](docs/demo.md)
 
 ![Avenli desktop workspace](docs/screenshots/workspace-desktop.png)

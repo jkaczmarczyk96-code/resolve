@@ -76,6 +76,22 @@
       radial-gradient(circle at 82% 12%, rgba(104, 82, 255, .2), transparent 34%),
       linear-gradient(145deg, #f8f7ff 0%, #eef4ff 54%, #e7edff 100%);
   }
+  .avenli-skeleton {
+    background: linear-gradient(100deg, #edf0fa 25%, #f8f9ff 45%, #edf0fa 65%);
+    background-size: 220% 100%;
+    animation: avenli-shimmer 1.5s ease-in-out infinite;
+  }
+  .workspace-shell .avenli-panel { animation: avenli-reveal .32s ease-out both; }
+  details[open] > div { animation: avenli-reveal .24s ease-out both; }
+}
+
+@keyframes avenli-reveal {
+  from { opacity: .7; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes avenli-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

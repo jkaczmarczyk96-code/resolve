@@ -19,6 +19,7 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
   const problem = await durable(() => store.loadProblem(request.data.problemId));
   const input = intakeInput.safeParse({ description: problem.description });
   if (!input.success) throw new AIError("INVALID_INPUT");
+  const agentOptions = { ...options, responseLanguage: /[ěščřžýáíéúůďťň]|\b(chci|potrebuji|prosim|vybrat|najdi|porovnej|jaky|ktery)\b/i.test(problem.description) ? "cs" as const : "en" as const };
   let current = options.resume || options.recover ? parseFullSnapshot(await durable(() => store.load(request.data.runId))) : parseFullSnapshot({ qualityPolicy: 2, version: 2, id: request.data.runId, problemId: request.data.problemId, description: input.data.description,
     model: deps.ai.model, state: "PENDING", revision: 0, intake: null, plan: null, research: null, verification: null, options: null, critique: null, decision: null, tasks: null, error: null,
     events: [{ state: "PENDING", at: new Date().toISOString() }],
@@ -42,18 +43,18 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       await advance("RESUME", { human: { ...human, responseId: options.resume.responseId, responses: human.questions.map((question, index) => ({ question, answer: options.resume!.answers[index] })) } });
     }
     if (current.state === "RESUME") {
-      const replanned = await runAgent("planner", { problem: fullProblem(current) }, deps, options);
+      const replanned = await runAgent("planner", { problem: fullProblem(current) }, deps, agentOptions);
       await advance("RESEARCH", { plan: replanned.output });
     }
     if (current.state === "PENDING") {
       await advance("INTAKE");
     }
     if (current.state === "INTAKE") {
-      const understood = await runAgent("intake", input.data, deps, options);
+      const understood = await runAgent("intake", input.data, deps, agentOptions);
       await advance("PLAN", { intake: understood.output });
     }
     if (current.state === "PLAN") {
-      const planned = await runAgent("planner", { problem: fullProblem(current) }, deps, options);
+      const planned = await runAgent("planner", { problem: fullProblem(current) }, deps, agentOptions);
       await advance("RESEARCH", { plan: planned.output });
     }
     if (current.state === "RESEARCH") {
@@ -70,14 +71,14 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       const planned=[...current.plan!.steps].sort((a,b)=>priority[a.priority]-priority[b.priority]).flatMap((step)=>step.researchQuestions);
       const questions=[...new Set(planned.length ? planned : [current.intake!.goal])].slice(0,3);
       const question=questions.length===1 ? questions[0] : questions.map((item,index)=>`${index+1}. ${item.slice(0,620)}`).join("\n");
-      const researched=await runAgent("researcher",{ question },{ ...deps,research:{ search:(_combined,signal)=>searchMany(deps.research!,questions,signal) } },options);
+      const researched=await runAgent("researcher",{ question },{ ...deps,research:{ search:(_combined,signal)=>searchMany(deps.research!,questions,signal) } },agentOptions);
       await advance("VERIFY",{ research:{ question,questions,output:researched.output,sources:researched.sources } });
     }
     if (current.state === "VERIFY") {
       const evidence = { claims: current.research!.output.claims, sources: current.research!.sources };
       let verification: AgentOutput<"verifier">;
       try {
-        verification = (await runAgent("verifier", evidence, deps, options)).output;
+        verification = (await runAgent("verifier", evidence, deps, agentOptions)).output;
       } catch (error) {
         if (!(error instanceof AIError) || error.code !== "INVALID_OUTPUT") throw error;
         // A malformed model assessment must never turn retrieved claims into verified facts.
@@ -93,20 +94,20 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       await advance("OPTIONS", { verification });
     }
     if (current.state === "OPTIONS") {
-      const candidates = await runAgent("options", fullOptionsInput(current), deps, options);
+      const candidates = await runAgent("options", fullOptionsInput(current), deps, agentOptions);
       await advance("CRITIQUE", { options: candidates.output });
     }
     if (current.state === "CRITIQUE") {
-      const critiqued = await runAgent("critic", fullCriticInput(current), deps, options);
+      const critiqued = await runAgent("critic", fullCriticInput(current), deps, agentOptions);
       await advance("DECIDE", { critique: critiqued.output });
     }
     if (current.state === "DECIDE") {
-      const decided = await runAgent("decision", fullDecisionInput(current), deps, options);
+      const decided = await runAgent("decision", fullDecisionInput(current), deps, agentOptions);
       const guarded = guardDecisionEvidence(current, decided.output);
       await advance("TASKS", { decision: { ...guarded, confidence: fullConfidence(current, guarded) } });
     }
     if (current.state === "TASKS") {
-      const tasks = await runAgent("tasks", fullTasksInput(current), deps, options);
+      const tasks = await runAgent("tasks", fullTasksInput(current), deps, agentOptions);
       await advance("COMPLETED", { tasks: tasks.output });
     }
   } catch (error) {

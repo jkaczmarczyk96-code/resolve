@@ -8,9 +8,11 @@ import { trackProductEvent } from "@/lib/product/analytics";
 import { followUpSubmission } from "@/lib/workspace/follow-up";
 import { webJobSchema } from "@/lib/workspace/contracts";
 import { post } from "./remote";
+import { ui, useCzech } from "./ui-language";
 
 export function FollowUpAnalysis({ goal, unknown, disabled = false }: { goal: string; unknown: string; disabled?: boolean }) {
   const router = useRouter();
+  const cs = useCzech();
   const lock = useRef(false);
   const [requestId] = useState(() => crypto.randomUUID());
   const [pending, setPending] = useState(false);
@@ -33,8 +35,8 @@ export function FollowUpAnalysis({ goal, unknown, disabled = false }: { goal: st
       } finally {
         lock.current = false; setPending(false);
       }
-    }}><Search aria-hidden="true" />{pending ? "Starting follow-up…" : "Start follow-up analysis"}</Button>
-    {disabled && <p className="mt-2 text-xs text-muted-foreground">Finish the active analysis before starting another one.</p>}
+    }}><Search aria-hidden="true" />{pending ? ui(cs,"Starting follow-up…","Spouštím navazující analýzu…") : ui(cs,"Start follow-up analysis","Prozkoumat tuto otázku")}</Button>
+    {disabled && <p className="mt-2 text-xs text-muted-foreground">{ui(cs,"Finish the active analysis before starting another one.","Nejprve dokončete probíhající analýzu.")}</p>}
     {error && <p role="alert" className="mt-2 text-xs text-destructive">{error}</p>}
   </li>;
 }

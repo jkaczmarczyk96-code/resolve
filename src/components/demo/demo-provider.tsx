@@ -15,7 +15,7 @@ type DemoContextValue = {
 };
 const DemoContext = createContext<DemoContextValue | null>(null);
 
-export function DemoProvider({ account, children, basePath = "" }: { account: AccountProfile; children: React.ReactNode; basePath?: string }) {
+export function DemoProvider({ account, children, basePath = "" }: { account: AccountProfile; children?: React.ReactNode; basePath?: string }) {
   const [problems, setProblems] = useState(demoProblems);
   const defaults: DemoPreferences = { language: account.language, timezone: account.timezone, inputAlerts: true, researchAlerts: false };
   const [preferences, setPreferences] = useState(defaults);
