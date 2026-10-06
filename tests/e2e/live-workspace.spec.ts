@@ -45,7 +45,8 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   }
   await finishAnalysis(id);
   await page.getByRole("button", { name: "Refresh status" }).click();
-  await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "100");
+  await expect(page.getByRole("progressbar")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Result", exact: true })).toBeVisible();
   const result = await (await page.request.get(`/api/problems/${id}`)).json();
   expect(result.snapshot.events.length).toBeGreaterThanOrEqual(10);
   expect(result.snapshot.qualityPolicy).toBe(2);
@@ -58,7 +59,8 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   await page.getByText("Evidence quality and detailed checks").click();
   await expect(page.getByRole("heading", { name: "Evidence quality", exact: true })).toBeVisible();
   for (const [tab, heading] of [["Options", "Options to consider"], ["Risks", "Critic review"], ["Tasks", "Action plan"], ["Decisions", "Decision trail"]]) {
-    await sections.getByRole("link", { name: tab, exact: true }).click();
+    if (tab === "Tasks") await sections.getByRole("link", { name: tab, exact: true }).click();
+    else await sections.getByRole("combobox", { name: "More sections" }).selectOption(tab.toLowerCase());
     await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
   }
   await sections.getByRole("link", { name: "Tasks", exact: true }).click();
@@ -104,7 +106,7 @@ test("saved live analysis, idempotent submission, account isolation and explicit
   await page.getByRole("button", { name: "Retry analysis", exact: true }).click();
   await finishAnalysis(retryProblem);
   await page.reload();
-  await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "100");
+  await expect(page.getByRole("progressbar")).toHaveCount(0);
   expect((await db.from("web_runs").select("id").eq("problem_id", id)).data).toHaveLength(1);
   expect((await db.from("web_runs").select("id").eq("problem_id", retryProblem)).data).toHaveLength(2);
   await db.auth.signOut({ scope: "local" });

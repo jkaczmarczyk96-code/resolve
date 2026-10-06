@@ -19,15 +19,15 @@ export function CategoryIcon({ category }: { category: DemoProblem["category"] }
 export function PageHeading({ eyebrow, title, description, action = false, demo = false, actionHref }: { eyebrow: string; title: string; description: string; action?: boolean; demo?: boolean; actionHref?: string }) {
   const { preferences } = useDemo();
   const href = actionHref ?? (action ? (demo ? "/problems/new?demo=1" : "/problems/new") : undefined);
-  return <div className="flex flex-wrap items-start justify-between gap-5"><div className="space-y-2"><p className="text-[11px] font-semibold uppercase tracking-[.18em] text-primary">{eyebrow}</p><h1 className="text-3xl font-semibold tracking-[-.045em] text-[#0e1450] sm:text-[2.5rem] sm:leading-tight">{title}</h1><p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground">{description}</p></div>{href && <Button asChild size="lg"><Link href={href}><Plus aria-hidden="true" />{preferences.language === "cs" ? "Nové zadání" : "New problem"}</Link></Button>}</div>;
+  return <header className="flex flex-wrap items-end justify-between gap-4"><div className="space-y-1.5"><p className="text-[10px] font-semibold uppercase tracking-[.16em] text-primary">{eyebrow}</p><h1 className="text-[1.8rem] font-semibold leading-tight tracking-[-.045em] text-[#0e1450] sm:text-[2.15rem]">{title}</h1><p className="max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p></div>{href && <Button asChild><Link href={href}><Plus aria-hidden="true" />{preferences.language === "cs" ? "Nové zadání" : "New problem"}</Link></Button>}</header>;
 }
 
 export function Panel({ title, description, children, className }: { title: string; description?: string; children: React.ReactNode; className?: string }) {
-  return <section className={cn("avenli-panel rounded-[1.25rem] p-5 sm:p-6", className)}><h2 className="text-[1.05rem] font-semibold tracking-[-.02em] text-[#111653]">{title}</h2>{description && <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{description}</p>}<div className="mt-5">{children}</div></section>;
+  return <section className={cn("avenli-panel rounded-2xl p-4 sm:p-5", className)}><h2 className="text-[1rem] font-semibold tracking-[-.02em] text-[#111653]">{title}</h2>{description && <p className="mt-1 text-[13px] leading-5 text-muted-foreground">{description}</p>}<div className="mt-3.5">{children}</div></section>;
 }
 
 export function EmptyState({ title, detail, children }: { title: string; detail: string; children?: React.ReactNode }) {
-  return <div className="rounded-xl border border-dashed p-8 text-center"><Compass className="mx-auto mb-4 size-6 text-muted-foreground" aria-hidden="true" /><h2 className="font-semibold">{title}</h2><p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">{detail}</p>{children && <div className="mt-5">{children}</div>}</div>;
+  return <div className="rounded-2xl border border-dashed border-[#cfd6ef] bg-white/60 p-6 text-center sm:p-8"><Compass className="mx-auto mb-3 size-6 text-primary/65" aria-hidden="true" /><h2 className="font-semibold">{title}</h2><p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted-foreground">{detail}</p>{children && <div className="mt-4">{children}</div>}</div>;
 }
 
 export function ProblemCard({ problem }: { problem: DemoProblem }) {

@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #f5f7ff;
+  --background: #f7f8fd;
   --foreground: #101650;
   --card: #ffffff;
   --card-foreground: #12184f;
@@ -19,7 +19,7 @@
   --accent: #eef0ff;
   --accent-foreground: #3e35ce;
   --destructive: #ba2435;
-  --border: #dfe4f2;
+  --border: #e1e5f0;
   --input: #dce2f1;
   --ring: #5747ee;
   --radius: 1rem;
@@ -57,8 +57,8 @@
   body {
     @apply bg-background text-foreground antialiased;
     background-image:
-      radial-gradient(circle at 8% -8%, rgba(108, 91, 255, .12), transparent 28rem),
-      radial-gradient(circle at 92% 2%, rgba(82, 167, 255, .1), transparent 30rem);
+      radial-gradient(circle at 8% -8%, rgba(108, 91, 255, .09), transparent 28rem),
+      radial-gradient(circle at 92% 2%, rgba(82, 167, 255, .07), transparent 30rem);
   }
   button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
   :focus-visible { @apply outline-2 outline-offset-4 outline-ring; }
@@ -67,9 +67,9 @@
 
 @layer utilities {
   .avenli-panel {
-    border: 1px solid rgba(218, 224, 241, .92);
-    background: rgba(255, 255, 255, .94);
-    box-shadow: 0 14px 40px rgba(32, 39, 100, .055);
+    border: 1px solid rgba(220, 225, 240, .95);
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 8px 26px rgba(32, 39, 100, .045);
   }
   .avenli-glow {
     background:
@@ -81,12 +81,39 @@
     background-size: 220% 100%;
     animation: avenli-shimmer 1.5s ease-in-out infinite;
   }
-  .workspace-shell .avenli-panel { animation: avenli-reveal .32s ease-out both; }
-  details[open] > div { animation: avenli-reveal .24s ease-out both; }
+  .workspace-shell .avenli-panel { animation: avenli-reveal .36s cubic-bezier(.2,.7,.25,1) both; }
+  .workspace-shell a.avenli-panel { transition: border-color .2s, box-shadow .2s, transform .2s; }
+  .workspace-shell a.avenli-panel:hover { box-shadow: 0 14px 34px rgba(44, 42, 126, .09); }
+  .workspace-shell details > summary { position: relative; display: block; padding-right: 1.25rem; list-style: none; }
+  .workspace-shell details > summary::-webkit-details-marker { display: none; }
+  .workspace-shell details > summary::after { content: ""; position: absolute; top: .35rem; right: .2rem; width: .45rem; height: .45rem; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); transition: transform .2s; opacity: .6; }
+  .workspace-shell details[open] > summary::after { transform: rotate(225deg); }
+  .workspace-shell details[open] > div { animation: avenli-reveal .24s ease-out both; }
+  .workspace-shell input:not([type="checkbox"]):not([type="radio"]),
+  .workspace-shell textarea,
+  .workspace-shell select { transition: border-color .2s, box-shadow .2s, background-color .2s; }
+  .workspace-shell input:not([type="checkbox"]):not([type="radio"]):focus,
+  .workspace-shell textarea:focus,
+  .workspace-shell select:focus { border-color: #8177f2; box-shadow: 0 0 0 3px rgba(94, 75, 237, .11); }
+  .avenli-hero-copy { animation: avenli-reveal .55s cubic-bezier(.2,.7,.25,1) both; }
+  .avenli-hero-preview { animation: avenli-reveal .7s cubic-bezier(.2,.7,.25,1) .08s both; }
+  .avenli-benefit-card { transition: transform .22s, border-color .22s, box-shadow .22s; }
+  .avenli-benefit-card:hover { transform: translateY(-3px); border-color: #cbc8f9; box-shadow: 0 14px 32px rgba(52, 48, 144, .08); }
+  .auth-layout > aside { animation: avenli-reveal .55s ease-out both; }
+  .auth-layout > .auth-card { animation: avenli-reveal .62s ease-out .08s both; }
+  .settings-layout { display: grid; gap: 1rem; align-items: start; }
+  .settings-layout > .settings-security { grid-column: 1 / -1; }
+  @media (min-width: 900px) {
+    .settings-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .settings-layout > :first-child,
+    .settings-layout > :nth-child(2),
+    .settings-layout > :nth-child(3),
+    .settings-layout > :nth-child(4) { grid-column: 1 / -1; }
+  }
 }
 
 @keyframes avenli-reveal {
-  from { opacity: .7; transform: translateY(5px); }
+  from { opacity: .45; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes avenli-shimmer {

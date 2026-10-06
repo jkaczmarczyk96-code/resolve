@@ -8,6 +8,7 @@ test("saved profile, password verification and deletion confirmation controls", 
   await expect(page.getByText("Profile saved.", { exact: true })).toBeVisible(); await page.reload();
   await expect(page.getByLabel("Display name", { exact: true })).toHaveValue("Updated account");
   await expect(page.getByLabel("Timezone", { exact: true })).toHaveValue("Europe/Prague");
+  await page.locator("summary").filter({ hasText: "Security and account data" }).click();
   await page.getByLabel("Current password", { exact: true }).fill("incorrect");
   await page.getByLabel("New password", { exact: true }).fill("ChangedPassword123");
   await page.getByLabel("Confirm new password", { exact: true }).fill("ChangedPassword123");
