@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export function LogoutButton() {
+export function LogoutButton({ cs = false }: { cs?: boolean }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   return <div className="space-y-2"><Button type="button" variant="outline" disabled={pending} onClick={async () => {
@@ -16,5 +16,5 @@ export function LogoutButton() {
       setError("Sign out failed. Please try again.");
       setPending(false);
     }
-  }}>{pending ? "Signing out…" : "Sign out"}</Button>{error && <p role="alert" className="max-w-xs text-sm text-destructive">{error}</p>}</div>;
+  }}>{pending ? (cs ? "Odhlašuji…" : "Signing out…") : (cs ? "Odhlásit se" : "Sign out")}</Button>{error && <p role="alert" className="max-w-xs text-sm text-destructive">{error}</p>}</div>;
 }
