@@ -7,6 +7,7 @@ import { Bell, FlaskConical, Home, Layers, Plus, RotateCcw, Settings } from "luc
 import { Button } from "@/components/ui/button";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { AvenliBrand } from "@/components/brand";
+import { BrandLandscape } from "@/components/brand-landscape";
 import { Onboarding } from "@/components/workspace/onboarding";
 import { PageAnalytics } from "@/components/workspace/page-analytics";
 import { cn } from "@/lib/utils";
@@ -33,7 +34,8 @@ export function WorkspaceShell({ children, onboardingComplete = true }: { childr
         const active = href === "/dashboard" ? pathname === href : pathname.startsWith(href);
         return <Link key={href} href={`${href}${suffix}`} aria-current={active ? "page" : undefined} className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition", active ? "bg-[linear-gradient(90deg,#edf0ff,#f3efff)] text-[#3c39dc] shadow-[inset_0_0_0_1px_rgba(89,72,236,.06)]" : "text-muted-foreground hover:bg-muted hover:text-foreground")}><Icon className="size-4" aria-hidden="true" />{navLabel(label)}</Link>;
       })}</nav>
-      <div className="avenli-glow relative mt-auto overflow-hidden rounded-[1.25rem] p-4"><div className="absolute -bottom-12 -right-8 size-28 rounded-full bg-indigo-300/30 blur-2xl" aria-hidden="true"/><p className="relative text-[10px] font-semibold uppercase tracking-[.16em] text-[#5d5da5]">{cs ? "Na vašem čase záleží" : "Your time matters"}</p><div className="relative mt-3 flex items-center gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#151b62] text-sm font-semibold text-white">{initial}</span><div className="min-w-0"><p className="truncate text-sm font-semibold text-[#171a55]">{account.displayName || (cs ? "Váš účet" : "Your account")}</p><p className="truncate text-[11px] text-muted-foreground">{account.email}</p></div></div><div className="relative mt-3"><LogoutButton cs={cs} /></div></div>
+      <div className="relative mt-auto min-h-32 overflow-hidden rounded-2xl border border-[#d9def6] bg-[#ecf1ff] p-3.5"><BrandLandscape className="absolute inset-x-0 bottom-0 h-24 w-full opacity-85"/><p className="relative max-w-36 text-xs font-semibold leading-4 text-[#171a55]">{cs ? "Více možností. Klidnější rozhodování." : "Bigger possibilities. A calmer you."}</p></div>
+      <div className="mt-3 rounded-xl border bg-white/75 p-2.5"><div className="flex items-center gap-2.5"><span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#151b62] text-xs font-semibold text-white">{initial}</span><div className="min-w-0"><p className="truncate text-xs font-semibold text-[#171a55]">{account.displayName || (cs ? "Váš účet" : "Your account")}</p><p className="truncate text-[10px] text-muted-foreground">{account.email}</p></div></div><div className="mt-2"><LogoutButton cs={cs} /></div></div>
     </aside>
     <div className="min-w-0 px-4 pb-28 pt-4 sm:px-6 sm:pt-5 lg:px-7 lg:py-6 xl:px-9"><div className="mx-auto w-full max-w-[1280px]">
       <div className="mb-6 flex items-center justify-between lg:hidden"><AvenliBrand compact/><Link href={`/settings${suffix}`} aria-label={cs ? "Nastavení účtu" : "Account settings"} className="flex size-10 items-center justify-center rounded-full bg-[#171b61] text-sm font-semibold text-white">{initial}</Link></div>

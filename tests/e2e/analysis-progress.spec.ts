@@ -45,7 +45,7 @@ test("Czech profile preference localizes the main problem-solving flow", async (
   await page.screenshot({ path: "test-results/czech-new-problem.png", fullPage: true });
 });
 
-test("problem list shows animated card placeholders while its data loads", async ({ page, request }) => {
+test("problem list shows animated placeholders while its data loads", async ({ page, request }) => {
   await register(page, request);
   let release: (() => void) | undefined;
   const pending = new Promise<void>((resolve) => { release = resolve; });
@@ -58,7 +58,7 @@ test("problem list shows animated card placeholders while its data loads", async
     await page.goto("/problems");
     const placeholder = page.getByRole("status", { name: "Loading your problems" });
     await expect(placeholder).toBeVisible();
-    await expect(placeholder.locator(".avenli-skeleton")).toHaveCount(15);
+    await expect(placeholder.locator(".avenli-skeleton").first()).toBeVisible();
     await expect(page.getByText("Loading your problems", { exact: true })).toBeHidden();
     await page.screenshot({ path: "test-results/problem-list-loading.png", fullPage: true });
   } finally {

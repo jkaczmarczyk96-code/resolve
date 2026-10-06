@@ -81,6 +81,11 @@
     background-size: 220% 100%;
     animation: avenli-shimmer 1.5s ease-in-out infinite;
   }
+  .avenli-loading-mark { animation: avenli-breathe 1.8s ease-in-out infinite; }
+  .workspace-shell nav a { transition: background-color .18s, color .18s, transform .18s, box-shadow .18s; }
+  .workspace-shell nav a:hover { transform: translateY(-1px); }
+  .workspace-shell button:not(:disabled) { transition: transform .18s, box-shadow .18s, background-color .18s; }
+  .workspace-shell button:not(:disabled):active { transform: scale(.98); }
   .workspace-shell .avenli-panel { animation: avenli-reveal .36s cubic-bezier(.2,.7,.25,1) both; }
   .workspace-shell a.avenli-panel { transition: border-color .2s, box-shadow .2s, transform .2s; }
   .workspace-shell a.avenli-panel:hover { box-shadow: 0 14px 34px rgba(44, 42, 126, .09); }
@@ -119,6 +124,10 @@
 @keyframes avenli-shimmer {
   from { background-position: 100% 0; }
   to { background-position: -100% 0; }
+}
+@keyframes avenli-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(79, 67, 237, .08); transform: scale(1); }
+  50% { box-shadow: 0 0 0 8px rgba(79, 67, 237, 0); transform: scale(1.04); }
 }
 
 @media (prefers-reduced-motion: reduce) {

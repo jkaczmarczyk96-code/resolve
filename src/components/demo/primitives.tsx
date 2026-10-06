@@ -4,6 +4,7 @@ import { ArrowUpRight, BriefcaseBusiness, Compass, House, Plane, Plus } from "lu
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { BrandLandscape } from "@/components/brand-landscape";
 import type { DemoProblem, DemoStatus } from "@/lib/demo/types";
 import { useDemo } from "./demo-provider";
 
@@ -27,7 +28,7 @@ export function Panel({ title, description, children, className }: { title: stri
 }
 
 export function EmptyState({ title, detail, children }: { title: string; detail: string; children?: React.ReactNode }) {
-  return <div className="rounded-2xl border border-dashed border-[#cfd6ef] bg-white/60 p-6 text-center sm:p-8"><Compass className="mx-auto mb-3 size-6 text-primary/65" aria-hidden="true" /><h2 className="font-semibold">{title}</h2><p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted-foreground">{detail}</p>{children && <div className="mt-4">{children}</div>}</div>;
+  return <div className="relative isolate overflow-hidden rounded-2xl border border-[#d9def6] bg-[linear-gradient(145deg,#fff,#f4f6ff)] p-6 text-center sm:p-8"><BrandLandscape className="absolute -bottom-8 left-0 -z-10 h-20 w-full opacity-15"/><span className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl bg-[#eeefff] text-primary"><Compass className="size-5" aria-hidden="true" /></span><h2 className="font-semibold">{title}</h2><p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted-foreground">{detail}</p>{children && <div className="mt-4">{children}</div>}</div>;
 }
 
 export function ProblemCard({ problem }: { problem: DemoProblem }) {

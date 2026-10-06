@@ -22,7 +22,7 @@ test("public demo is fully explorable without an account", async ({ page }) => {
   await expect(page).toHaveURL(/\/demo\/problems$/);
   await page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Find a way to Tokyo" }) }).click();
   await expect(page).toHaveURL(/\/demo\/problems\/demo-flight$/);
-  await expect(page.getByRole("heading", { name: "The outcome" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "A direction worth exploring" })).toBeVisible();
   await page.getByRole("navigation", { name: "Problem sections" }).getByRole("link", { name: "Options", exact: true }).click();
   await expect(page).toHaveURL(/view=options$/);
   await expect(page.getByRole("table", { name: "Illustrative option comparison" })).toBeVisible();
@@ -61,7 +61,7 @@ test("filter scenarios, inspect evidence and compare options", async ({ page, re
   await expect(page.getByRole("heading", { name: "No matching problems" })).toBeVisible();
   await page.getByRole("button", { name: "Clear filters" }).click();
   await page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Find a way to Tokyo" }) }).click();
-  await expect(page.getByRole("heading", { name: "The outcome" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "A direction worth exploring" })).toBeVisible();
   await page.screenshot({ path: "test-results/workspace-desktop.png", fullPage: true });
   const sections = page.getByRole("navigation", { name: "Problem sections" });
   await sections.getByRole("link", { name: "Research", exact: true }).click();
@@ -124,7 +124,7 @@ test("settings preview and small-screen workspace remain usable", async ({ page,
   await page.setViewportSize({ width: 390, height: 844 });
   await nav.getByRole("link", { name: "Home" }).click();
   await page.getByRole("link", { name: "Review problem", exact: true }).click();
-  await page.getByRole("navigation", { name: "Problem sections" }).getByRole("link", { name: "Options", exact: true }).click();
+  await page.getByRole("navigation", { name: "Problem sections" }).getByRole("combobox", { name: "More sections" }).selectOption("options");
   await expect(page).toHaveURL(/view=options$/);
   await expect(page.getByRole("table", { name: "Illustrative option comparison" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
