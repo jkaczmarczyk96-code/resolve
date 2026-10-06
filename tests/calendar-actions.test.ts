@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
 import { CalendarActions } from "@/components/workspace/calendar-actions";
 import type { ExternalAction } from "@/lib/actions/contracts";
+import { DemoProvider } from "@/components/demo/demo-provider";
 
 const action: ExternalAction = {
   id: "de305d54-75b4-431b-adb2-eb6b9e546015",
@@ -24,15 +25,15 @@ const action: ExternalAction = {
   executedAt: null,
 };
 
-function render(actions: ExternalAction[], calendarWriteAuthorized: boolean) {
-  return renderToStaticMarkup(createElement(CalendarActions, {
+function render(actions: ExternalAction[], calendarWriteAuthorized: boolean, language = "en") {
+  return renderToStaticMarkup(createElement(DemoProvider, { account: { id: "test", email: "test@example.com", displayName: null, timezone: "Europe/Prague", language } }, createElement(CalendarActions, {
     id: action.problemId,
     title: "Avenli plan",
     actions,
     access: { calendarEnabled: true, calendarWriteAuthorized },
     analysisComplete: true,
     refresh: () => undefined,
-  }));
+  })));
 }
 
 it("separates preparing a proposal from approving an external write", () => {
@@ -40,6 +41,7 @@ it("separates preparing a proposal from approving an external write", () => {
   expect(html).toContain("Prepare calendar event");
   expect(html).toContain("saves a proposal and audit entry only");
   expect(html).not.toContain("Create event now");
+  expect(render([], false, "cs")).toContain("Příprava pouze uloží návrh");
 });
 
 it("requests the narrow Calendar write grant from the exact problem context", () => {
