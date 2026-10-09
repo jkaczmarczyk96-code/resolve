@@ -7,9 +7,9 @@ function subscribe(notify: () => void) {
   window.addEventListener("avenli-language", notify);
   return () => { window.removeEventListener("storage", notify); window.removeEventListener("avenli-language", notify); };
 }
-function currentLanguage() { return (localStorage.getItem("avenli-language") ?? navigator.language).toLowerCase().startsWith("cs"); }
+function currentLanguage() { return localStorage.getItem("avenli-language") === "cs"; }
 export function usePublicCzech() { return useSyncExternalStore(subscribe, currentLanguage, () => false); }
-export function togglePublicLanguage(cs: boolean) {
-  localStorage.setItem("avenli-language", cs ? "en" : "cs");
+export function setPublicLanguage(language: "en" | "cs") {
+  localStorage.setItem("avenli-language", language);
   window.dispatchEvent(new Event("avenli-language"));
 }
