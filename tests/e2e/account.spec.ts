@@ -1,5 +1,23 @@
 import { test, expect } from "@playwright/test";
 import { login, password, register } from "./helpers";
+
+test("workspace language switch updates the account and survives reload", async ({ page, request }) => {
+  await register(page, request);
+  const switcher = page.getByRole("group", { name: "Page language" });
+  await expect(switcher.getByRole("button", { name: "EN" })).toHaveAttribute("aria-pressed", "true");
+  await switcher.getByRole("button", { name: "CZ" }).click();
+  await expect(page.getByRole("heading", { name: "Vítejte, Resolve Tester" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("group", { name: "Jazyk stránky" }).getByRole("button", { name: "CZ" })).toHaveAttribute("aria-pressed", "true");
+  await page.goto("/settings");
+  await expect(page.getByLabel("Preferovaný jazyk")).toHaveValue("cs");
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole("group", { name: "Jazyk stránky" }).getByRole("button", { name: "EN" }).click();
+  await expect(page.getByRole("heading", { name: "Account settings" })).toBeVisible();
+  await expect(page.getByLabel("Preferred language")).toHaveValue("en");
+});
+
 test("saved profile, password verification and deletion confirmation controls", async ({ page, request }) => {
   const { email } = await register(page, request); await page.goto("/settings");
   await page.getByLabel("Display name", { exact: true }).fill("Updated account");

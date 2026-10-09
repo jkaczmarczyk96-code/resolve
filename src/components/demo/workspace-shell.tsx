@@ -10,6 +10,7 @@ import { AvenliBrand } from "@/components/brand";
 import { BrandLandscape } from "@/components/brand-landscape";
 import { Onboarding } from "@/components/workspace/onboarding";
 import { PageAnalytics } from "@/components/workspace/page-analytics";
+import { WorkspaceLanguageSwitch } from "@/components/workspace/workspace-language-switch";
 import { cn } from "@/lib/utils";
 import { useDemo } from "./demo-provider";
 
@@ -38,7 +39,8 @@ export function WorkspaceShell({ children, onboardingComplete = true }: { childr
       <div className="mt-3 rounded-xl border bg-white/75 p-2.5"><div className="flex items-center gap-2.5"><span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#151b62] text-xs font-semibold text-white">{initial}</span><div className="min-w-0"><p className="truncate text-xs font-semibold text-[#171a55]">{account.displayName || (cs ? "Váš účet" : "Your account")}</p><p className="truncate text-[10px] text-muted-foreground">{account.email}</p></div></div><div className="mt-2"><LogoutButton cs={cs} /></div></div>
     </aside>
     <div className="min-w-0 px-4 pb-28 pt-4 sm:px-6 sm:pt-5 lg:px-7 lg:py-6 xl:px-9"><div className="mx-auto w-full max-w-[1280px]">
-      <div className="mb-6 flex items-center justify-between lg:hidden"><AvenliBrand compact/><Link href={`/settings${suffix}`} aria-label={cs ? "Nastavení účtu" : "Account settings"} className="flex size-10 items-center justify-center rounded-full bg-[#171b61] text-sm font-semibold text-white">{initial}</Link></div>
+      <div className="mb-6 flex items-center justify-between gap-2 lg:hidden"><AvenliBrand compact/><div className="flex items-center gap-2"><WorkspaceLanguageSwitch/><Link href={`/settings${suffix}`} aria-label={cs ? "Nastavení účtu" : "Account settings"} className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#171b61] text-sm font-semibold text-white">{initial}</Link></div></div>
+      <div className="mb-3 hidden justify-end lg:flex"><WorkspaceLanguageSwitch/></div>
       {isDemo && <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/15 bg-secondary/60 px-4 py-2.5"><div className="flex items-start gap-2.5"><FlaskConical aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" /><p className="text-sm leading-relaxed"><strong className="font-semibold">{cs ? "Ukázkový režim" : "Interactive demo"}</strong><span className="text-muted-foreground"> · {cs ? "Fiktivní data. Změny se při obnovení ztratí. AI zde neběží." : "Sample data. Changes reset when you reload. No AI is running."}</span></p></div><Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { reset(); router.push("/dashboard?demo=1"); }}><RotateCcw aria-hidden="true" />{cs ? "Obnovit ukázku" : "Reset demo"}</Button><Link className="text-sm text-primary underline" href="/dashboard">{cs ? "Můj prostor" : "Your workspace"}</Link></div>}
       {children}
     </div></div>
