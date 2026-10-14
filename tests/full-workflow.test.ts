@@ -8,6 +8,24 @@ import { MemoryFullStore, fullDependencies } from "./fixtures/full-workflow";
 import { workflowRequest } from "./fixtures/workflow";
 import { inputs, outputs } from "./fixtures/ai";
 
+it("delivers a source-free study plan without forcing research or a clarification pause", async () => {
+  const store = new MemoryFullStore(); const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
+  deps.ai.generate.mockImplementation(async (request) => {
+    if (request.name === "planner") return { steps: [{ ...outputs.planner.steps[0], title: "Study in weekly blocks", researchQuestions: [], userQuestions: [] }] };
+    if (request.name === "decision") return { ...outputs.decision, recommendation: "Draft a weekly study schedule with review blocks and practice questions.", supportingEvidence: [], unresolvedUnknowns: [] };
+    return original(request);
+  });
+  const result = await runFullWorkflow(workflowRequest(), store, { ai: deps.ai }, { humanInput: true });
+  expect(result.state).toBe("COMPLETED");
+  expect(result.decision?.selectedOptionId).toBe("option-1");
+  expect(result.decision?.confidence).toBe("low");
+  expect(result.research?.sources).toEqual([]);
+  expect(result.tasks?.tasks.length).toBeGreaterThan(0);
+  expect(deps.research.search).not.toHaveBeenCalled();
+  expect(deps.ai.generate.mock.calls.map(([request]) => request.name)).not.toContain("researcher");
+  expect(deps.ai.generate.mock.calls.map(([request]) => request.name)).not.toContain("verifier");
+});
+
 afterEach(() => vi.useRealTimers());
 const names = ["intake", "planner", "researcher", "verifier", "options", "critic", "decision", "tasks"];
 it("runs all eight stages in order with actual upstream data and durable checkpoint handoff", async () => {
@@ -54,12 +72,13 @@ it.each([0, 1, 2, 3, 4, 5, 6, 7, 8])("stops after ambiguous write %i without ret
   await expect(runFullWorkflow(workflowRequest(), store, deps)).rejects.toMatchObject({ code: "PERSISTENCE" });
   expect(save).toHaveBeenCalledTimes(revision + 1); expect(deps.ai.generate).toHaveBeenCalledTimes(revision);
 });
-it("requires search before spending tokens and stops on search failure", async () => {
-  const deps = fullDependencies(); const store = new MemoryFullStore();
-  await expect(runFullWorkflow(workflowRequest(), store, { ai: deps.ai })).rejects.toMatchObject({ code: "CONFIGURATION" });
-  expect(deps.ai.generate).not.toHaveBeenCalled();
+it("requires search only when the plan needs external facts and stops on search failure", async () => {
+  const deps = fullDependencies();
+  expect(await runFullWorkflow(workflowRequest(), new MemoryFullStore(), { ai: deps.ai })).toMatchObject({ state: "FAILED", error: "CONFIGURATION" });
+  expect(deps.ai.generate).toHaveBeenCalledTimes(2);
+  deps.ai.generate.mockClear();
   deps.research.search.mockRejectedValue(new AIError("AUTHENTICATION"));
-  expect(await runFullWorkflow(workflowRequest(), store, deps)).toMatchObject({ state: "FAILED", error: "AUTHENTICATION" });
+  expect(await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps)).toMatchObject({ state: "FAILED", error: "AUTHENTICATION" });
   expect(deps.ai.generate).toHaveBeenCalledTimes(2);
 });
 it("can finish with no evidence, no viable option and no proposed tasks without inventing results", async () => {

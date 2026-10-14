@@ -10,7 +10,7 @@ export interface AgentDependencies {
   ai: AIProvider;
   research?: ResearchProvider;
 }
-export interface RunOptions { signal?: AbortSignal; responseLanguage?: "cs" | "en" }
+export interface RunOptions { signal?: AbortSignal; responseLanguage?: "cs" | "en"; researchRequired?: boolean }
 export interface AgentResult<N extends AgentName> {
   agent: N;
   model: string;
@@ -42,7 +42,7 @@ export function runAgent<N extends AgentName>(name: N, rawInput: AgentInput<N>, 
         const response = await dependencies.ai.generate({
           name,
           input,
-          instructions: `${commonInstructions}\n${instructions[name]}${options.responseLanguage === "cs" ? "\nWrite user-facing titles, explanations, questions, recommendations and tasks in Czech. Preserve exact source quotations, source IDs, schema keys and proper names. Search queries may use the language most useful for retrieval." : ""}${attempt ? "\nYour previous response was rejected because it violated the required output contract. Rebuild the complete response from the supplied input. Follow the schema and every ID, cardinality, reference, dependency and evidence rule exactly; do not mention this repair attempt." : ""}`,
+          instructions: `${commonInstructions}\n${instructions[name]}${name === "planner" && options.researchRequired ? "\nThis request explicitly depends on current external facts. Include two or three distinct, specific researchQuestions covering the most important independent facets of the decision. Do not leave all researchQuestions arrays empty." : ""}${options.responseLanguage === "cs" ? "\nWrite user-facing titles, explanations, questions, recommendations and tasks in Czech. Preserve exact source quotations, source IDs, schema keys and proper names. Search queries may use the language most useful for retrieval." : ""}${attempt ? "\nYour previous response was rejected because it violated the required output contract. Rebuild the complete response from the supplied input. Follow the schema and every ID, cardinality, reference, dependency and evidence rule exactly; do not mention this repair attempt." : ""}`,
           schema: contract.output,
           signal,
         });

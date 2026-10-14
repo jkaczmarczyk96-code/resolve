@@ -18,8 +18,8 @@ export function workerSecret(userId: string, requestId: string) {
   return createHmac("sha256", getAIConfiguration().apiKey).update(`resolve-web-v1:${userId}:${requestId}`).digest("hex");
 }
 export async function reserve(client: SupabaseClient<Database>, userId: string, requestId: string, description: string | null, problemId: string | null) {
-  // Fail before creating records when required providers are not configured.
-  createNebiusProvider(); createTavilyProvider();
+  // Only the model is always required; source-free plans can run without search.
+  createNebiusProvider();
   const secret = workerSecret(userId, requestId);
   const { data, error } = await client.rpc("reserve_web_run", { p_request_id: requestId, p_secret: secret, p_problem_id: problemId, p_description: description }).abortSignal(AbortSignal.timeout(10_000));
   if (error) {
@@ -52,10 +52,10 @@ export async function execute(client: SupabaseClient<Database>, runId: string, s
     const check = () => { if (Date.now() >= deadline || signal.aborted) throw new AIError("TIMEOUT"); };
     check();
     const store = await createFullWorkflowStore(client);
-    const ai = createNebiusProvider(); const research = createTavilyProvider();
+    const ai = createNebiusProvider();
     const result = await runFullWorkflow({ runId, problemId: job.problemId }, {
       ...store, ...(job.resume ? { load: async () => job.resume!.checkpoint } : {}), create: async (value) => { check(); await store.create(value); }, save: async (value, version) => { check(); await store.save(value, version); },
-    }, { ai: { model: ai.model, generate: (request) => { check(); return ai.generate(request); } }, research: { search: (question, parent) => { check(); return research.search(question, parent); } } }, { signal, humanInput: true, preserveInterrupt: true, ...(job.resume ? { resume: { responseId: job.resume.responseId, answers: job.resume.answers } } : job.recover ? { recover: true } : {}) });
+    }, { ai: { model: ai.model, generate: (request) => { check(); return ai.generate(request); } }, research: { search: (question, parent) => { check(); return createTavilyProvider().search(question, parent); } } }, { signal, humanInput: true, preserveInterrupt: true, ...(job.resume ? { resume: { responseId: job.resume.responseId, answers: job.resume.answers } } : job.recover ? { recover: true } : {}) });
     if (result.state === "ACTION_REQUIRED") {
       const paused = await client.rpc("pause_web_run", { p_run_id: runId, p_secret: secret, p_checkpoint: result }).abortSignal(AbortSignal.timeout(10_000));
       if (paused.error || !paused.data) throw new Error("Pause checkpoint failed");
@@ -87,7 +87,7 @@ export async function recover(client: SupabaseClient<Database>, userId: string, 
 }
 
 export async function respond(client: SupabaseClient<Database>, userId: string, problemId: string, runId: string, requestId: string, answers: string[]) {
-  createNebiusProvider(); createTavilyProvider();
+  createNebiusProvider();
   const secret = workerSecret(userId, runId);
   const result = await client.rpc("respond_web_run", { p_run_id: runId, p_problem_id: problemId, p_secret: secret, p_response_id: requestId, p_answers: answers }).abortSignal(AbortSignal.timeout(10_000));
   if (result.error) {

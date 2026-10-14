@@ -54,9 +54,14 @@ function hasGroundedSupport(s: FullSnapshot) {
     Boolean(assessment.supportingQuotes?.some((quote) => assessment.sourceIds.includes(quote.sourceId))),
   );
 }
-/** Policy two refuses to select an option when no claim has a traceable supporting excerpt. */
+/** A plan drawn only from the user's own constraints can be useful without web citations. */
+function isSourceFreePlan(s: FullSnapshot) {
+  return Boolean(s.plan && s.plan.steps.every((step) => step.researchQuestions.length === 0)
+    && s.research && s.research.sources.length === 0 && s.research.output.claims.length === 0);
+}
+/** Require traceable evidence for external claims; allow source-free draft plans. */
 export function guardDecisionEvidence(s: FullSnapshot, decision: NonNullable<FullSnapshot["decision"]>): NonNullable<FullSnapshot["decision"]> {
-  if (s.qualityPolicy !== 2 || hasGroundedSupport(s) || decision.selectedOptionId === null) return decision;
+  if (s.qualityPolicy !== 2 || hasGroundedSupport(s) || isSourceFreePlan(s) || decision.selectedOptionId === null) return decision;
   const reason = "No option can be recommended yet because the saved evidence contains no traceable verified supporting excerpt.";
   return {
     ...decision,
@@ -109,7 +114,7 @@ export const fullSnapshotSchema = base.superRefine((s, ctx) => {
     if (s.decision) {
       validateInput("decision", fullDecisionInput(s)); validateOutput("decision", fullDecisionInput(s), s.decision, []);
       if (s.decision.confidence !== fullConfidence(s, s.decision)) fail();
-      if (s.qualityPolicy === 2 && !hasGroundedSupport(s) && s.decision.selectedOptionId !== null) fail();
+      if (s.qualityPolicy === 2 && !hasGroundedSupport(s) && !isSourceFreePlan(s) && s.decision.selectedOptionId !== null) fail();
     }
     if (s.tasks) { validateInput("tasks", fullTasksInput(s)); validateOutput("tasks", fullTasksInput(s), s.tasks, []); }
   } catch { fail(); }

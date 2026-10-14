@@ -30,6 +30,9 @@ test("submission shows saved progress and routes to requested clarification", as
   await expect(page).toHaveURL(/view=questions/, { timeout: 10_000 });
   await expect(page.getByRole("heading", { name: "Avenli needs your input" })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByLabel("How many people will attend?").fill("Twelve volunteers");
+  await page.reload();
+  await expect(page.getByLabel("How many people will attend?")).toHaveValue("Twelve volunteers");
   await page.screenshot({ path: "test-results/analysis-questions.png", fullPage: true });
 });
 

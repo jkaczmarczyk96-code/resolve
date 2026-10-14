@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trackProductEvent } from "@/lib/product/analytics";
-import { followUpSubmission } from "@/lib/workspace/follow-up";
+import { followUpSubmission, type PriorAnswer } from "@/lib/workspace/follow-up";
 import { webJobSchema } from "@/lib/workspace/contracts";
 import { post } from "./remote";
 import { ui, useCzech } from "./ui-language";
 
-export function FollowUpAnalysis({ goal, unknown, disabled = false }: { goal: string; unknown: string; disabled?: boolean }) {
+export function FollowUpAnalysis({ originalRequest, unknown, priorAnswers = [], disabled = false }: { originalRequest: string; unknown: string; priorAnswers?: PriorAnswer[]; disabled?: boolean }) {
   const router = useRouter();
   const cs = useCzech();
   const lock = useRef(false);
@@ -22,7 +22,7 @@ export function FollowUpAnalysis({ goal, unknown, disabled = false }: { goal: st
     <p className="break-words text-sm leading-relaxed">{unknown}</p>
     <Button className="mt-3" size="sm" variant="outline" disabled={disabled || pending} onClick={async () => {
       if (lock.current) return;
-      const input = followUpSubmission(requestId, goal, unknown);
+      const input = followUpSubmission(requestId, originalRequest, unknown, priorAnswers);
       if (!input.success) { setError("This question cannot be used for a follow-up analysis."); return; }
       lock.current = true; setPending(true); setError("");
       try {

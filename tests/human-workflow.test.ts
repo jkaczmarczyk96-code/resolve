@@ -18,6 +18,7 @@ it("durably pauses before search and resumes the same run with answers available
   const freshDependencies = fullDependencies();
   const result = await runFullWorkflow(request, store, freshDependencies, { humanInput: true, resume: { responseId, answers } });
   expect(result).toMatchObject({ id: paused.id, state: "COMPLETED", revision: 12, intake: paused.intake, human: { responseId, responses: [{ question: paused.human!.questions[0], answer: answers[0] }] } });
+  expect(result.plan?.steps.every((step) => step.userQuestions.length === 0)).toBe(true);
   expect(freshDependencies.ai.generate.mock.calls.map(([call]) => call.name)).toEqual(["planner", "researcher", "verifier", "options", "critic", "decision", "tasks"]);
   for (const index of [0, 3, 4, 6]) expect(freshDependencies.ai.generate.mock.calls[index][0].input).toMatchObject({ problem: { userResponses: result.human!.responses } });
   expect(freshDependencies.ai.generate.mock.calls[5][0].input).toMatchObject({ planningContext: { problem: { userResponses: result.human!.responses } } });
@@ -31,6 +32,16 @@ it("does not pause a sufficiently specified plan", async () => {
   deps.ai.generate.mockImplementation(async (request) => request.name === "planner" ? { steps: outputs.planner.steps.map((step) => ({ ...step, userQuestions: [] })) } : original(request));
   expect((await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps, { humanInput: true })).state).toBe("COMPLETED");
   expect(deps.ai.generate).toHaveBeenCalledTimes(8);
+});
+it("asks only three distinct highest-priority blocking questions instead of failing a long plan", async () => {
+  const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
+  deps.ai.generate.mockImplementation(async (request) => request.name === "planner" ? { steps: [
+    { ...outputs.planner.steps[0], priority: "low", userQuestions: ["What is optional?", "WHAT IS OPTIONAL?"] },
+    { ...outputs.planner.steps[0], id: "step-2", priority: "high", userQuestions: ["When is the exam?", "What field is it?", "How much time is available?", "What materials exist?"] },
+  ] } : original(request));
+  const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps, { humanInput: true });
+  expect(result.state).toBe("ACTION_REQUIRED");
+  expect(result.human?.questions).toEqual(["When is the exam?", "What field is it?", "How much time is available?"]);
 });
 it("refuses mismatched response counts and invalid persisted response mappings without paid continuation", async () => {
   const store = new MemoryFullStore(); const deps = fullDependencies(); const request = workflowRequest();

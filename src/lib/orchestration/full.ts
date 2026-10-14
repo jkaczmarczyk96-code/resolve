@@ -4,6 +4,7 @@ import { runAgent, type AgentDependencies } from "@/lib/ai/agents";
 import { AIError } from "@/lib/ai/errors";
 import { intakeInput, type AgentOutput } from "@/lib/ai/schemas";
 import { searchMany } from "@/lib/ai/research";
+import { ensureResearchQuestions, needsExternalEvidence } from "./research-policy";
 import { WorkflowError, type WorkflowStore } from "./state";
 import { canAdvance, parseFullSnapshot, fullProblem, fullOptionsInput, fullCriticInput, fullDecisionInput, fullTasksInput, fullConfidence, guardDecisionEvidence, type FullState, type FullSnapshot } from "./full-state";
 import type { BasicRequest } from "./basic";
@@ -12,7 +13,6 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
   const request = z.strictObject({ runId: z.uuid(), problemId: z.uuid() }).safeParse(raw);
   if (!request.success) throw new WorkflowError("INVALID_REQUEST");
   if (options.signal?.aborted) throw new AIError("CANCELLED");
-  if (!deps.research) throw new AIError("CONFIGURATION");
   const durable = async <T>(work: () => Promise<T>): Promise<T> => {
     try { return await work(); } catch (error) { throw error instanceof WorkflowError ? error : new WorkflowError("PERSISTENCE"); }
   };
@@ -43,8 +43,12 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       await advance("RESUME", { human: { ...human, responseId: options.resume.responseId, responses: human.questions.map((question, index) => ({ question, answer: options.resume!.answers[index] })) } });
     }
     if (current.state === "RESUME") {
-      const replanned = await runAgent("planner", { problem: fullProblem(current) }, deps, agentOptions);
-      await advance("RESEARCH", { plan: replanned.output });
+      const researchRequired = needsExternalEvidence(problem.description, current.intake!);
+      const replanned = await runAgent("planner", { problem: fullProblem(current) }, deps, { ...agentOptions, researchRequired });
+      // One durable clarification has already happened. Further questions belong in
+      // the decision's unresolved unknowns, not in another unanswered plan form.
+      const plan = ensureResearchQuestions(replanned.output, current.intake!, researchRequired);
+      await advance("RESEARCH", { plan: { steps: plan.steps.map((step) => ({ ...step, userQuestions: [] })) } });
     }
     if (current.state === "PENDING") {
       await advance("INTAKE");
@@ -54,13 +58,17 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       await advance("PLAN", { intake: understood.output });
     }
     if (current.state === "PLAN") {
-      const planned = await runAgent("planner", { problem: fullProblem(current) }, deps, agentOptions);
-      await advance("RESEARCH", { plan: planned.output });
+      const researchRequired = needsExternalEvidence(problem.description, current.intake!);
+      const planned = await runAgent("planner", { problem: fullProblem(current) }, deps, { ...agentOptions, researchRequired });
+      await advance("RESEARCH", { plan: ensureResearchQuestions(planned.output, current.intake!, researchRequired) });
     }
     if (current.state === "RESEARCH") {
       if (options.humanInput && !current.human) {
-        const questions = [...new Set(current.plan!.steps.flatMap((step) => step.userQuestions))];
-        if (questions.length > 8) throw new AIError("INVALID_OUTPUT");
+        const priority = { high: 0, medium: 1, low: 2 };
+        const questions = [...new Map([...current.plan!.steps]
+          .sort((a, b) => priority[a.priority] - priority[b.priority])
+          .flatMap((step) => step.userQuestions)
+          .map((question) => [question.trim().toLocaleLowerCase(), question] as const)).values()].slice(0, 3);
         if (questions.length) {
           await advance("ACTION_REQUIRED", { human: { questions, responseId: null, responses: null } });
           return current;
@@ -69,15 +77,28 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       // Research at most three distinct, highest-priority questions without adding model calls.
       const priority = { high: 0, medium: 1, low: 2 };
       const planned=[...current.plan!.steps].sort((a,b)=>priority[a.priority]-priority[b.priority]).flatMap((step)=>step.researchQuestions);
-      const questions=[...new Set(planned.length ? planned : [current.intake!.goal])].slice(0,3);
-      const question=questions.length===1 ? questions[0] : questions.map((item,index)=>`${index+1}. ${item.slice(0,620)}`).join("\n");
-      const researched=await runAgent("researcher",{ question },{ ...deps,research:{ search:(_combined,signal)=>searchMany(deps.research!,questions,signal) } },agentOptions);
-      await advance("VERIFY",{ research:{ question,questions,output:researched.output,sources:researched.sources } });
+      const questions=[...new Set(planned)].slice(0,3);
+      if (!questions.length) {
+        await advance("VERIFY", { research: {
+          question: current.intake!.goal,
+          output: { summary: agentOptions.responseLanguage === "cs"
+            ? "Pro tento návrh nebylo potřeba vyhledávat externí fakta. Plán vychází z údajů uživatele a je určen k jeho posouzení."
+            : "No external facts were needed for this draft plan. It is based on the user's description and should be reviewed before use.", claims: [], limitations: [] },
+          sources: [],
+        } });
+      } else {
+        if (!deps.research) throw new AIError("CONFIGURATION");
+        const question=questions.length===1 ? questions[0] : questions.map((item,index)=>`${index+1}. ${item.slice(0,620)}`).join("\n");
+        const researched=await runAgent("researcher",{ question },{ ...deps,research:{ search:(_combined,signal)=>searchMany(deps.research!,questions,signal) } },agentOptions);
+        await advance("VERIFY",{ research:{ question,questions,output:researched.output,sources:researched.sources } });
+      }
     }
     if (current.state === "VERIFY") {
       const evidence = { claims: current.research!.output.claims, sources: current.research!.sources };
       let verification: AgentOutput<"verifier">;
-      try {
+      if (!evidence.claims.length && !evidence.sources.length) {
+        verification = { assessments: [], sourceProfiles: [] };
+      } else try {
         verification = (await runAgent("verifier", evidence, deps, agentOptions)).output;
       } catch (error) {
         if (!(error instanceof AIError) || error.code !== "INVALID_OUTPUT") throw error;

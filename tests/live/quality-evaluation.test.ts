@@ -150,6 +150,24 @@ const scenarios = [
   },
 ] as const;
 
+it("creates a concrete Czech study schedule without re-asking the field of study", async () => {
+  const description = "Potřebuji konkrétní čtyřtýdenní harmonogram učení na státnice z historie. Můj obor je historie, témata jsou antika, středověk a novověk. Zkouška je za čtyři týdny. Denní časovou kapacitu jsem zatím neurčil; zvol rozumný výchozí předpoklad, který později upravím. Chci postup po týdnech, opakování a procvičení otázek. Jde o pracovní studijní plán podle mých údajů, bez hledání aktuálních předpisů nebo oficiálních požadavků. Nechci jen radu, jak plán vytvořit; napiš samotný plán.";
+  const result = await runFullWorkflow(
+    { runId: randomUUID(), problemId: randomUUID() },
+    new EvaluationStore(description),
+    { ai: createNebiusProvider() },
+    { humanInput: true },
+  );
+  console.info(JSON.stringify({ state: result.state, error: result.error, questions: result.human?.questions, plan: result.plan?.steps.map((step) => step.title), recommendation: result.decision?.recommendation, tasks: result.tasks?.tasks.map((task) => task.title) }));
+  expect(result.state).toBe("COMPLETED");
+  expect(result.human).toBeUndefined();
+  expect(result.plan?.steps.every((step) => step.researchQuestions.length === 0)).toBe(true);
+  expect(result.research?.sources).toEqual([]);
+  expect(result.decision?.selectedOptionId).not.toBeNull();
+  expect(result.tasks?.tasks.length).toBeGreaterThanOrEqual(3);
+  expect(result.tasks?.tasks.some((task) => /antik|středověk|novověk/i.test(`${task.title} ${task.description}`))).toBe(true);
+});
+
 it.each(scenarios)("scores the complete $name workflow", async ({ description }) => {
   const result = await runFullWorkflow(
     { runId: randomUUID(), problemId: randomUUID() },
