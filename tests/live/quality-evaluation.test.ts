@@ -195,6 +195,38 @@ it.each([
   for (const detail of expected) expect(result.tasks?.solution?.content).toMatch(detail);
 });
 
+it("returns a verifiable path when current facts cannot be retrieved", async () => {
+  const description = "Zjisti aktuální cenu základního vstupného do Národního muzea v Praze z oficiálního zdroje. Pokud se zdroj nepodaří získat, cenu nevymýšlej; napiš konkrétní postup, jak ji ověřit a co mám udělat dál.";
+  const result = await runFullWorkflow(
+    { runId: randomUUID(), problemId: randomUUID() },
+    new EvaluationStore(description),
+    { ai: createNebiusProvider(), research: { search: async () => [] } },
+    { humanInput: true },
+  );
+  console.info(JSON.stringify({ state: result.state, error: result.error, lastCompletedStage: result.events.at(-2)?.state, decision: result.decision, solution: result.tasks?.solution, tasks: result.tasks?.tasks.map((task) => task.title) }));
+  expect(result.state).toBe("COMPLETED");
+  expect(result.decision?.selectedOptionId).toBeNull();
+  expect(result.tasks?.solution?.content.length).toBeGreaterThan(40);
+  expect(result.tasks?.tasks.length).toBeGreaterThan(0);
+  expect(result.tasks?.solution?.content).toMatch(/ověř|zdroj|web|kontakt/i);
+});
+
+it("gives practical troubleshooting rather than a generic research plan", async () => {
+  const description = "Domácí tiskárna najednou netiskne z notebooku. Tiskárna je zapnutá, papír v zásobníku je a na displeji není chyba. Napiš mi bezpečný postup kontroly v logickém pořadí, abych zjistil příčinu a mohl tisk obnovit; značku ani model neznám. Můžeš uvést podmíněné kroky podle výsledku kontroly. Nepotřebuji aktuální specifikace ani vyhledávání na webu.";
+  const result = await runFullWorkflow(
+    { runId: randomUUID(), problemId: randomUUID() },
+    new EvaluationStore(description),
+    { ai: createNebiusProvider() },
+    { humanInput: true },
+  );
+  console.info(JSON.stringify({ state: result.state, error: result.error, outcome: result.intake?.requestedOutcome, solution: result.tasks?.solution }));
+  expect(result.state).toBe("COMPLETED");
+  expect(result.human).toBeUndefined();
+  expect(result.research?.sources).toEqual([]);
+  expect(result.tasks?.solution?.content).toMatch(/tiskárn|printer/i);
+  expect(result.tasks?.solution?.content).toMatch(/front|připojen|restart|zkušeb|testovac/i);
+});
+
 it.each(scenarios)("scores the complete $name workflow", async ({ description }) => {
   const result = await runFullWorkflow(
     { runId: randomUUID(), problemId: randomUUID() },

@@ -7,6 +7,7 @@ import { AIError } from "@/lib/ai/errors";
 import { MemoryFullStore, fullDependencies } from "./fixtures/full-workflow";
 import { workflowRequest } from "./fixtures/workflow";
 import { inputs, outputs } from "./fixtures/ai";
+const blockedOutput = { solution: { title: "Plan to resolve the unknown", content: "The venue price is not verified. Ask for a written quote, compare it with the EUR 500 budget, and decide only after the cost is known." }, tasks: [{ ...outputs.tasks.tasks[0], optionId: null }] };
 
 it("delivers a source-free study plan without forcing research or a clarification pause", async () => {
   const store = new MemoryFullStore(); const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
@@ -85,7 +86,7 @@ it("requires search only when the plan needs external facts and stops on search 
   expect(await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps)).toMatchObject({ state: "FAILED", error: "AUTHENTICATION" });
   expect(deps.ai.generate).toHaveBeenCalledTimes(2);
 });
-it("can finish with no evidence, no viable option and no proposed tasks without inventing results", async () => {
+it("returns a concrete verification plan when no evidence supports a decision", async () => {
   const deps = fullDependencies(); const generate = deps.ai.generate.getMockImplementation()!;
   deps.research.search.mockResolvedValue([]);
   deps.ai.generate.mockImplementation(async (request) => {
@@ -93,18 +94,36 @@ it("can finish with no evidence, no viable option and no proposed tasks without 
     if (request.name === "verifier") return { assessments: [] };
     if (request.name === "options") return { options: [], limitations: ["Insufficient information"] };
     if (request.name === "decision") return { ...outputs.decision, selectedOptionId: null, supportingEvidence: [], confidence: "low" };
-    if (request.name === "tasks") return { tasks: [] };
+    if (request.name === "tasks") return blockedOutput;
     return generate(request);
   });
   const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps);
   expect(result.state).toBe("COMPLETED"); expect(result.decision?.selectedOptionId).toBeNull();
-  expect(result.decision?.supportingEvidence).toEqual([]); expect(result.tasks?.tasks).toEqual([]);
+  expect(result.decision?.supportingEvidence).toEqual([]); expect(result.tasks?.tasks).toHaveLength(1);
+  expect(result.tasks?.solution?.content).toContain("not verified");
+  expect(result.outcomePolicy).toBe(1);
+  // Saved runs from before the new outcome contract remain readable.
+  expect(parseFullSnapshot({ ...result, outcomePolicy: undefined, tasks: { tasks: [] } }).state).toBe("COMPLETED");
+});
+it("keeps an unresolved case useful when the final model response is malformed", async () => {
+  const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
+  deps.ai.generate.mockImplementation(async (request) => {
+    if (request.name === "decision") return { ...outputs.decision, selectedOptionId: null, supportingEvidence: [], confidence: "low" };
+    if (request.name === "tasks") return { tasks: [] };
+    return original(request);
+  });
+  const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps);
+  expect(result.state).toBe("COMPLETED");
+  expect(result.decision?.selectedOptionId).toBeNull();
+  expect(result.tasks?.solution?.content).toContain(outputs.planner.steps[0].researchQuestions[0]);
+  expect(result.tasks?.tasks.length).toBeGreaterThan(0);
+  expect(deps.ai.generate.mock.calls.filter(([request]) => request.name === "tasks")).toHaveLength(2);
 });
 it("keeps claims unverified and abstains when both verifier responses violate the contract", async () => {
   const deps = fullDependencies(); const generate = deps.ai.generate.getMockImplementation()!;
   deps.ai.generate.mockImplementation(async (request) => {
     if (request.name === "verifier") return { assessments: [] };
-    if (request.name === "tasks") return { tasks: [{ ...outputs.tasks.tasks[0], optionId: null }] };
+    if (request.name === "tasks") return blockedOutput;
     return generate(request);
   });
   const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps);
@@ -118,7 +137,7 @@ it("abstains deterministically when no claim has a grounded supporting excerpt",
   const deps = fullDependencies(); const generate = deps.ai.generate.getMockImplementation()!;
   deps.ai.generate.mockImplementation(async (request) => {
     if (request.name === "verifier") return { ...outputs.verifier, assessments: outputs.verifier.assessments.map((item) => ({ ...item, supportingQuotes: [] })) };
-    if (request.name === "tasks") return { tasks: [{ ...outputs.tasks.tasks[0], optionId: null }] };
+    if (request.name === "tasks") return blockedOutput;
     return generate(request);
   });
   const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps);

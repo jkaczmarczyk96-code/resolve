@@ -59,7 +59,7 @@ export const decisionOutput = z.strictObject({
 });
 export const optionsInput = z.strictObject({ problem: clarifiedProblem, plan: plannerOutput, sources: sourcesSchema, claims: researchOutput.shape.claims, verification: verifierOutput });
 export const optionsOutput = z.strictObject({ options: optionsSchema, limitations: texts });
-export const tasksInput = z.strictObject({ problem: clarifiedProblem, plan: plannerOutput, options: optionsSchema, decision: decisionOutput });
+export const tasksInput = z.strictObject({ problem: clarifiedProblem, plan: plannerOutput, options: optionsSchema, decision: decisionOutput, evidenceGaps: texts.optional() });
 export const tasksOutput = z.strictObject({ solution: z.strictObject({ title: text.max(160), content: z.string().trim().min(40).max(10000) }).optional(), tasks: z.array(z.strictObject({
   id, title: text, description: text, priority: z.enum(["high", "medium", "low"]),
   dependencies: ids, planStepId: id.nullable(), optionId: id.nullable(), status: z.literal("proposed"),

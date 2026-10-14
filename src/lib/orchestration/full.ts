@@ -6,7 +6,7 @@ import { intakeInput, type AgentOutput } from "@/lib/ai/schemas";
 import { searchMany } from "@/lib/ai/research";
 import { ensureResearchQuestions, needsExternalEvidence } from "./research-policy";
 import { WorkflowError, type WorkflowStore } from "./state";
-import { canAdvance, parseFullSnapshot, fullProblem, fullOptionsInput, fullCriticInput, fullDecisionInput, fullTasksInput, fullConfidence, guardDecisionEvidence, type FullState, type FullSnapshot } from "./full-state";
+import { canAdvance, parseFullSnapshot, fullProblem, fullOptionsInput, fullCriticInput, fullDecisionInput, fullTasksInput, fullConfidence, guardDecisionEvidence, fallbackUnresolvedPlan, type FullState, type FullSnapshot } from "./full-state";
 import type { BasicRequest } from "./basic";
 
 export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<FullSnapshot>, deps: AgentDependencies, options: { signal?: AbortSignal; humanInput?: boolean; recover?: boolean; preserveInterrupt?: boolean; resume?: { responseId: string; answers: string[] } } = {}): Promise<FullSnapshot> {
@@ -20,7 +20,7 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
   const input = intakeInput.safeParse({ description: problem.description });
   if (!input.success) throw new AIError("INVALID_INPUT");
   const agentOptions = { ...options, responseLanguage: /[ěščřžýáíéúůďťň]|\b(chci|potrebuji|prosim|vybrat|najdi|porovnej|jaky|ktery)\b/i.test(problem.description) ? "cs" as const : "en" as const };
-  let current = options.resume || options.recover ? parseFullSnapshot(await durable(() => store.load(request.data.runId))) : parseFullSnapshot({ qualityPolicy: 2, version: 2, id: request.data.runId, problemId: request.data.problemId, description: input.data.description,
+  let current = options.resume || options.recover ? parseFullSnapshot(await durable(() => store.load(request.data.runId))) : parseFullSnapshot({ qualityPolicy: 2, outcomePolicy: 1, version: 2, id: request.data.runId, problemId: request.data.problemId, description: input.data.description,
     model: deps.ai.model, state: "PENDING", revision: 0, intake: null, plan: null, research: null, verification: null, options: null, critique: null, decision: null, tasks: null, error: null,
     events: [{ state: "PENDING", at: new Date().toISOString() }],
   });
@@ -47,7 +47,7 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       const replanned = await runAgent("planner", { problem: fullProblem(current) }, deps, { ...agentOptions, researchRequired });
       // One durable clarification has already happened. Further questions belong in
       // the decision's unresolved unknowns, not in another unanswered plan form.
-      const plan = ensureResearchQuestions(replanned.output, current.intake!, researchRequired);
+      const plan = ensureResearchQuestions(replanned.output, current.intake!, researchRequired, problem.description);
       await advance("RESEARCH", { plan: { steps: plan.steps.map((step) => ({ ...step, userQuestions: [] })) } });
     }
     if (current.state === "PENDING") {
@@ -63,7 +63,7 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
     if (current.state === "PLAN") {
       const researchRequired = needsExternalEvidence(problem.description, current.intake!);
       const planned = await runAgent("planner", { problem: fullProblem(current) }, deps, { ...agentOptions, researchRequired });
-      await advance("RESEARCH", { plan: ensureResearchQuestions(planned.output, current.intake!, researchRequired) });
+      await advance("RESEARCH", { plan: ensureResearchQuestions(planned.output, current.intake!, researchRequired, problem.description) });
     }
     if (current.state === "RESEARCH") {
       if (options.humanInput && !current.human) {
@@ -131,8 +131,13 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       await advance("TASKS", { decision: { ...guarded, confidence: fullConfidence(current, guarded) } });
     }
     if (current.state === "TASKS") {
-      const tasks = await runAgent("tasks", fullTasksInput(current), deps, agentOptions);
-      await advance("COMPLETED", { tasks: tasks.output });
+      let tasks: AgentOutput<"tasks">;
+      try { tasks = (await runAgent("tasks", fullTasksInput(current), deps, agentOptions)).output; }
+      catch (error) {
+        if (!(error instanceof AIError) || error.code !== "INVALID_OUTPUT" || current.decision?.selectedOptionId !== null) throw error;
+        tasks = fallbackUnresolvedPlan(current, agentOptions.responseLanguage);
+      }
+      await advance("COMPLETED", { tasks });
     }
   } catch (error) {
     if (error instanceof WorkflowError) throw error;

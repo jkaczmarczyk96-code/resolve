@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { evidenceQuality } from "@/lib/ai/quality";
 import { snapshotSchema, WorkflowError } from "./state";
-import { researchOutput, sourcesSchema, verifierOutput, optionsOutput, criticOutput, tasksOutput, userResponsesSchema, type AgentInput } from "@/lib/ai/schemas";
+import { researchOutput, sourcesSchema, verifierOutput, optionsOutput, criticOutput, tasksOutput, userResponsesSchema, type AgentInput, type AgentOutput } from "@/lib/ai/schemas";
 import { validateInput, validateOutput } from "@/lib/ai/integrity";
 
 export const fullStates = ["PENDING", "INTAKE", "PLAN", "RESEARCH", "VERIFY", "OPTIONS", "CRITIQUE", "DECIDE", "TASKS", "COMPLETED"] as const;
@@ -17,6 +17,7 @@ export function canAdvance(from: FullState, to: FullState) {
 }
 const base = z.strictObject({
   qualityPolicy: z.union([z.literal(1), z.literal(2)]).optional(),
+  outcomePolicy: z.literal(1).optional(),
   ...snapshotSchema.shape, version: z.literal(2), state: fullStateSchema, revision: z.number().int().min(0).max(12),
   events: z.array(z.strictObject({ state: fullStateSchema, at: z.iso.datetime() })).min(1).max(13),
   human: z.strictObject({ questions: z.array(z.string().trim().min(1).max(2000)).min(1).max(8), responseId: z.uuid().nullable(), responses: userResponsesSchema.nullable() }).optional(),
@@ -46,7 +47,23 @@ export function fullDecisionInput(s: FullSnapshot): AgentInput<"decision"> {
   };
 }
 export function fullTasksInput(s: FullSnapshot): AgentInput<"tasks"> {
-  return { problem: fullProblem(s), plan: required(s.plan), options: required(s.options).options, decision: required(s.decision) };
+  return { problem: fullProblem(s), plan: required(s.plan), options: required(s.options).options, decision: required(s.decision),
+    evidenceGaps: required(s.research).output.limitations };
+}
+/** Preserve a concrete, limited path when an unresolved task response is malformed. */
+export function fallbackUnresolvedPlan(s: FullSnapshot, language: "cs" | "en"): AgentOutput<"tasks"> {
+  const questions = s.plan?.steps.flatMap((step) => [...step.researchQuestions, ...step.userQuestions]) ?? [];
+  const gaps = [...new Set([...questions, ...(s.decision?.unresolvedUnknowns ?? []), ...(s.research?.output.limitations ?? [])])].filter(Boolean).slice(0, 3);
+  const checks = gaps.length ? gaps : [s.plan?.steps[0]?.description ?? s.intake?.goal ?? s.description];
+  const intro = language === "cs"
+    ? "Konečné řešení teď nelze bezpečně potvrdit. Podle dosavadního zadání je potřeba ověřit tyto konkrétní body:"
+    : "A final solution cannot yet be confirmed safely. Based on the request, verify these specific points:";
+  return {
+    solution: { title: language === "cs" ? "Postup k dokončení řešení" : "Path to a solution",
+      content: `${intro}\n${checks.map((item, index) => `${index + 1}. ${item.slice(0, 1900)}`).join("\n")}\n${language === "cs" ? "Po ověření pokračujte v rozhodnutí podle zjištěných údajů; nepovažujte neověřené údaje za potvrzené." : "Continue the decision with the verified details; do not treat unverified facts as confirmed."}` },
+    tasks: checks.map((item, index) => ({ id: `verify-${index + 1}`, title: `${language === "cs" ? "Ověřit" : "Verify"}: ${item.slice(0, 120)}`,
+      description: item.slice(0, 1900), priority: "high", dependencies: [], planStepId: null, optionId: null, status: "proposed" })),
+  };
 }
 function hasGroundedSupport(s: FullSnapshot) {
   return (s.verification?.assessments ?? []).some((assessment) =>
@@ -116,7 +133,7 @@ export const fullSnapshotSchema = base.superRefine((s, ctx) => {
       if (s.decision.confidence !== fullConfidence(s, s.decision)) fail();
       if (s.qualityPolicy === 2 && !hasGroundedSupport(s) && !isSourceFreePlan(s) && s.decision.selectedOptionId !== null) fail();
     }
-    if (s.tasks) { validateInput("tasks", fullTasksInput(s)); validateOutput("tasks", fullTasksInput(s), s.tasks, []); }
+    if (s.tasks) { validateInput("tasks", fullTasksInput(s)); validateOutput("tasks", fullTasksInput(s), s.tasks, [], s.outcomePolicy === 1); }
   } catch { fail(); }
 });
 export function parseFullSnapshot(value: unknown): FullSnapshot {

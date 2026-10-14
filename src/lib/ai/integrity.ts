@@ -79,13 +79,14 @@ export function validateInput(name: AgentName, input: unknown) {
     if ("planningContext" in value && value.planningContext) validatePlan(value.planningContext.plan, true);
   }
 }
-export function validateOutput(name: AgentName, input: unknown, output: unknown, sources: Source[]) {
+export function validateOutput(name: AgentName, input: unknown, output: unknown, sources: Source[], requireOutcome = true) {
   if (name === "options") unique(optionsOutput.parse(output).options.map((item) => item.id));
   if (name === "tasks") {
     const context = tasksInput.parse(input);
     const { tasks, solution } = tasksOutput.parse(output);
-    if (context.problem.requestedOutcome && context.decision.selectedOptionId !== null) {
+    if (requireOutcome && context.problem.requestedOutcome) {
       assert(Boolean(solution));
+      if (context.decision.selectedOptionId === null) assert(tasks.length > 0);
       if (solution) {
         const weeklySteps = context.plan.steps.map((step) => step.title.match(/(?:week|týden)\s*(\d+)/i)?.[1]).filter((value): value is string => Boolean(value));
         if (weeklySteps.length >= 2) {

@@ -59,6 +59,13 @@ it("requires the actual solution when intake identifies a deliverable", async ()
   const complete = dependencies({ ...outputs.tasks, solution: { title: "Invitation", content: "Please join us for the community event. We will confirm the date and location before sending this invitation." } });
   await expect(runAgent("tasks", input, complete)).resolves.toMatchObject({ output: { solution: { title: "Invitation" } } });
 });
+it("requires a useful plan and a next step when a safe decision is unavailable", async () => {
+  const input = { ...inputs.tasks, decision: { ...inputs.tasks.decision, selectedOptionId: null }, evidenceGaps: ["Venue price is not verified"] };
+  const missing = dependencies({ tasks: [] });
+  await expect(runAgent("tasks", input, missing)).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
+  const complete = dependencies({ solution: { title: "Verify the venue", content: "The venue cost is unknown. Request a written quote and compare it with the EUR 500 limit before booking." }, tasks: [{ ...outputs.tasks.tasks[0], optionId: null }] });
+  await expect(runAgent("tasks", input, complete)).resolves.toMatchObject({ output: { solution: { title: "Verify the venue" } } });
+});
 it("rejects a weekly solution that omits periods already present in the plan", async () => {
   const input = { ...inputs.tasks, problem: { ...inputs.tasks.problem, requestedOutcome: "A two-week schedule" }, plan: { steps: [
     { ...inputs.tasks.plan.steps[0], title: "Week 1: preparation" },
