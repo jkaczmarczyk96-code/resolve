@@ -83,7 +83,16 @@ export function validateOutput(name: AgentName, input: unknown, output: unknown,
   if (name === "options") unique(optionsOutput.parse(output).options.map((item) => item.id));
   if (name === "tasks") {
     const context = tasksInput.parse(input);
-    const { tasks } = tasksOutput.parse(output);
+    const { tasks, solution } = tasksOutput.parse(output);
+    if (context.problem.requestedOutcome && context.decision.selectedOptionId !== null) {
+      assert(Boolean(solution));
+      if (solution) {
+        const weeklySteps = context.plan.steps.map((step) => step.title.match(/(?:week|týden)\s*(\d+)/i)?.[1]).filter((value): value is string => Boolean(value));
+        if (weeklySteps.length >= 2) {
+          for (const week of new Set(weeklySteps)) assert(new RegExp(`(?:week|týden)\\s*${week}\\b|\\b${week}\\.?\\s*(?:week|týden)\\b`, "i").test(solution.content));
+        }
+      }
+    }
     if (tasks.length) validatePlan({ steps: tasks.map((item) => ({ id: item.id, title: item.title, description: item.description, priority: item.priority, dependencies: item.dependencies, researchQuestions: [], userQuestions: [] })) });
     for (const task of tasks) {
       assert(task.planStepId === null || context.plan.steps.some((step) => step.id === task.planStepId));

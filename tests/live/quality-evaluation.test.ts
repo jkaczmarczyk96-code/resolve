@@ -164,9 +164,35 @@ it("creates a concrete Czech study schedule without re-asking the field of study
   expect(result.plan?.steps.every((step) => step.researchQuestions.length === 0)).toBe(true);
   expect(result.research?.sources).toEqual([]);
   expect(result.decision?.selectedOptionId).not.toBeNull();
-  expect(result.tasks?.tasks.length).toBeGreaterThanOrEqual(3);
-  expect([result.decision?.recommendation, ...result.tasks!.tasks.map((task) => `${task.title} ${task.description}`)].join(" ")).toMatch(/týdn|week|weekly/i);
-  expect(result.tasks?.tasks.some((task) => /antik|středověk|novověk/i.test(`${task.title} ${task.description}`))).toBe(true);
+  expect(result.tasks?.solution?.content).toMatch(/týden|týdny|week|weekly/i);
+  expect(result.tasks?.solution?.content).toMatch(/antik|středověk|novověk/i);
+  expect(result.tasks?.solution?.content).toMatch(/1\.?\s*týden|týden\s*1/i);
+  expect(result.tasks?.solution?.content).toMatch(/4\.?\s*týden|týden\s*4/i);
+});
+
+it.each([
+  {
+    name: "a finished Czech email draft",
+    description: "Napiš mi přímo krátký slušný e-mail vyučujícímu profesoru Novákovi. Předmět: historie. Chci požádat o konzultaci k tématům státnic v příštím týdnu a mohu v úterý nebo ve čtvrtek odpoledne. Podepiš jej Jana. Nechci plán psaní ani seznam úkolů, ale hotový e-mail k mé kontrole. Nemusíš vyhledávat externí fakta.",
+    expected: [/Novák/i, /konzultac/i, /úter|čtvrte/i, /Jana/i],
+  },
+  {
+    name: "a worked budget calculation",
+    description: "Spočítej mi přímo měsíční rozpočet podle těchto čísel: příjem 32 000 Kč, nájem 12 000 Kč, jídlo 6 000 Kč, doprava 2 000 Kč a ostatní výdaje 3 000 Kč. Ukaž mezisoučet výdajů, zbývající částku a stručně poraď, kolik z ní dát stranou, aniž bys vydával předpoklady za zaručená fakta. Nechci návod, jak rozpočet teprve sestavit. Nepotřebuji externí údaje.",
+    expected: [/23\s*000|23000/, /9\s*000|9000/],
+  },
+])("produces $name instead of a generic process", async ({ description, expected }) => {
+  const result = await runFullWorkflow(
+    { runId: randomUUID(), problemId: randomUUID() },
+    new EvaluationStore(description),
+    { ai: createNebiusProvider() },
+    { humanInput: true },
+  );
+  console.info(JSON.stringify({ state: result.state, error: result.error, lastCompletedStage: result.events.at(-2)?.state, outcome: result.intake?.requestedOutcome, decision: result.decision?.recommendation, solution: result.tasks?.solution, questions: result.human?.questions }));
+  expect(result.state).toBe("COMPLETED");
+  expect(result.human).toBeUndefined();
+  expect(result.research?.sources).toEqual([]);
+  for (const detail of expected) expect(result.tasks?.solution?.content).toMatch(detail);
 });
 
 it.each(scenarios)("scores the complete $name workflow", async ({ description }) => {

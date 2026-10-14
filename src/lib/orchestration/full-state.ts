@@ -26,7 +26,7 @@ const base = z.strictObject({
 export type FullSnapshot = z.infer<typeof base>;
 function required<T>(value: T | null): T { if (value === null) throw new WorkflowError("INVALID_CHECKPOINT"); return value; }
 export function fullProblem(s: FullSnapshot): AgentInput<"planner">["problem"] {
-  return { ...required(s.intake), ...(s.human?.responses ? { userResponses: s.human.responses } : {}) };
+  return { ...required(s.intake), originalRequest: s.description, ...(s.human?.responses ? { userResponses: s.human.responses } : {}) };
 }
 export function fullOptionsInput(s: FullSnapshot): AgentInput<"options"> {
   const research = required(s.research);

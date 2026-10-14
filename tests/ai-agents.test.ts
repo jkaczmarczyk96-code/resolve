@@ -52,6 +52,23 @@ it("requests Czech user-facing output without translating evidence identifiers",
   expect(deps.ai.generate.mock.calls[0][0].instructions).toContain("Write user-facing titles, explanations, questions, recommendations and tasks in Czech");
   expect(deps.ai.generate.mock.calls[0][0].instructions).toContain("Preserve exact source quotations, source IDs");
 });
+it("requires the actual solution when intake identifies a deliverable", async () => {
+  const input = { ...inputs.tasks, problem: { ...inputs.tasks.problem, requestedOutcome: "A written invitation" } };
+  const incomplete = dependencies({ tasks: outputs.tasks.tasks });
+  await expect(runAgent("tasks", input, incomplete)).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
+  const complete = dependencies({ ...outputs.tasks, solution: { title: "Invitation", content: "Please join us for the community event. We will confirm the date and location before sending this invitation." } });
+  await expect(runAgent("tasks", input, complete)).resolves.toMatchObject({ output: { solution: { title: "Invitation" } } });
+});
+it("rejects a weekly solution that omits periods already present in the plan", async () => {
+  const input = { ...inputs.tasks, problem: { ...inputs.tasks.problem, requestedOutcome: "A two-week schedule" }, plan: { steps: [
+    { ...inputs.tasks.plan.steps[0], title: "Week 1: preparation" },
+    { ...inputs.tasks.plan.steps[0], id: "step-2", title: "Week 2: rehearsal", dependencies: ["step-1"] },
+  ] } };
+  const missing = dependencies({ ...outputs.tasks, solution: { title: "Schedule", content: "Week 1: prepare materials and practise each day; the rest follows in the plan." } });
+  await expect(runAgent("tasks", input, missing)).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
+  const complete = dependencies({ ...outputs.tasks, solution: { title: "Schedule", content: "Week 1: prepare materials and practise daily. Week 2: rehearse twice and review mistakes." } });
+  await expect(runAgent("tasks", input, complete)).resolves.toMatchObject({ output: { solution: { title: "Schedule" } } });
+});
 it("rejects fabricated source IDs and model-generated URLs", async () => {
   await expect(runAgent("researcher", inputs.researcher, dependencies({ ...outputs.researcher, claims: [{ id: "c", statement: "Invented", sourceIds: ["invented-source"] }] }))).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
   await expect(runAgent("researcher", inputs.researcher, dependencies({ ...outputs.researcher, sources: [{ url: "https://fake.example" }] }))).rejects.toMatchObject({ code: "INVALID_OUTPUT" });

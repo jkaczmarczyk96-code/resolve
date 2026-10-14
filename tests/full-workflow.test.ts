@@ -44,6 +44,10 @@ it("runs all eight stages in order with actual upstream data and durable checkpo
   expect(deps.ai.generate.mock.calls[4][0].input).toMatchObject({ claims: outputs.researcher.claims, verification: outputs.verifier });
   expect(deps.ai.generate.mock.calls[6][0].input).toMatchObject({ options: outputs.options.options, critique: outputs.critic });
   expect(deps.ai.generate.mock.calls[7][0].input).toMatchObject({ decision: result.decision });
+  for (const name of ["planner", "options", "critic", "tasks"]) {
+    const request = deps.ai.generate.mock.calls.find(([item]) => item.name === name)?.[0];
+    expect((request?.input as { problem: { originalRequest: string } }).problem.originalRequest).toBe(inputs.intake.description);
+  }
   expect(result.tasks?.tasks.every((item) => item.status === "proposed")).toBe(true);
   expect(await store.load(request.runId)).toEqual(result);
 });

@@ -55,7 +55,10 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
     }
     if (current.state === "INTAKE") {
       const understood = await runAgent("intake", input.data, deps, agentOptions);
-      await advance("PLAN", { intake: understood.output });
+      // Older checkpoints may omit this field, but every new run needs an
+      // explicit outcome contract so the final stage cannot return tasks alone.
+      const requestedOutcome = understood.output.requestedOutcome ?? input.data.description.slice(0, 2000);
+      await advance("PLAN", { intake: { ...understood.output, requestedOutcome } });
     }
     if (current.state === "PLAN") {
       const researchRequired = needsExternalEvidence(problem.description, current.intake!);

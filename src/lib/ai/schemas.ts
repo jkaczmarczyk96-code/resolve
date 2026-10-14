@@ -14,10 +14,11 @@ export const intakeInput = z.strictObject({ description: z.string().trim().min(2
 export const intakeOutput = z.strictObject({
   title: text.max(120), goal: text, constraints: texts, knownFacts: texts,
   assumptions: texts, unknowns: texts,
+  requestedOutcome: text.optional(), successCriteria: texts.optional(),
   category: z.enum(["travel", "relocation", "product", "other"]), initialAssessment: text,
 });
 export const userResponsesSchema = z.array(z.strictObject({ question: text, answer: z.string().trim().min(1).max(1200) })).min(1).max(8);
-export const clarifiedProblem = intakeOutput.extend({ userResponses: userResponsesSchema.optional() });
+export const clarifiedProblem = intakeOutput.extend({ originalRequest: z.string().trim().min(20).max(12000).optional(), userResponses: userResponsesSchema.optional() });
 export const plannerInput = z.strictObject({ problem: clarifiedProblem });
 export const plannerOutput = z.strictObject({ steps: z.array(z.strictObject({
   id, title: text, description: text, priority: z.enum(["high", "medium", "low"]),
@@ -59,7 +60,7 @@ export const decisionOutput = z.strictObject({
 export const optionsInput = z.strictObject({ problem: clarifiedProblem, plan: plannerOutput, sources: sourcesSchema, claims: researchOutput.shape.claims, verification: verifierOutput });
 export const optionsOutput = z.strictObject({ options: optionsSchema, limitations: texts });
 export const tasksInput = z.strictObject({ problem: clarifiedProblem, plan: plannerOutput, options: optionsSchema, decision: decisionOutput });
-export const tasksOutput = z.strictObject({ tasks: z.array(z.strictObject({
+export const tasksOutput = z.strictObject({ solution: z.strictObject({ title: text.max(160), content: z.string().trim().min(40).max(10000) }).optional(), tasks: z.array(z.strictObject({
   id, title: text, description: text, priority: z.enum(["high", "medium", "low"]),
   dependencies: ids, planStepId: id.nullable(), optionId: id.nullable(), status: z.literal("proposed"),
 })).max(20) });
