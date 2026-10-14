@@ -165,6 +165,7 @@ it("creates a concrete Czech study schedule without re-asking the field of study
   expect(result.research?.sources).toEqual([]);
   expect(result.decision?.selectedOptionId).not.toBeNull();
   expect(result.tasks?.tasks.length).toBeGreaterThanOrEqual(3);
+  expect([result.decision?.recommendation, ...result.tasks!.tasks.map((task) => `${task.title} ${task.description}`)].join(" ")).toMatch(/týdn|week|weekly/i);
   expect(result.tasks?.tasks.some((task) => /antik|středověk|novověk/i.test(`${task.title} ${task.description}`))).toBe(true);
 });
 
