@@ -56,7 +56,8 @@ test("questions survive reload and submitted answers resume the same saved analy
     expect(complete.snapshot.research.output.claims).toEqual([]);
     expect(complete.snapshot.decision.confidence).toBe("low");
   }
-  await page.reload();
-  await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "100");
+  await page.goto(`/problems/${id}?view=overview`);
+  await expect(page.getByText(complete.snapshot.tasks.solution.title, { exact: true })).toBeVisible();
+  await expect(page.getByRole("progressbar")).toHaveCount(0);
   await page.screenshot({ path: "test-results/human-resumed-mobile.png", fullPage: false });
 });
