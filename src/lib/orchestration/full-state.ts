@@ -18,16 +18,18 @@ export function canAdvance(from: FullState, to: FullState) {
 const base = z.strictObject({
   qualityPolicy: z.union([z.literal(1), z.literal(2)]).optional(),
   outcomePolicy: z.literal(1).optional(),
-  ...snapshotSchema.shape, version: z.literal(2), state: fullStateSchema, revision: z.number().int().min(0).max(12),
-  events: z.array(z.strictObject({ state: fullStateSchema, at: z.iso.datetime() })).min(1).max(13),
-  human: z.strictObject({ questions: z.array(z.string().trim().min(1).max(2000)).min(1).max(8), responseId: z.uuid().nullable(), responses: userResponsesSchema.nullable() }).optional(),
+  ...snapshotSchema.shape, version: z.literal(2), state: fullStateSchema, revision: z.number().int().min(0).max(18),
+  events: z.array(z.strictObject({ state: fullStateSchema, at: z.iso.datetime() })).min(1).max(19),
+  human: z.strictObject({ questions: z.array(z.string().trim().min(1).max(2000)).min(1).max(8), responseId: z.uuid().nullable(), responses: userResponsesSchema.nullable(),
+    history: z.array(z.strictObject({ questions: z.array(z.string().trim().min(1).max(2000)).min(1).max(8), responseId: z.uuid(), responses: userResponsesSchema })).max(2).optional() }).optional(),
   research: z.strictObject({ question: z.string().min(1).max(2000), questions: z.array(z.string().trim().min(1).max(2000)).min(1).max(3).optional(), output: researchOutput, sources: sourcesSchema }).nullable(),
   verification: verifierOutput.nullable(), options: optionsOutput.nullable(), critique: criticOutput.nullable(), tasks: tasksOutput.nullable(),
 });
 export type FullSnapshot = z.infer<typeof base>;
 function required<T>(value: T | null): T { if (value === null) throw new WorkflowError("INVALID_CHECKPOINT"); return value; }
 export function fullProblem(s: FullSnapshot): AgentInput<"planner">["problem"] {
-  return { ...required(s.intake), originalRequest: s.description, ...(s.human?.responses ? { userResponses: s.human.responses } : {}) };
+  const responses = [...(s.human?.history ?? []).flatMap((round) => round.responses), ...(s.human?.responses ?? [])];
+  return { ...required(s.intake), originalRequest: s.description, ...(responses.length ? { userResponses: responses } : {}) };
 }
 export function fullOptionsInput(s: FullSnapshot): AgentInput<"options"> {
   const research = required(s.research);
@@ -121,9 +123,10 @@ export const fullSnapshotSchema = base.superRefine((s, ctx) => {
   const reached = s.events.map((event) => event.state);
   const pauses = reached.filter((state) => state === "ACTION_REQUIRED").length;
   const resumed = reached.includes("RESUME");
-  if (pauses > 1 || Boolean(s.human) !== (pauses === 1)) fail();
-  if (s.human && (Boolean(s.human.responses) !== resumed || Boolean(s.human.responseId) !== resumed)) fail();
+  if (pauses > 3 || Boolean(s.human) !== (pauses > 0) || (s.human?.history?.length ?? 0) !== Math.max(0, pauses - 1)) fail();
+  if (s.human && (Boolean(s.human.responses) !== Boolean(s.human.responseId) || (s.state === "ACTION_REQUIRED" && Boolean(s.human.responses)) || (s.state !== "ACTION_REQUIRED" && resumed && !s.human.responses))) fail();
   if (s.human?.responses && (s.human.responses.length !== s.human.questions.length || s.human.responses.some((item, index) => item.question !== s.human!.questions[index]))) fail();
+  for (const round of s.human?.history ?? []) if (round.responses.length !== round.questions.length || round.responses.some((item, index) => item.question !== round.questions[index])) fail();
   const fields = { intake: "PLAN", plan: "RESEARCH", research: "VERIFY", verification: "OPTIONS", options: "CRITIQUE", critique: "DECIDE", decision: "TASKS", tasks: "COMPLETED" } as const;
   for (const [field, state] of Object.entries(fields)) if (Boolean(s[field as keyof typeof fields]) !== reached.includes(state)) fail();
   if ((s.state === "FAILED" || s.state === "CANCELLED") !== Boolean(s.error) || (s.state === "CANCELLED") !== (s.error === "CANCELLED")) fail();

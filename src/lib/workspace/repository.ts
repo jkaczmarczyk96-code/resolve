@@ -40,7 +40,7 @@ export async function getProblem(client: SupabaseClient<Database>, userId: strin
   if (latest) {
     const input = await client.from("human_requests").select("questions,answers,answered_at").eq("run_id", latest.id).eq("user_id", userId).abortSignal(AbortSignal.timeout(10_000)).maybeSingle();
     if (input.error) throw new WorkspaceError("LOAD_FAILED", 503);
-    if (input.data) humanRequest = { runId: latest.id, questions: input.data.questions, answers: input.data.answers, answeredAt: input.data.answered_at };
+    if (input.data) humanRequest = { runId: latest.id, round: (snapshot?.human?.history?.length ?? 0) + 1, questions: input.data.questions, answers: input.data.answers, answeredAt: input.data.answered_at };
   }
   const monitors = await client.from("monitoring_conditions").select("id,problem_id,description,search_query,status,last_result,last_error,last_checked_at,next_check_at").eq("problem_id", id).eq("user_id", userId).order("created_at", { ascending: false }).abortSignal(AbortSignal.timeout(10_000));
   if (monitors.error) throw new WorkspaceError("LOAD_FAILED", 503);

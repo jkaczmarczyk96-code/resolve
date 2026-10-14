@@ -142,7 +142,7 @@ it.each(cases)("audit: $name", async ({ name, description, markers, sourceFree }
     expect(content.split("\n").length).toBeGreaterThan(2);
   }
   if (name === "study schedule") {
-    const datedDays = [...content.matchAll(/\b\d{4}-\d{2}-\d{2}\b/g)].length;
+    const datedDays = [...content.matchAll(/\b(?:\d{4}-\d{2}-\d{2}|\d{1,2}\.\s*\d{1,2}\.\s*\d{4})\b/g)].length;
     expect(datedDays >= 15 || /týden\s*3|3\.?\s*týden|Den\s*13\b/i.test(content)).toBe(true);
   }
   if (name === "summarize supplied notes") {

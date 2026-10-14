@@ -5,6 +5,7 @@ import type { PGlite } from "@electric-sql/pglite";
 import { createTestDatabase } from "../scripts/lib/database.mjs";
 import { runFullWorkflow } from "@/lib/orchestration/full";
 import { MemoryFullStore, fullDependencies } from "./fixtures/full-workflow";
+import { outputs } from "./fixtures/ai";
 import type { FullSnapshot } from "@/lib/orchestration/full-state";
 let db: PGlite;
 const owner = randomUUID(); const other = randomUUID(); const runId = randomUUID(); const secret = "a".repeat(64);
@@ -79,4 +80,40 @@ it("accepts responses once, rejects changed replay and persists the same resumed
   await db.query("select public.finish_web_run($1,$2,'completed',null)", [runId, secret]);
   await respond(responseId);
   expect((await db.query("select public.claim_web_run($1,$2) as job", [runId, secret])).rows).toEqual([{ job: null }]);
+});
+
+it("replaces the active question checkpoint while preserving prior answers in the workflow", async () => {
+  const id = randomUUID(); const nextSecret = "c".repeat(64); const store = new MemoryFullStore(); const deps = fullDependencies();
+  const original = deps.ai.generate.getMockImplementation()!;
+  deps.ai.generate.mockImplementation(async (call) => call.name === "planner"
+    ? { steps: [{ ...outputs.planner.steps[0], userQuestions: (call.input as { problem: { userResponses?: unknown[] } }).problem.userResponses?.length
+      ? ["Which subjects need more time?"] : ["When is the exam?"] }] }
+    : original(call));
+  const reserved = await db.query<{ job: { problemId: string } }>("select public.reserve_web_run($1,$2,null,'Plan another fictional community documentation event.') as job", [id, nextSecret]);
+  const target = reserved.rows[0].job.problemId;
+  await db.query("select public.claim_web_run($1,$2)", [id, nextSecret]);
+  const request = { runId: id, problemId: target };
+  const first = await runFullWorkflow(request, store, deps, { humanInput: true });
+  for (const value of store.history) {
+    if (value.revision === 0) await db.query("insert into public.full_workflow_runs(id,problem_id,state,revision,snapshot) values($1,$2,$3,$4,$5)", [id, target, value.state, value.revision, JSON.stringify(value)]);
+    else await db.query("update public.full_workflow_runs set state=$1,revision=$2,snapshot=$3 where id=$4", [value.state, value.revision, JSON.stringify(value), id]);
+  }
+  expect((await db.query<{ done: boolean }>("select public.pause_web_run($1,$2,$3) as done", [id, nextSecret, JSON.stringify(first)])).rows[0].done).toBe(true);
+  const firstResponse = randomUUID();
+  await db.query("select public.respond_web_run($1,$2,$3,$4,$5)", [id, target, nextSecret, firstResponse, JSON.stringify(["June 18"])]);
+  await db.query("select public.claim_web_run($1,$2)", [id, nextSecret]);
+  const second = await runFullWorkflow(request, store, deps, { humanInput: true, resume: { responseId: firstResponse, answers: ["June 18"] } });
+  expect(second).toMatchObject({ state: "ACTION_REQUIRED", human: { questions: ["Which subjects need more time?"] } });
+  for (const value of store.history.filter((item) => item.revision > first.revision)) await db.query("update public.full_workflow_runs set state=$1,revision=$2,snapshot=$3 where id=$4", [value.state, value.revision, JSON.stringify(value), id]);
+  expect((await db.query<{ done: boolean }>("select public.pause_web_run($1,$2,$3) as done", [id, nextSecret, JSON.stringify(second)])).rows[0].done).toBe(true);
+  const active = await db.query<{ questions: string[]; response_id: string | null }>("select questions,response_id from public.human_requests where run_id=$1", [id]);
+  expect(active.rows[0]).toMatchObject({ questions: ["Which subjects need more time?"], response_id: null });
+  await expect(db.query("select public.respond_web_run($1,$2,$3,$4,$5)", [id, target, nextSecret, firstResponse, JSON.stringify(["June 18"])]))
+    .rejects.toThrow("RESPONSE_CONFLICT");
+  const secondResponse = randomUUID();
+  await db.query("select public.respond_web_run($1,$2,$3,$4,$5)", [id, target, nextSecret, secondResponse, JSON.stringify(["Medieval history"])]);
+  await db.query("select public.claim_web_run($1,$2)", [id, nextSecret]);
+  const finished = await runFullWorkflow(request, store, deps, { humanInput: true, resume: { responseId: secondResponse, answers: ["Medieval history"] } });
+  expect(finished.state).toBe("COMPLETED");
+  expect(finished.human?.history?.[0].responses[0].answer).toBe("June 18");
 });

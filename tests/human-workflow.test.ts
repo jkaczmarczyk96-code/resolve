@@ -27,6 +27,32 @@ it("durably pauses before search and resumes the same run with answers available
   await expect(runFullWorkflow(request, store, freshDependencies, { resume: { responseId, answers } })).rejects.toMatchObject({ code: "INVALID_CHECKPOINT" });
   expect(freshDependencies.ai.generate).toHaveBeenCalledTimes(7);
 });
+
+it("remembers answers across three clarification rounds and finishes rather than repeating questions", async () => {
+  const store = new MemoryFullStore(); const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
+  const questions = ["What is the exam date?", "Which subjects need extra time?", "How much time is available each day?", "What is the preferred color?"];
+  deps.ai.generate.mockImplementation(async (call) => {
+    if (call.name === "planner") {
+      const prior = (call.input as { problem: { userResponses?: unknown[] } }).problem.userResponses?.length ?? 0;
+      return { steps: [{ ...outputs.planner.steps[0], userQuestions: prior ? [questions[prior - 1], questions[prior]] : [questions[0]] }] };
+    }
+    return original(call);
+  });
+  const request = workflowRequest();
+  let snapshot = await runFullWorkflow(request, store, deps, { humanInput: true });
+  for (let round = 0; round < 3; round++) {
+    expect(snapshot.state).toBe("ACTION_REQUIRED");
+    expect(snapshot.human?.questions).toEqual([questions[round]]);
+    snapshot = await runFullWorkflow(request, store, deps, { humanInput: true, resume: { responseId: randomUUID(), answers: [`Answer ${round + 1}`] } });
+  }
+  expect(snapshot.state).toBe("COMPLETED");
+  expect(snapshot.revision).toBe(18);
+  expect(snapshot.human?.history).toHaveLength(2);
+  expect(snapshot.events.filter((event) => event.state === "ACTION_REQUIRED")).toHaveLength(3);
+  const finalInput = deps.ai.generate.mock.calls.findLast(([call]) => call.name === "tasks")?.[0].input as { problem: { userResponses: { answer: string }[] } };
+  expect(finalInput.problem.userResponses.map((response) => response.answer)).toEqual(["Answer 1", "Answer 2", "Answer 3"]);
+  expect(parseFullSnapshot(snapshot)).toEqual(snapshot);
+});
 it("does not pause a sufficiently specified plan", async () => {
   const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
   deps.ai.generate.mockImplementation(async (request) => request.name === "planner" ? { steps: outputs.planner.steps.map((step) => ({ ...step, userQuestions: [] })) } : original(request));

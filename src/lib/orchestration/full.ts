@@ -35,8 +35,10 @@ function directCritique(language: "cs" | "en"): AgentOutput<"critic"> {
 function directDecision(snapshot: FullSnapshot, language: "cs" | "en"): AgentOutput<"decision"> {
   return { recommendation: snapshot.intake!.requestedOutcome ?? snapshot.intake!.goal, selectedOptionId: "direct-solution", confidence: "low",
     reasoningSummary: language === "cs" ? "Výsledek vychází ze zadání uživatele; neobsahuje ověřená externí fakta." : "The result uses the user's description; it does not claim verified external facts.",
-    supportingEvidence: [], assumptions: snapshot.intake!.assumptions, unresolvedUnknowns: snapshot.intake!.unknowns, rejectedAlternatives: [] };
+    supportingEvidence: [], assumptions: snapshot.intake!.assumptions, unresolvedUnknowns: snapshot.human?.responses ? [] : snapshot.intake!.unknowns, rejectedAlternatives: [] };
 }
+
+const questionKey = (question: string) => question.normalize("NFKC").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 
 export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<FullSnapshot>, deps: AgentDependencies, options: { signal?: AbortSignal; humanInput?: boolean; recover?: boolean; preserveInterrupt?: boolean; resume?: { responseId: string; answers: string[] } } = {}): Promise<FullSnapshot> {
   const request = z.strictObject({ runId: z.uuid(), problemId: z.uuid() }).safeParse(raw);
@@ -79,10 +81,11 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
         if (!(error instanceof AIError) || error.code !== "TRUNCATED") throw error;
         replanned = fallbackPlan(current.intake!, agentOptions.responseLanguage);
       }
-      // One durable clarification has already happened. Further questions belong in
-      // the decision's unresolved unknowns, not in another unanswered plan form.
       const plan = ensureResearchQuestions(replanned, current.intake!, researchRequired, problem.description);
-      await advance("RESEARCH", { plan: { steps: plan.steps.map((step) => ({ ...step, userQuestions: [] })) } });
+      const answeredQuestions = new Set([...(current.human?.history ?? []).flatMap((round) => round.questions), ...(current.human?.questions ?? [])].map(questionKey));
+      await advance("RESEARCH", { plan: { steps: plan.steps.map((step) => ({ ...step,
+        userQuestions: step.userQuestions.filter((question) => !answeredQuestions.has(questionKey(question))),
+      })) } });
     }
     if (current.state === "PENDING") {
       await advance("INTAKE");
@@ -105,14 +108,17 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       await advance("RESEARCH", { plan: ensureResearchQuestions(planned, current.intake!, researchRequired, problem.description) });
     }
     if (current.state === "RESEARCH") {
-      if (options.humanInput && !current.human) {
+      if (options.humanInput && (current.human?.history?.length ?? 0) < 2 && (!current.human || current.human.responses)) {
         const priority = { high: 0, medium: 1, low: 2 };
+        const asked = new Set([...(current.human?.history ?? []).flatMap((round) => round.questions), ...(current.human?.questions ?? [])].map(questionKey));
         const questions = [...new Map([...current.plan!.steps]
           .sort((a, b) => priority[a.priority] - priority[b.priority])
           .flatMap((step) => step.userQuestions)
-          .map((question) => [question.trim().toLocaleLowerCase(), question] as const)).values()].slice(0, 3);
+          .map((question) => [questionKey(question), question] as const)).entries()]
+          .filter(([key]) => key && !asked.has(key)).map(([, question]) => question).slice(0, 3);
         if (questions.length) {
-          await advance("ACTION_REQUIRED", { human: { questions, responseId: null, responses: null } });
+          const history = current.human ? [...(current.human.history ?? []), { questions: current.human.questions, responseId: current.human.responseId!, responses: current.human.responses! }] : [];
+          await advance("ACTION_REQUIRED", { human: { questions, responseId: null, responses: null, history } });
           return current;
         }
       }

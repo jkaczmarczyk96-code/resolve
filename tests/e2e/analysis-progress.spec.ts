@@ -15,7 +15,7 @@ test("submission shows saved progress and routes to requested clarification", as
     await route.fulfill({ contentType: "application/json", body: JSON.stringify({
       problem: { id: problemId, title: "Workshop plan", original_input: "Plan a workshop for our volunteers this month.", status: state === "queued" ? "analyzing" : "action_required", created_at: new Date().toISOString(), solved_at: null },
       job: job(), snapshot: null,
-      humanRequest: state === "action_required" ? { runId, questions: ["How many people will attend?"], answers: null, answeredAt: null } : null,
+      humanRequest: state === "action_required" ? { runId, round: 1, questions: ["How many people will attend?"], answers: null, answeredAt: null } : null,
       conditions: [], tasks: [], lifecycle: [], actions: [], actionAccess: { calendarEnabled: false, calendarWriteAuthorized: false },
     }) });
   });

@@ -143,6 +143,7 @@ export function normalizeSolutionFormatting(output: ReturnType<typeof tasksOutpu
   if (!output.solution) return output;
   const email = /\b(?:e[‑-]?mail|email)\b/i.test(input?.problem.originalRequest ?? "");
   let content = output.solution.content
+    .replace(/~n~?/g, "\n")
     .replace(/<br\s*\/?\s*>/gi, "\n")
     .replace(/&#(?:10|x0?a);/gi, "\n")
     .replace(/%n/g, "\n")

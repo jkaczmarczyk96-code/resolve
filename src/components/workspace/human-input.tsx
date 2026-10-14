@@ -10,7 +10,7 @@ import { ui, useCzech } from "./ui-language";
 
 export function HumanInput({ id, input, waiting, refresh }: { id: string; input: NonNullable<ProblemDetail["humanRequest"]>; waiting: boolean; refresh: () => void }) {
   const cs = useCzech();
-  const draftKey = `avenli-answer-draft:${id}:${input.runId}`;
+  const draftKey = `avenli-answer-draft:${id}:${input.runId}:${input.round}`;
   const [answers, setAnswers] = useState(() => {
     const blank = input.questions.map(() => "");
     if (typeof window === "undefined") return blank;

@@ -18,7 +18,7 @@ export const intakeOutput = z.strictObject({
   deliveryMode: z.enum(["direct", "deliberative"]).optional(),
   category: z.enum(["travel", "relocation", "product", "other"]), initialAssessment: text,
 });
-export const userResponsesSchema = z.array(z.strictObject({ question: text, answer: z.string().trim().min(1).max(1200) })).min(1).max(8);
+export const userResponsesSchema = z.array(z.strictObject({ question: text, answer: z.string().trim().min(1).max(1200) })).min(1).max(24);
 export const clarifiedProblem = intakeOutput.extend({ originalRequest: z.string().trim().min(20).max(12000).optional(), userResponses: userResponsesSchema.optional() });
 export const plannerInput = z.strictObject({ problem: clarifiedProblem });
 export const plannerOutput = z.strictObject({ steps: z.array(z.strictObject({
