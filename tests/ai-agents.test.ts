@@ -46,6 +46,12 @@ it("repairs one invalid read-only model response and validates the replacement",
   expect(deps.ai.generate).toHaveBeenCalledTimes(2);
   expect(deps.ai.generate.mock.calls[1][0].instructions).toContain("previous response was rejected");
 });
+it("retries a truncated final artifact with a compact answer instruction", async () => {
+  const deps = dependencies(outputs.tasks);
+  deps.ai.generate.mockRejectedValueOnce(new AIError("TRUNCATED")).mockResolvedValueOnce(outputs.tasks);
+  await expect(runAgent("tasks", inputs.tasks, deps)).resolves.toMatchObject({ output: outputs.tasks });
+  expect(deps.ai.generate.mock.calls[1][0].instructions).toContain("too long and was cut off");
+});
 it("requests Czech user-facing output without translating evidence identifiers", async () => {
   const deps = dependencies(outputs.intake);
   await runAgent("intake", inputs.intake, deps, { responseLanguage: "cs" });
@@ -59,12 +65,36 @@ it("requires the actual solution when intake identifies a deliverable", async ()
   const complete = dependencies({ ...outputs.tasks, solution: { title: "Invitation", content: "Please join us for the community event. We will confirm the date and location before sending this invitation." } });
   await expect(runAgent("tasks", input, complete)).resolves.toMatchObject({ output: { solution: { title: "Invitation" } } });
 });
+it("normalizes escaped solution line breaks before showing the artifact", async () => {
+  const value = { ...outputs.tasks, solution: { title: "Steps", content: "First item.&#10;Second item./n1. Then inspect the result.<br>Final check.%nReady.¶nDone." } };
+  const result = await runAgent("tasks", inputs.tasks, dependencies(value));
+  expect(result.output.solution?.content).toBe("First item.\nSecond item.\n1. Then inspect the result.\nFinal check.\nReady.\nDone.");
+});
+it("repairs common email and inline-list line breaks", async () => {
+  const email = { ...inputs.tasks, problem: { ...inputs.tasks.problem, originalRequest: "Please write an email to Lucie about the delayed materials and sign it Martin." } };
+  const value = { ...outputs.tasks, solution: { title: "Email", content: "Subject: Materials update nDear Lucie,/nI will send them Thursday. nKind regards, nMartin" } };
+  const result = await runAgent("tasks", email, dependencies(value));
+  expect(result.output.solution?.content.split("\n").length).toBeGreaterThan(2);
+  const list = { ...outputs.tasks, solution: { title: "Summary", content: "1) Monday done. 2) Wednesday review. 3) Friday send." } };
+  expect((await runAgent("tasks", inputs.tasks, dependencies(list))).output.solution?.content).toBe("1) Monday done.\n2) Wednesday review.\n3) Friday send.");
+  const summary = { ...inputs.tasks, problem: { ...inputs.tasks.problem, originalRequest: "Shrň tyto poznámky do tří bodů pro tým." } };
+  const prose = { ...outputs.tasks, solution: { title: "Shrnutí", content: "V pondělí jsme dokončili návrh. Ve středu proběhne kontrola. V pátek odešleme finální verzi." } };
+  expect((await runAgent("tasks", summary, dependencies(prose))).output.solution?.content).toBe("- V pondělí jsme dokončili návrh.\n- Ve středu proběhne kontrola.\n- V pátek odešleme finální verzi.");
+});
 it("requires a useful plan and a next step when a safe decision is unavailable", async () => {
   const input = { ...inputs.tasks, decision: { ...inputs.tasks.decision, selectedOptionId: null }, evidenceGaps: ["Venue price is not verified"] };
   const missing = dependencies({ tasks: [] });
   await expect(runAgent("tasks", input, missing)).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
   const complete = dependencies({ solution: { title: "Verify the venue", content: "The venue cost is unknown. Request a written quote and compare it with the EUR 500 limit before booking." }, tasks: [{ ...outputs.tasks.tasks[0], optionId: null }] });
   await expect(runAgent("tasks", input, complete)).resolves.toMatchObject({ output: { solution: { title: "Verify the venue" } } });
+});
+it("accepts a finished source-free artifact without follow-through tasks after abstention", async () => {
+  const input = { ...inputs.tasks,
+    plan: { steps: [{ ...inputs.tasks.plan.steps[0], researchQuestions: [] }] },
+    decision: { ...inputs.tasks.decision, selectedOptionId: null },
+  };
+  const complete = dependencies({ solution: { title: "Draft email", content: "Dear Lucie, I apologize for the delay. I will send the materials by Thursday at 15:00. Kind regards, Martin." }, tasks: [] });
+  await expect(runAgent("tasks", input, complete, { sourceFreeDraft: true })).resolves.toMatchObject({ output: { tasks: [] } });
 });
 it("rejects a weekly solution that omits periods already present in the plan", async () => {
   const input = { ...inputs.tasks, problem: { ...inputs.tasks.problem, requestedOutcome: "A two-week schedule" }, plan: { steps: [
@@ -75,6 +105,17 @@ it("rejects a weekly solution that omits periods already present in the plan", a
   await expect(runAgent("tasks", input, missing)).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
   const complete = dependencies({ ...outputs.tasks, solution: { title: "Schedule", content: "Week 1: prepare materials and practise daily. Week 2: rehearse twice and review mistakes." } });
   await expect(runAgent("tasks", input, complete)).resolves.toMatchObject({ output: { solution: { title: "Schedule" } } });
+});
+it("rejects a daily schedule whose stated blocks exceed the available minutes", async () => {
+  const tooLong = dependencies({ ...outputs.tasks, solution: { title: "Study day", content: "Den 1 (sobota): 180 min – 2×30 min opakování, 6×30 min nové učivo. Další den odpočinek." } });
+  await expect(runAgent("tasks", inputs.tasks, tooLong)).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
+  const fits = dependencies({ ...outputs.tasks, solution: { title: "Study day", content: "Den 1 (sobota): 180 min – 2×30 min opakování, 4×30 min nové učivo. Další den odpočinek." } });
+  await expect(runAgent("tasks", inputs.tasks, fits)).resolves.toMatchObject({ output: { solution: { title: "Study day" } } });
+});
+it("rejects an extra study block after a full three-hour day", async () => {
+  const input = { ...inputs.tasks, problem: { ...inputs.tasks.problem, originalRequest: "I have 3 h on Saturday. Prepare a study schedule." } };
+  const over = dependencies({ ...outputs.tasks, solution: { title: "Saturday", content: "Saturday: 3 h – medieval history plus 30 min review of antiquity after the main block." } });
+  await expect(runAgent("tasks", input, over)).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
 });
 it("rejects fabricated source IDs and model-generated URLs", async () => {
   await expect(runAgent("researcher", inputs.researcher, dependencies({ ...outputs.researcher, claims: [{ id: "c", statement: "Invented", sourceIds: ["invented-source"] }] }))).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
@@ -109,6 +150,15 @@ it("rejects invented decisions and unsupported high confidence", async () => {
   for (const patch of [{ selectedOptionId: "invented" }, { confidence: "high" }, { supportingEvidence: ["invented"] }]) {
     await expect(runAgent("decision", inputs.decision, dependencies({ ...outputs.decision, ...patch }))).rejects.toMatchObject({ code: "INVALID_OUTPUT" });
   }
+});
+it("caps source-free decisions at low confidence without discarding a valid selection", async () => {
+  const input = { ...inputs.decision, sources: [], claims: [], verification: { assessments: [], sourceProfiles: [] } };
+  const selected = { ...outputs.decision, confidence: "high" as const, supportingEvidence: ["invented"], rejectedAlternatives: [{ optionId: "invented-option", reason: "Not in the generated options" }] };
+  const result = await runAgent("decision", input, dependencies(selected));
+  expect(result.output.selectedOptionId).toBe(selected.selectedOptionId);
+  expect(result.output.confidence).toBe("low");
+  expect(result.output.supportingEvidence).toEqual([]);
+  expect(result.output.rejectedAlternatives).toEqual([]);
 });
 it("rejects invalid cross-agent evidence on input", async () => {
   const deps = dependencies(outputs.critic);

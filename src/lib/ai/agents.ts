@@ -2,15 +2,15 @@ import "server-only";
 import { AIError, bounded } from "./errors";
 import type { AIProvider } from "./provider";
 import type { ResearchProvider } from "./research";
-import { contracts, verifierInput, verifierOutput, researchInput, sourcesSchema, type AgentName, type AgentInput, type AgentOutput, type Source } from "./schemas";
+import { contracts, decisionInput, decisionOutput, tasksInput, tasksOutput, verifierInput, verifierOutput, researchInput, sourcesSchema, type AgentName, type AgentInput, type AgentOutput, type Source } from "./schemas";
 import { adaptiveInstructions, commonInstructions, instructions } from "./prompts";
-import { groundVerification, validateInput, validateOutput, validateSources } from "./integrity";
+import { groundVerification, normalizeSolutionFormatting, normalizeSourceFreeDecision, validateInput, validateOutput, validateSources } from "./integrity";
 
 export interface AgentDependencies {
   ai: AIProvider;
   research?: ResearchProvider;
 }
-export interface RunOptions { signal?: AbortSignal; responseLanguage?: "cs" | "en"; researchRequired?: boolean }
+export interface RunOptions { signal?: AbortSignal; responseLanguage?: "cs" | "en"; researchRequired?: boolean; sourceFreeDraft?: boolean }
 export interface AgentResult<N extends AgentName> {
   agent: N;
   model: string;
@@ -37,23 +37,27 @@ export function runAgent<N extends AgentName>(name: N, rawInput: AgentInput<N>, 
       validateSources(sources);
     }
     const input = name === "researcher" ? { ...parsed.data, sources } : parsed.data;
+    let previousError: "INVALID_OUTPUT" | "TRUNCATED" | null = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
         const response = await dependencies.ai.generate({
           name,
           input,
-          instructions: `${commonInstructions}\n${instructions[name]}\n${adaptiveInstructions[name] ?? ""}${name === "planner" && options.researchRequired ? "\nThis request explicitly depends on current external facts. Include two or three distinct, specific researchQuestions covering the most important independent facets of the decision. Do not leave all researchQuestions arrays empty." : ""}${options.responseLanguage === "cs" ? "\nWrite user-facing titles, explanations, questions, recommendations and tasks in Czech. Preserve exact source quotations, source IDs, schema keys and proper names. Search queries may use the language most useful for retrieval." : ""}${attempt ? "\nYour previous response was rejected because it violated the required output contract. Rebuild the complete response from the supplied input. Follow the schema and every ID, cardinality, reference, dependency and evidence rule exactly; do not mention this repair attempt." : ""}`,
+          instructions: `${commonInstructions}\nCurrent date (UTC): ${new Date().toISOString().slice(0, 10)}. For current facts or search queries, do not substitute an older year.\n${instructions[name]}\n${adaptiveInstructions[name] ?? ""}${name === "planner" && options.researchRequired ? "\nThis request explicitly depends on current external facts. Include two or three distinct, specific researchQuestions covering the most important independent facets of the decision. Do not leave all researchQuestions arrays empty." : ""}${name === "tasks" && options.sourceFreeDraft ? "\nThis request needs no external research. The prior decision abstained, but you must still complete any safe draft, summary, calculation, study plan or other useful artifact from the supplied facts. An unspecified minor preference such as wording, formatting or level of formality is not a blocker: choose a reasonable default and say it can be adjusted. Do not merely explain how to produce the artifact. If the requested outcome truly cannot be guaranteed, state that limit and give the best useful alternative. Keep task optionId null." : ""}${options.responseLanguage === "cs" ? "\nWrite user-facing titles, explanations, questions, recommendations and tasks in Czech. Preserve exact source quotations, source IDs, schema keys and proper names. Search queries may use the language most useful for retrieval." : ""}${attempt ? previousError === "TRUNCATED" ? "\nYour previous answer was too long and was cut off. Return complete valid JSON with concise fields, at most five planning phases and no repeated context. For a long final schedule, use one compact line per day and omit follow-through tasks unless essential. Keep the requested artifact complete." : "\nYour previous response was rejected because it violated the required output contract. Rebuild the complete response from the supplied input. Follow the schema and every ID, cardinality, reference, dependency and evidence rule exactly; do not mention this repair attempt." : ""}`,
           schema: contract.output,
           signal,
         });
         const output = contract.output.safeParse(response);
         if (!output.success) throw new AIError("INVALID_OUTPUT");
-        const checked = name === "verifier" ? groundVerification(verifierOutput.parse(output.data), verifierInput.parse(parsed.data)) : output.data;
+        const checked = name === "verifier" ? groundVerification(verifierOutput.parse(output.data), verifierInput.parse(parsed.data))
+          : name === "decision" ? normalizeSourceFreeDecision(decisionInput.parse(parsed.data), decisionOutput.parse(output.data))
+          : name === "tasks" ? normalizeSolutionFormatting(tasksOutput.parse(output.data), tasksInput.parse(parsed.data)) : output.data;
         validateOutput(name, parsed.data, checked, sources);
         // The selected contract validated this exact named agent's output above.
         return { agent: name, model: dependencies.ai.model, output: checked as AgentOutput<N>, sources };
       } catch (error) {
-        if (!(error instanceof AIError) || error.code !== "INVALID_OUTPUT" || attempt === 1) throw error;
+        if (!(error instanceof AIError) || (error.code !== "INVALID_OUTPUT" && error.code !== "TRUNCATED") || attempt === 1) throw error;
+        previousError = error.code;
       }
     }
     throw new AIError("INVALID_OUTPUT");

@@ -63,6 +63,18 @@ it("researches the first three distinct priority questions and records incomplet
   const decisionCall=deps.ai.generate.mock.calls.find(([request])=>request.name==="decision")?.[0];
   expect(decisionCall?.input).toMatchObject({ risks:expect.arrayContaining(["Research covered 3 of 4 planned questions; the remaining questions still require review."]) });
 });
+it("continues with a minimal plan when an overlong planner response is truncated twice", async () => {
+  const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
+  deps.ai.generate.mockImplementation(async (request) => {
+    if (request.name === "planner") throw new AIError("TRUNCATED");
+    if (request.name === "tasks") return { ...outputs.tasks, tasks: outputs.tasks.tasks.map((task) => ({ ...task, planStepId: "deliver-outcome" })) };
+    return original(request);
+  });
+  const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps);
+  expect(result.state).toBe("COMPLETED");
+  expect(result.plan?.steps).toMatchObject([{ id: "deliver-outcome", researchQuestions: [] }]);
+  expect(deps.ai.generate.mock.calls.filter(([request]) => request.name === "planner")).toHaveLength(2);
+});
 it.each(names)("halts and preserves earlier outputs when %s fails", async (name) => {
   const store = new MemoryFullStore(); const deps = fullDependencies();
   const generate = deps.ai.generate.getMockImplementation()!;
@@ -99,8 +111,8 @@ it("returns a concrete verification plan when no evidence supports a decision", 
   });
   const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps);
   expect(result.state).toBe("COMPLETED"); expect(result.decision?.selectedOptionId).toBeNull();
-  expect(result.decision?.supportingEvidence).toEqual([]); expect(result.tasks?.tasks).toHaveLength(1);
-  expect(result.tasks?.solution?.content).toContain("not verified");
+  expect(result.decision?.supportingEvidence).toEqual([]); expect(result.tasks?.tasks.length).toBeGreaterThan(0);
+  expect(result.tasks?.solution?.content).toContain("current official website");
   expect(result.outcomePolicy).toBe(1);
   // Saved runs from before the new outcome contract remain readable.
   expect(parseFullSnapshot({ ...result, outcomePolicy: undefined, tasks: { tasks: [] } }).state).toBe("COMPLETED");
@@ -108,6 +120,7 @@ it("returns a concrete verification plan when no evidence supports a decision", 
 it("keeps an unresolved case useful when the final model response is malformed", async () => {
   const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
   deps.ai.generate.mockImplementation(async (request) => {
+    if (request.name === "planner") return { steps: [{ ...outputs.planner.steps[0], researchQuestions: [] }] };
     if (request.name === "decision") return { ...outputs.decision, selectedOptionId: null, supportingEvidence: [], confidence: "low" };
     if (request.name === "tasks") return { tasks: [] };
     return original(request);
@@ -115,7 +128,7 @@ it("keeps an unresolved case useful when the final model response is malformed",
   const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps);
   expect(result.state).toBe("COMPLETED");
   expect(result.decision?.selectedOptionId).toBeNull();
-  expect(result.tasks?.solution?.content).toContain(outputs.planner.steps[0].researchQuestions[0]);
+  expect(result.tasks?.solution?.content).toContain(outputs.planner.steps[0].userQuestions[0]);
   expect(result.tasks?.tasks.length).toBeGreaterThan(0);
   expect(deps.ai.generate.mock.calls.filter(([request]) => request.name === "tasks")).toHaveLength(2);
 });

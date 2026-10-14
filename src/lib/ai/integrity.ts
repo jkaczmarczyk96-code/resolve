@@ -86,8 +86,19 @@ export function validateOutput(name: AgentName, input: unknown, output: unknown,
     const { tasks, solution } = tasksOutput.parse(output);
     if (requireOutcome && context.problem.requestedOutcome) {
       assert(Boolean(solution));
-      if (context.decision.selectedOptionId === null) assert(tasks.length > 0);
+      if (context.decision.selectedOptionId === null && context.plan.steps.some((step) => step.researchQuestions.length > 0)) assert(tasks.length > 0);
       if (solution) {
+        if (/\b(?:3\s*(?:h|hodin(?:y|u)?)|180\s*min)\b/i.test(context.problem.originalRequest ?? "")) {
+          assert(!/(?:3\s*(?:h|hodin(?:y|u)?)|180\s*min)[^\n.]{0,180}\b(?:plus|navíc|additional)\s*\d+\s*min/i.test(solution.content));
+        }
+        // Catch schedules that visibly promise less time than their listed blocks.
+        // Other formats remain the model's responsibility rather than guessing durations.
+        for (const day of solution.content.matchAll(/(?:Den|Day)\s+\d+[^:]{0,80}:\s*(\d+)\s*min\s*[–-]\s*([\s\S]*?)(?=(?:Den|Day)\s+\d+|$)/gi)) {
+          const available = Number(day[1]);
+          const allocated = [...day[2].matchAll(/\b(?:(\d+)\s*[×x]\s*)?(\d+)\s*min\b/gi)]
+            .reduce((total, block) => total + Number(block[1] ?? 1) * Number(block[2]), 0);
+          assert(allocated <= available);
+        }
         const weeklySteps = context.plan.steps.map((step) => step.title.match(/(?:week|týden)\s*(\d+)/i)?.[1]).filter((value): value is string => Boolean(value));
         if (weeklySteps.length >= 2) {
           for (const week of new Set(weeklySteps)) assert(new RegExp(`(?:week|týden)\\s*${week}\\b|\\b${week}\\.?\\s*(?:week|týden)\\b`, "i").test(solution.content));
@@ -114,6 +125,44 @@ export function validateOutput(name: AgentName, input: unknown, output: unknown,
       assert(result.selectedOptionId !== null && result.supportingEvidence.length > 0 && result.supportingEvidence.every((id) => verified.includes(id)) && result.assumptions.length === 0 && result.unresolvedUnknowns.length === 0);
     }
   }
+}
+
+/** A source-free answer may be useful, but the model cannot award it evidence-grade confidence. */
+export function normalizeSourceFreeDecision(input: ReturnType<typeof decisionInput.parse>, output: ReturnType<typeof decisionOutput.parse>) {
+  if (input.sources.length) return output;
+  const allowedAlternatives = new Set(input.options.map((option) => option.id).filter((id) => id !== output.selectedOptionId));
+  return { ...output,
+    confidence: output.confidence === "high" ? "low" as const : output.confidence,
+    supportingEvidence: [],
+    rejectedAlternatives: output.rejectedAlternatives.filter((item) => allowedAlternatives.has(item.optionId)),
+  };
+}
+
+/** Decode common model-produced newline escapes before the result reaches the UI. */
+export function normalizeSolutionFormatting(output: ReturnType<typeof tasksOutput.parse>, input?: ReturnType<typeof tasksInput.parse>) {
+  if (!output.solution) return output;
+  const email = /\b(?:e[‑-]?mail|email)\b/i.test(input?.problem.originalRequest ?? "");
+  let content = output.solution.content
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .replace(/&#(?:10|x0?a);/gi, "\n")
+    .replace(/%n/g, "\n")
+    .replace(/¶n/g, "\n")
+    .replace(/\\n(?=\s*(?:\d+[.)]|[-•]))/g, "\n")
+    .replace(/\/n(?=\s*\d+[.)])/g, "\n")
+    .replace(/([.!?])\s+(?=(?:-\s+|\d+[.)]\s+))/g, "$1\n");
+  if (email) content = content
+    .replace(/\/n/g, "\n")
+    .replace(/(?<=[\p{Ll}.,:])n{1,2}(?=\p{Lu})/gu, "\n")
+    .replace(/\s+nn(?=\p{Ll})/gu, "\n")
+    .replace(/\s+n(?=\p{Lu})/gu, "\n")
+    .replace(/([,.:;])n(?=[\p{Ll}])/gu, "$1\n");
+  const request = input?.problem.originalRequest ?? "";
+  if (/(?:^|\s)(?:tři|tří|3|three)\s+(?:body|bodů|points|items)(?=\s|[.,!?]|$)/i.test(request)
+    && !/(?:^|\n)\s*(?:[-*•]|\d+[.)])\s/m.test(content)) {
+    const sentences = content.split(/(?<=[.!?])\s+(?=[\p{Lu}])/u).map((item) => item.trim()).filter(Boolean);
+    if (sentences.length === 3) content = sentences.map((item) => `- ${item}`).join("\n");
+  }
+  return { ...output, solution: { ...output.solution, content } };
 }
 
 /** Discard non-verbatim model quotes, retain an audit marker and lower their claim status. */

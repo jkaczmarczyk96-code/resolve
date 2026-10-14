@@ -17,6 +17,7 @@
     "test:workflow:live": "node --env-file=.env.local node_modules/vitest/vitest.mjs run --config vitest.workflow-live.config.ts",
     "test:full:live": "node --env-file=.env.local node_modules/vitest/vitest.mjs run --config vitest.full-live.config.ts",
     "test:quality:live": "node --env-file=.env.local node_modules/vitest/vitest.mjs run --config vitest.quality-live.config.ts",
+    "test:versatility:live": "node --env-file=.env.local node_modules/vitest/vitest.mjs run --config vitest.versatility-live.config.ts",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",

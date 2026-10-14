@@ -54,7 +54,12 @@ export function fullTasksInput(s: FullSnapshot): AgentInput<"tasks"> {
 export function fallbackUnresolvedPlan(s: FullSnapshot, language: "cs" | "en"): AgentOutput<"tasks"> {
   const questions = s.plan?.steps.flatMap((step) => [...step.researchQuestions, ...step.userQuestions]) ?? [];
   const gaps = [...new Set([...questions, ...(s.decision?.unresolvedUnknowns ?? []), ...(s.research?.output.limitations ?? [])])].filter(Boolean).slice(0, 3);
-  const checks = gaps.length ? gaps : [s.plan?.steps[0]?.description ?? s.intake?.goal ?? s.description];
+  const researchPending = s.plan?.steps.some((step) => step.researchQuestions.length > 0);
+  const checks = researchPending
+    ? [language === "cs"
+      ? `Na aktuálním oficiálním webu ověřte údaj potřebný pro zadání: ${s.intake?.goal ?? s.description}. Zkontrolujte datum platnosti a přesnou kategorii nebo podmínky.`
+      : `Verify the fact needed for this request on the current official website: ${s.intake?.goal ?? s.description}. Check its effective date and the exact category or conditions.`]
+    : gaps.length ? gaps : [s.plan?.steps[0]?.description ?? s.intake?.goal ?? s.description];
   const intro = language === "cs"
     ? "Konečné řešení teď nelze bezpečně potvrdit. Podle dosavadního zadání je potřeba ověřit tyto konkrétní body:"
     : "A final solution cannot yet be confirmed safely. Based on the request, verify these specific points:";

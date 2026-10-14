@@ -8,6 +8,12 @@ it("keeps a personal study schedule source-free", () => {
   const plan = { steps: [{ ...outputs.planner.steps[0], researchQuestions: [] }] };
   expect(ensureResearchQuestions(plan, problem, false)).toEqual(plan);
 });
+it("removes speculative planner searches when a personal answer needs no outside facts", () => {
+  const description = "Chci změnit práci. Pomoz mi určit realistické první kroky a co si zjistit před výpovědí.";
+  expect(needsExternalEvidence(description, problem)).toBe(false);
+  expect(ensureResearchQuestions(outputs.planner, problem, false, description).steps[0].researchQuestions).toEqual([]);
+  expect(needsExternalEvidence("Chci změnit práci; vyhledej aktuální nabídky práce v Praze.", problem)).toBe(true);
+});
 
 it("restores bounded research queries when current external facts are explicitly requested", () => {
   const intake = { ...problem, title: "Compare JSON output formats", goal: "Compare JSON object and JSON schema output in Nebius Token Factory" };
@@ -29,4 +35,9 @@ it("uses the user's intent rather than the product category for troubleshooting"
   expect(needsExternalEvidence("Compare the best current printers to buy", product)).toBe(true);
   expect(needsExternalEvidence("What is the current official price of this printer? No web research", product)).toBe(true);
   expect(needsExternalEvidence("Zjisti cenu vstupného do muzea.", problem)).toBe(true);
+  expect(needsExternalEvidence("Kolik teď stojí základní vstupné do muzea?", problem)).toBe(true);
+  expect(needsExternalEvidence("Spočítej slevu z ceny 2 500 Kč bez vyhledávání.", product)).toBe(false);
+  expect(needsExternalEvidence("Spočítej bez vyhledávání: cena 2 500 Kč, sleva 18 %. Kolik korun je sleva a jaká je konečná cena?", product)).toBe(false);
+  expect(needsExternalEvidence("Oprav tento kód; nepotřebuji aktuální dokumentaci.", product)).toBe(false);
+  expect(needsExternalEvidence("Vyber z těchto nabídek, všechna data jsou zde a není třeba web.", product)).toBe(false);
 });

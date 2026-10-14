@@ -9,6 +9,11 @@ import { WorkflowError, type WorkflowStore } from "./state";
 import { canAdvance, parseFullSnapshot, fullProblem, fullOptionsInput, fullCriticInput, fullDecisionInput, fullTasksInput, fullConfidence, guardDecisionEvidence, fallbackUnresolvedPlan, type FullState, type FullSnapshot } from "./full-state";
 import type { BasicRequest } from "./basic";
 
+function fallbackPlan(intake: AgentOutput<"intake">, language: "cs" | "en"): AgentOutput<"planner"> {
+  return { steps: [{ id: "deliver-outcome", title: language === "cs" ? "Připravit požadovaný výsledek" : "Deliver the requested outcome",
+    description: intake.requestedOutcome ?? intake.goal, priority: "high", dependencies: [], researchQuestions: [], userQuestions: [] }] };
+}
+
 export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<FullSnapshot>, deps: AgentDependencies, options: { signal?: AbortSignal; humanInput?: boolean; recover?: boolean; preserveInterrupt?: boolean; resume?: { responseId: string; answers: string[] } } = {}): Promise<FullSnapshot> {
   const request = z.strictObject({ runId: z.uuid(), problemId: z.uuid() }).safeParse(raw);
   if (!request.success) throw new WorkflowError("INVALID_REQUEST");
@@ -44,10 +49,15 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
     }
     if (current.state === "RESUME") {
       const researchRequired = needsExternalEvidence(problem.description, current.intake!);
-      const replanned = await runAgent("planner", { problem: fullProblem(current) }, deps, { ...agentOptions, researchRequired });
+      let replanned: AgentOutput<"planner">;
+      try { replanned = (await runAgent("planner", { problem: fullProblem(current) }, deps, { ...agentOptions, researchRequired })).output; }
+      catch (error) {
+        if (!(error instanceof AIError) || error.code !== "TRUNCATED") throw error;
+        replanned = fallbackPlan(current.intake!, agentOptions.responseLanguage);
+      }
       // One durable clarification has already happened. Further questions belong in
       // the decision's unresolved unknowns, not in another unanswered plan form.
-      const plan = ensureResearchQuestions(replanned.output, current.intake!, researchRequired, problem.description);
+      const plan = ensureResearchQuestions(replanned, current.intake!, researchRequired, problem.description);
       await advance("RESEARCH", { plan: { steps: plan.steps.map((step) => ({ ...step, userQuestions: [] })) } });
     }
     if (current.state === "PENDING") {
@@ -62,8 +72,13 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
     }
     if (current.state === "PLAN") {
       const researchRequired = needsExternalEvidence(problem.description, current.intake!);
-      const planned = await runAgent("planner", { problem: fullProblem(current) }, deps, { ...agentOptions, researchRequired });
-      await advance("RESEARCH", { plan: ensureResearchQuestions(planned.output, current.intake!, researchRequired, problem.description) });
+      let planned: AgentOutput<"planner">;
+      try { planned = (await runAgent("planner", { problem: fullProblem(current) }, deps, { ...agentOptions, researchRequired })).output; }
+      catch (error) {
+        if (!(error instanceof AIError) || error.code !== "TRUNCATED") throw error;
+        planned = fallbackPlan(current.intake!, agentOptions.responseLanguage);
+      }
+      await advance("RESEARCH", { plan: ensureResearchQuestions(planned, current.intake!, researchRequired, problem.description) });
     }
     if (current.state === "RESEARCH") {
       if (options.humanInput && !current.human) {
@@ -132,10 +147,18 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
     }
     if (current.state === "TASKS") {
       let tasks: AgentOutput<"tasks">;
-      try { tasks = (await runAgent("tasks", fullTasksInput(current), deps, agentOptions)).output; }
-      catch (error) {
-        if (!(error instanceof AIError) || error.code !== "INVALID_OUTPUT" || current.decision?.selectedOptionId !== null) throw error;
+      if (current.decision?.selectedOptionId === null && current.plan!.steps.some((step) => step.researchQuestions.length > 0)) {
+        // A model summary of unsupported research can accidentally repeat an
+        // unverified price or rule. Only expose verification steps here.
         tasks = fallbackUnresolvedPlan(current, agentOptions.responseLanguage);
+      } else {
+        try { tasks = (await runAgent("tasks", fullTasksInput(current), deps, { ...agentOptions,
+          sourceFreeDraft: current.decision?.selectedOptionId === null && current.plan!.steps.every((step) => step.researchQuestions.length === 0),
+        })).output; }
+        catch (error) {
+          if (!(error instanceof AIError) || error.code !== "INVALID_OUTPUT" || current.decision?.selectedOptionId !== null) throw error;
+          tasks = fallbackUnresolvedPlan(current, agentOptions.responseLanguage);
+        }
       }
       await advance("COMPLETED", { tasks });
     }
