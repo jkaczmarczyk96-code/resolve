@@ -9,6 +9,30 @@ import { workflowRequest } from "./fixtures/workflow";
 import { inputs, outputs } from "./fixtures/ai";
 const blockedOutput = { solution: { title: "Plan to resolve the unknown", content: "The venue price is not verified. Ask for a written quote, compare it with the EUR 500 budget, and decide only after the cost is known." }, tasks: [{ ...outputs.tasks.tasks[0], optionId: null }] };
 
+it("delivers a self-contained artifact without manufacturing alternatives or a debate", async () => {
+  const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
+  deps.ai.generate.mockImplementation(async (request) => {
+    if (request.name === "intake") return { ...outputs.intake, deliveryMode: "direct", requestedOutcome: "Draft the requested message" };
+    if (request.name === "planner") return { steps: [{ ...outputs.planner.steps[0], researchQuestions: [], userQuestions: [] }] };
+    if (request.name === "tasks") return { solution: { title: "Message", content: "Hello, I am writing to confirm the details we discussed. Please let me know if this works for you. Thank you." }, tasks: [] };
+    return original(request);
+  });
+  const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), { ai: deps.ai });
+  expect(result.state).toBe("COMPLETED");
+  expect(result.decision).toMatchObject({ selectedOptionId: "direct-solution", confidence: "low", supportingEvidence: [] });
+  expect(result.tasks?.solution?.content).toContain("I am writing");
+  expect(deps.ai.generate.mock.calls.map(([request]) => request.name)).toEqual(["intake", "planner", "tasks"]);
+});
+
+it("keeps the evidence path when a direct label conflicts with current facts", async () => {
+  const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
+  deps.ai.generate.mockImplementation(async (request) => request.name === "intake"
+    ? { ...outputs.intake, deliveryMode: "direct" } : original(request));
+  const result = await runFullWorkflow(workflowRequest(), new MemoryFullStore(), deps);
+  expect(result.state).toBe("COMPLETED");
+  expect(deps.ai.generate.mock.calls.map(([request]) => request.name)).toEqual(names);
+});
+
 it("delivers a source-free study plan without forcing research or a clarification pause", async () => {
   const store = new MemoryFullStore(); const deps = fullDependencies(); const original = deps.ai.generate.getMockImplementation()!;
   deps.ai.generate.mockImplementation(async (request) => {

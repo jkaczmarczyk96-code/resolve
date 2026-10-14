@@ -15,6 +15,7 @@ export const intakeOutput = z.strictObject({
   title: text.max(120), goal: text, constraints: texts, knownFacts: texts,
   assumptions: texts, unknowns: texts,
   requestedOutcome: text.optional(), successCriteria: texts.optional(),
+  deliveryMode: z.enum(["direct", "deliberative"]).optional(),
   category: z.enum(["travel", "relocation", "product", "other"]), initialAssessment: text,
 });
 export const userResponsesSchema = z.array(z.strictObject({ question: text, answer: z.string().trim().min(1).max(1200) })).min(1).max(8);

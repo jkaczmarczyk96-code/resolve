@@ -152,6 +152,8 @@ export function normalizeSolutionFormatting(output: ReturnType<typeof tasksOutpu
     .replace(/([.!?])\s+(?=(?:-\s+|\d+[.)]\s+))/g, "$1\n");
   if (email) content = content
     .replace(/\/n/g, "\n")
+    .replace(/\/\s*(?=(?:S pozdravem|S úctou|Kind regards|Best regards|Regards|Thank you|Děkuji)[,\s])/gi, "\n")
+    .replace(/((?:S pozdravem|S úctou|Kind regards|Best regards|Regards|Thank you|Děkuji)),?\s*\/\s*(?=\p{Lu})/giu, "$1,\n")
     .replace(/(?<=[\p{Ll}.,:])n{1,2}(?=\p{Lu})/gu, "\n")
     .replace(/\s+nn(?=\p{Ll})/gu, "\n")
     .replace(/\s+n(?=\p{Lu})/gu, "\n")

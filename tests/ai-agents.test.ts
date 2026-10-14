@@ -75,6 +75,8 @@ it("repairs common email and inline-list line breaks", async () => {
   const value = { ...outputs.tasks, solution: { title: "Email", content: "Subject: Materials update nDear Lucie,/nI will send them Thursday. nKind regards, nMartin" } };
   const result = await runAgent("tasks", email, dependencies(value));
   expect(result.output.solution?.content.split("\n").length).toBeGreaterThan(2);
+  const slash = { ...outputs.tasks, solution: { title: "Email", content: "Dobrý den, Lucie,\nomlouvám se za zpoždění. Pošlu je ve čtvrtek do 15:00./S pozdravem,/Martin" } };
+  expect((await runAgent("tasks", email, dependencies(slash))).output.solution?.content).toBe("Dobrý den, Lucie,\nomlouvám se za zpoždění. Pošlu je ve čtvrtek do 15:00.\nS pozdravem,\nMartin");
   const list = { ...outputs.tasks, solution: { title: "Summary", content: "1) Monday done. 2) Wednesday review. 3) Friday send." } };
   expect((await runAgent("tasks", inputs.tasks, dependencies(list))).output.solution?.content).toBe("1) Monday done.\n2) Wednesday review.\n3) Friday send.");
   const summary = { ...inputs.tasks, problem: { ...inputs.tasks.problem, originalRequest: "Shrň tyto poznámky do tří bodů pro tým." } };

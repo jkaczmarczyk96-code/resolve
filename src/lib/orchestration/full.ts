@@ -14,6 +14,30 @@ function fallbackPlan(intake: AgentOutput<"intake">, language: "cs" | "en"): Age
     description: intake.requestedOutcome ?? intake.goal, priority: "high", dependencies: [], researchQuestions: [], userQuestions: [] }] };
 }
 
+/** A finished artifact needs no synthetic alternatives or speculative objections. */
+function canDeliverDirectly(snapshot: FullSnapshot) {
+  return snapshot.intake?.deliveryMode === "direct"
+    && !needsExternalEvidence(snapshot.description, snapshot.intake)
+    && snapshot.plan?.steps.every((step) => step.researchQuestions.length === 0 && step.userQuestions.length === 0)
+    && snapshot.research?.sources.length === 0 && snapshot.research.output.claims.length === 0;
+}
+
+function directOption(snapshot: FullSnapshot, language: "cs" | "en"): AgentOutput<"options"> {
+  return { options: [{ id: "direct-solution", title: language === "cs" ? "Přímé řešení" : "Direct solution",
+    description: snapshot.intake!.requestedOutcome ?? snapshot.intake!.goal, risks: [] }], limitations: [] };
+}
+
+function directCritique(language: "cs" | "en"): AgentOutput<"critic"> {
+  return { overlookedConstraints: [], unsupportedAssumptions: [], evidenceWeaknesses: [], risks: [], alternativeSuggestions: [], failureScenarios: [],
+    summary: language === "cs" ? "Zadání lze dokončit přímo z poskytnutých údajů." : "The requested artifact can be completed from the supplied information." };
+}
+
+function directDecision(snapshot: FullSnapshot, language: "cs" | "en"): AgentOutput<"decision"> {
+  return { recommendation: snapshot.intake!.requestedOutcome ?? snapshot.intake!.goal, selectedOptionId: "direct-solution", confidence: "low",
+    reasoningSummary: language === "cs" ? "Výsledek vychází ze zadání uživatele; neobsahuje ověřená externí fakta." : "The result uses the user's description; it does not claim verified external facts.",
+    supportingEvidence: [], assumptions: snapshot.intake!.assumptions, unresolvedUnknowns: snapshot.intake!.unknowns, rejectedAlternatives: [] };
+}
+
 export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<FullSnapshot>, deps: AgentDependencies, options: { signal?: AbortSignal; humanInput?: boolean; recover?: boolean; preserveInterrupt?: boolean; resume?: { responseId: string; answers: string[] } } = {}): Promise<FullSnapshot> {
   const request = z.strictObject({ runId: z.uuid(), problemId: z.uuid() }).safeParse(raw);
   if (!request.success) throw new WorkflowError("INVALID_REQUEST");
@@ -133,17 +157,26 @@ export async function runFullWorkflow(raw: BasicRequest, store: WorkflowStore<Fu
       await advance("OPTIONS", { verification });
     }
     if (current.state === "OPTIONS") {
-      const candidates = await runAgent("options", fullOptionsInput(current), deps, agentOptions);
-      await advance("CRITIQUE", { options: candidates.output });
+      if (canDeliverDirectly(current)) await advance("CRITIQUE", { options: directOption(current, agentOptions.responseLanguage) });
+      else {
+        const candidates = await runAgent("options", fullOptionsInput(current), deps, agentOptions);
+        await advance("CRITIQUE", { options: candidates.output });
+      }
     }
     if (current.state === "CRITIQUE") {
-      const critiqued = await runAgent("critic", fullCriticInput(current), deps, agentOptions);
-      await advance("DECIDE", { critique: critiqued.output });
+      if (canDeliverDirectly(current)) await advance("DECIDE", { critique: directCritique(agentOptions.responseLanguage) });
+      else {
+        const critiqued = await runAgent("critic", fullCriticInput(current), deps, agentOptions);
+        await advance("DECIDE", { critique: critiqued.output });
+      }
     }
     if (current.state === "DECIDE") {
-      const decided = await runAgent("decision", fullDecisionInput(current), deps, agentOptions);
-      const guarded = guardDecisionEvidence(current, decided.output);
-      await advance("TASKS", { decision: { ...guarded, confidence: fullConfidence(current, guarded) } });
+      if (canDeliverDirectly(current)) await advance("TASKS", { decision: directDecision(current, agentOptions.responseLanguage) });
+      else {
+        const decided = await runAgent("decision", fullDecisionInput(current), deps, agentOptions);
+        const guarded = guardDecisionEvidence(current, decided.output);
+        await advance("TASKS", { decision: { ...guarded, confidence: fullConfidence(current, guarded) } });
+      }
     }
     if (current.state === "TASKS") {
       let tasks: AgentOutput<"tasks">;
